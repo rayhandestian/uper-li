@@ -29,6 +29,8 @@ model User {
   nimOrUsername        String   @unique
   password             String?
   emailVerified        DateTime?
+  verificationToken    String?
+  verificationTokenExpires DateTime?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
   monthlyLinksCreated  Int      @default(0)
