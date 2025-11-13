@@ -19,6 +19,7 @@
     "next": "16.0.3",
     "next-auth": "^4.24.13",
     "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.10",
     "prisma": "^6.19.0",
     "react": "19.2.0",
     "react-dom": "19.2.0"

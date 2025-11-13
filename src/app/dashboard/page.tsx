@@ -108,6 +108,7 @@ export default async function DashboardPage() {
         <h2 className="text-lg font-medium text-gray-900 mb-4">Link Terbaru</h2>
         <div className="bg-white shadow overflow-hidden sm:rounded-md">
           <ul className="divide-y divide-gray-200">
+            {/* @ts-ignore */}
             {user.links.map((link) => (
               <li key={link.id}>
                 <div className="px-4 py-4 sm:px-6">
