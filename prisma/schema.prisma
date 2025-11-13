@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  STAFF
+  ADMIN
+}
+
+enum Mode {
+  PREVIEW
+  DIRECT
+}
+
+model User {
+  id                   String   @id @default(cuid())
+  email                String   @unique
+  name                 String?
+  role                 Role     @default(STUDENT)
+  nimOrUsername        String   @unique
+  password             String?
+  emailVerified        DateTime?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  monthlyLinksCreated  Int      @default(0)
+  totalLinks           Int      @default(0)
+  lastReset            DateTime @default(now())
+  twoFactorEnabled     Boolean  @default(false)
+  twoFactorSecret      String?
+
+  links Link[]
+}
+
+model Link {
+  id          String   @id @default(cuid())
+  shortUrl    String   @unique
+  longUrl     String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  custom      Boolean  @default(false)
+  password    String?
+  mode        Mode     @default(PREVIEW)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  lastVisited DateTime?
+  visitCount  Int      @default(0)
+  qrCode      String?
+
+  visits Visit[]
+}
+
+model Visit {
+  id        String   @id @default(cuid())
+  linkId    String
+  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  visitedAt DateTime @default(now())
+  ip        String?
+  userAgent String?
+}
