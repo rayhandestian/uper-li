@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { QRCodeCanvas } from 'qrcode.react'
 
 interface Link {
   id: string
@@ -12,10 +13,7 @@ export default function QRPage() {
   const [links, setLinks] = useState<Link[]>([])
   const [selectedLink, setSelectedLink] = useState<string>('')
   const [qrCode, setQrCode] = useState<string>('')
-
-  useEffect(() => {
-    fetchLinks()
-  }, [])
+  const qrRef = useRef<HTMLCanvasElement>(null)
 
   const fetchLinks = async () => {
     const response = await fetch('/api/links')
@@ -25,6 +23,10 @@ export default function QRPage() {
     }
   }
 
+  useEffect(() => {
+    fetchLinks()
+  }, [])
+
   const generateQR = async () => {
     if (!selectedLink) return
 
@@ -32,9 +34,17 @@ export default function QRPage() {
     if (!link) return
 
     const url = `https://uper.link/${link.shortUrl}`
-    // In a real app, use a QR code library or API
-    // For demo, just show the URL
     setQrCode(url)
+  }
+
+  const downloadQR = () => {
+    if (!qrRef.current) return
+
+    const canvas = qrRef.current
+    const link = document.createElement('a')
+    link.download = `qr-${selectedLink}.png`
+    link.href = canvas.toDataURL()
+    link.click()
   }
 
   return (
@@ -79,12 +89,20 @@ export default function QRPage() {
             <div className="mt-4">
               <p className="text-sm text-gray-600 mb-2">QR Code untuk: {qrCode}</p>
               <div className="bg-gray-100 p-4 rounded-md text-center">
-                <p className="text-sm text-gray-500">
-                  (QR Code akan ditampilkan di sini dengan library seperti qrcode.react)
-                </p>
-                <p className="text-xs text-gray-400 mt-2">
-                  URL: {qrCode}
-                </p>
+                <QRCodeCanvas
+                  value={qrCode}
+                  size={200}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="M"
+                  ref={qrRef}
+                />
+                <button
+                  onClick={downloadQR}
+                  className="mt-4 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  Download QR Code
+                </button>
               </div>
             </div>
           )}
