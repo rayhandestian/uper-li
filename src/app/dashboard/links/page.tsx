@@ -31,12 +31,14 @@ export default function LinksPage() {
   const [pagination, setPagination] = useState<PaginationData | null>(null)
   const [longUrl, setLongUrl] = useState('')
   const [customUrl, setCustomUrl] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [editingLink, setEditingLink] = useState<Link | null>(null)
   const [editCustomUrl, setEditCustomUrl] = useState('')
   const [editMode, setEditMode] = useState<'PREVIEW' | 'DIRECT'>('PREVIEW')
+  const [editPassword, setEditPassword] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
   // Search and filter state
@@ -90,6 +92,7 @@ export default function LinksPage() {
       body: JSON.stringify({
         longUrl,
         customUrl: customUrl || undefined,
+        password: password || undefined,
       }),
     })
 
@@ -99,6 +102,7 @@ export default function LinksPage() {
       setSuccess('Link berhasil dibuat!')
       setLongUrl('')
       setCustomUrl('')
+      setPassword('')
       fetchLinks(currentPage)
     } else {
       setError(data.error || 'Terjadi kesalahan.')
@@ -122,12 +126,14 @@ export default function LinksPage() {
     setEditingLink(link)
     setEditCustomUrl(link.shortUrl)
     setEditMode(link.mode)
+    setEditPassword('')
   }
 
   const cancelEdit = () => {
     setEditingLink(null)
     setEditCustomUrl('')
     setEditMode('PREVIEW')
+    setEditPassword('')
   }
 
   const saveEdit = async () => {
@@ -144,6 +150,7 @@ export default function LinksPage() {
       body: JSON.stringify({
         shortUrl: editCustomUrl !== editingLink.shortUrl ? editCustomUrl : undefined,
         mode: editMode,
+        password: editPassword || undefined,
       }),
     })
 
@@ -245,6 +252,22 @@ export default function LinksPage() {
                 placeholder="custom-name"
               />
             </div>
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password (opsional)
+            </label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Lindungi link dengan password"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Minimal 4 karakter. Kosongkan jika tidak ingin melindungi link.
+            </p>
           </div>
           {error && (
             <div className="text-red-600 text-sm">
@@ -489,6 +512,19 @@ export default function LinksPage() {
                     <option value="PREVIEW">Preview (aman)</option>
                     <option value="DIRECT">Direct (langsung)</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Password</label>
+                  <input
+                    type="password"
+                    value={editPassword}
+                    onChange={(e) => setEditPassword(e.target.value)}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    placeholder="Kosongkan untuk menghapus password"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">
+                    Minimal 4 karakter. Kosongkan untuk menghapus proteksi password.
+                  </p>
                 </div>
               </div>
               {error && (

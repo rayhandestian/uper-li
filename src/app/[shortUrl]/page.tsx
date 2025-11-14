@@ -38,6 +38,11 @@ export default async function ShortUrlPage({ params }: PageProps) {
     redirect('/inactive')
   }
 
+  // Check if link has password protection
+  if (link.password) {
+    redirect(`/locked/${shortUrl}?url=${encodeURIComponent(link.longUrl)}`)
+  }
+
   if (link.mode === 'DIRECT') {
     redirect(link.longUrl)
   }

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'crypto'
+import bcrypt from 'bcryptjs'
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { longUrl, customUrl } = await request.json()
+  const { longUrl, customUrl, password } = await request.json()
 
   if (!longUrl) {
     return NextResponse.json({ error: 'URL asli diperlukan.' }, { status: 400 })
@@ -147,6 +148,15 @@ export async function POST(request: NextRequest) {
     } while (await prisma.link.findUnique({ where: { shortUrl } }))
   }
 
+  // Hash password if provided
+  let hashedPassword = null
+  if (password) {
+    if (password.length < 4) {
+      return NextResponse.json({ error: 'Password minimal 4 karakter.' }, { status: 400 })
+    }
+    hashedPassword = await bcrypt.hash(password, 12)
+  }
+
   // Create link
   const link = await prisma.link.create({
     data: {
@@ -154,6 +164,7 @@ export async function POST(request: NextRequest) {
       longUrl,
       userId: session.user.id,
       custom: !!customUrl,
+      password: hashedPassword,
     },
   })
 
