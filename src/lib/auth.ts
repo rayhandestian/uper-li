@@ -33,11 +33,55 @@ export const authOptions: NextAuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password)
         if (!isValid) return null
 
+        // Check if 2FA is required
+        if (user.twoFactorEnabled) {
+          // Generate 2FA code and send email
+          const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+          const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              twoFactorSecret: verificationCode,
+              verificationTokenExpires: verificationCodeExpires,
+            },
+          })
+
+          // Send 2FA code via email
+          try {
+            await sgMail.send({
+              to: user.email,
+              from: 'noreply@uper.link',
+              subject: 'Kode 2FA - UPer.link',
+              html: `
+                <p>Halo ${user.nimOrUsername},</p>
+                <p>Kode verifikasi 2FA Anda: <strong>${verificationCode}</strong></p>
+                <p>Kode ini akan kadaluarsa dalam 10 menit.</p>
+                <p>Jika Anda tidak mencoba masuk, abaikan email ini.</p>
+                <p>Salam,<br>Tim UPer.link</p>
+              `,
+            })
+          } catch (error) {
+            console.error('2FA email sending error:', error)
+            return null
+          }
+
+          // Return user with 2FA required flag
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+            requires2FA: true
+          }
+        }
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role
+          role: user.role,
+          requires2FA: false
         }
       }
     }),
