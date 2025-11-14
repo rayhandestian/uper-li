@@ -138,6 +138,48 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
+      {/* Manual Cron Jobs */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-4 py-5 sm:p-6">
+          <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+            Manual Maintenance Tasks
+          </h3>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <button
+              onClick={async () => {
+                const response = await fetch('/api/admin/cron', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'monthly_reset' })
+                })
+                const result = await response.json()
+                alert(result.success ? `Reset completed: ${result.usersUpdated} users updated` : `Error: ${result.error}`)
+              }}
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+            >
+              Run Monthly Reset
+            </button>
+            <button
+              onClick={async () => {
+                const response = await fetch('/api/admin/cron', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'link_cleanup' })
+                })
+                const result = await response.json()
+                alert(result.success ? `Cleanup completed: ${result.linksDeactivated} links deactivated` : `Error: ${result.error}`)
+              }}
+              className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700"
+            >
+              Run Link Cleanup
+            </button>
+          </div>
+          <p className="mt-2 text-sm text-gray-500">
+            These tasks normally run automatically via cron jobs.
+          </p>
+        </div>
+      </div>
+
       {/* Navigation Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <a
@@ -224,7 +266,7 @@ export default async function AdminDashboard() {
               Recent Users
             </h3>
             <ul className="divide-y divide-gray-200">
-              {recentUsers.map((user) => (
+              {recentUsers.map((user: typeof recentUsers[0]) => (
                 <li key={user.id} className="py-3">
                   <div className="flex items-center space-x-4">
                     <div className="flex-1 min-w-0">
@@ -262,7 +304,7 @@ export default async function AdminDashboard() {
               Recent Links
             </h3>
             <ul className="divide-y divide-gray-200">
-              {recentLinks.map((link) => (
+              {recentLinks.map((link: typeof recentLinks[0]) => (
                 <li key={link.id} className="py-3">
                   <div className="flex items-center space-x-4">
                     <div className="flex-1 min-w-0">
