@@ -5,19 +5,67 @@ import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'crypto'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const { searchParams } = new URL(request.url)
+  const page = parseInt(searchParams.get('page') || '1')
+  const limit = parseInt(searchParams.get('limit') || '10')
+  const search = searchParams.get('search') || ''
+  const active = searchParams.get('active')
+  const sort = searchParams.get('sort') || 'createdAt'
+  const order = searchParams.get('order') || 'desc'
+
+  const skip = (page - 1) * limit
+
+  // Build where clause
+  const where: any = {
+    userId: session.user.id,
+  }
+
+  if (search) {
+    where.OR = [
+      { shortUrl: { contains: search, mode: 'insensitive' } },
+      { longUrl: { contains: search, mode: 'insensitive' } },
+    ]
+  }
+
+  if (active !== null && active !== undefined) {
+    where.active = active === 'true'
+  }
+
+  // Build orderBy
+  const orderBy: any = {}
+  orderBy[sort] = order
+
+  // Get total count for pagination
+  const total = await prisma.link.count({ where })
+
+  // Get paginated links
   const links = await prisma.link.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: 'desc' },
+    where,
+    orderBy,
+    skip,
+    take: limit,
   })
 
-  return NextResponse.json(links)
+  const totalPages = Math.ceil(total / limit)
+
+  return NextResponse.json({
+    links,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
+  })
 }
 
 export async function POST(request: NextRequest) {

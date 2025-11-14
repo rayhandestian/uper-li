@@ -16,9 +16,19 @@ interface Link {
   visitCount: number
 }
 
+interface PaginationData {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  hasNext: boolean
+  hasPrev: boolean
+}
+
 export default function LinksPage() {
   const { data: session } = useSession()
   const [links, setLinks] = useState<Link[]>([])
+  const [pagination, setPagination] = useState<PaginationData | null>(null)
   const [longUrl, setLongUrl] = useState('')
   const [customUrl, setCustomUrl] = useState('')
   const [loading, setLoading] = useState(false)
@@ -29,11 +39,35 @@ export default function LinksPage() {
   const [editMode, setEditMode] = useState<'PREVIEW' | 'DIRECT'>('PREVIEW')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
-  const fetchLinks = async () => {
-    const response = await fetch('/api/links')
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('')
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [sortBy, setSortBy] = useState<'createdAt' | 'visitCount' | 'shortUrl'>('createdAt')
+  const [sortOrder] = useState<'asc' | 'desc'>('desc')
+  const [currentPage, setCurrentPage] = useState(1)
+
+  const fetchLinks = async (page = currentPage) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: '10',
+      sort: sortBy,
+      order: sortOrder,
+    })
+
+    if (searchTerm) {
+      params.append('search', searchTerm)
+    }
+
+    if (activeFilter !== 'all') {
+      params.append('active', activeFilter === 'active' ? 'true' : 'false')
+    }
+
+    const response = await fetch(`/api/links?${params}`)
     if (response.ok) {
       const data = await response.json()
-      setLinks(data)
+      setLinks(data.links)
+      setPagination(data.pagination)
+      setCurrentPage(page)
     }
   }
 
@@ -65,7 +99,7 @@ export default function LinksPage() {
       setSuccess('Link berhasil dibuat!')
       setLongUrl('')
       setCustomUrl('')
-      fetchLinks()
+      fetchLinks(currentPage)
     } else {
       setError(data.error || 'Terjadi kesalahan.')
     }
@@ -81,7 +115,7 @@ export default function LinksPage() {
       },
       body: JSON.stringify({ active: !active }),
     })
-    fetchLinks()
+    fetchLinks(currentPage)
   }
 
   const startEdit = (link: Link) => {
@@ -117,7 +151,7 @@ export default function LinksPage() {
 
     if (response.ok) {
       setSuccess('Link berhasil diperbarui!')
-      fetchLinks()
+      fetchLinks(currentPage)
       cancelEdit()
     } else {
       setError(data.error || 'Terjadi kesalahan.')
@@ -136,7 +170,7 @@ export default function LinksPage() {
 
     if (response.ok) {
       setSuccess('Link berhasil dihapus!')
-      fetchLinks()
+      fetchLinks(currentPage)
       setShowDeleteConfirm(null)
     } else {
       const data = await response.json()
@@ -144,6 +178,28 @@ export default function LinksPage() {
     }
 
     setLoading(false)
+  }
+
+  const handleSearch = () => {
+    setCurrentPage(1)
+    fetchLinks(1)
+  }
+
+  const handleFilterChange = (filter: 'all' | 'active' | 'inactive') => {
+    setActiveFilter(filter)
+    setCurrentPage(1)
+    fetchLinks(1)
+  }
+
+  const handleSortChange = (sort: 'createdAt' | 'visitCount' | 'shortUrl') => {
+    setSortBy(sort)
+    setCurrentPage(1)
+    fetchLinks(1)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    fetchLinks(page)
   }
 
   return (
@@ -210,6 +266,65 @@ export default function LinksPage() {
         </form>
       </div>
 
+      {/* Search and Filter Controls */}
+      <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              Cari Link
+            </label>
+            <div className="flex">
+              <input
+                type="text"
+                id="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari berdasarkan short URL atau URL asli..."
+                className="flex-1 border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              />
+              <button
+                onClick={handleSearch}
+                className="px-4 py-2 border border-l-0 border-gray-300 bg-gray-50 rounded-r-md hover:bg-gray-100"
+              >
+                Cari
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              id="filter"
+              value={activeFilter}
+              onChange={(e) => handleFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
+              className="block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            >
+              <option value="all">Semua</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Nonaktif</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">
+              Urutkan
+            </label>
+            <select
+              id="sort"
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value as 'createdAt' | 'visitCount' | 'shortUrl')}
+              className="block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            >
+              <option value="createdAt">Tanggal Dibuat</option>
+              <option value="visitCount">Jumlah Kunjungan</option>
+              <option value="shortUrl">Short URL</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
           {links.map((link) => (
@@ -271,6 +386,74 @@ export default function LinksPage() {
           )}
         </ul>
       </div>
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div className="flex-1 flex justify-between sm:hidden">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={!pagination.hasPrev}
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Sebelumnya
+            </button>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={!pagination.hasNext}
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              Selanjutnya
+            </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Menampilkan <span className="font-medium">{(currentPage - 1) * pagination.limit + 1}</span> sampai{' '}
+                <span className="font-medium">{Math.min(currentPage * pagination.limit, pagination.total)}</span> dari{' '}
+                <span className="font-medium">{pagination.total}</span> hasil
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pagination.hasPrev}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <span className="sr-only">Sebelumnya</span>
+                  ‹
+                </button>
+                {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                  const pageNum = Math.max(1, Math.min(pagination.totalPages - 4, currentPage - 2)) + i
+                  if (pageNum > pagination.totalPages) return null
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                        pageNum === currentPage
+                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pagination.hasNext}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <span className="sr-only">Selanjutnya</span>
+                  ›
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {editingLink && (
