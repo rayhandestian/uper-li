@@ -2,17 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-// Initialize cron jobs on server startup
-if (typeof window === 'undefined') {
-  // Only run on server side
-  try {
-    const { initializeCronJobs } = require('../lib/cron')
-    initializeCronJobs()
-  } catch (error) {
-    console.error('Failed to initialize cron jobs:', error)
-  }
-}
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client"
+  output   = "../src/generated"
 }
 
 datasource db {
@@ -38,6 +39,7 @@ model User {
   lastReset            DateTime @default(now())
   twoFactorEnabled     Boolean  @default(false)
   twoFactorSecret      String?
+  active               Boolean  @default(true)
 
   links Link[]
 }
@@ -54,6 +56,7 @@ model Link {
   password          String?
   mode              Mode     @default(PREVIEW)
   active            Boolean  @default(true)
+  deactivatedAt     DateTime?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   lastVisited       DateTime?
