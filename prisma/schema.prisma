@@ -43,20 +43,22 @@ model User {
 }
 
 model Link {
-  id          String   @id @default(cuid())
-  shortUrl    String   @unique
-  longUrl     String
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  custom      Boolean  @default(false)
-  password    String?
-  mode        Mode     @default(PREVIEW)
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  lastVisited DateTime?
-  visitCount  Int      @default(0)
-  qrCode      String?
+  id                String   @id @default(cuid())
+  shortUrl          String   @unique
+  longUrl           String
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  custom            Boolean  @default(false)
+  customChanges     Int      @default(0)
+  customChangedAt   DateTime?
+  password          String?
+  mode              Mode     @default(PREVIEW)
+  active            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastVisited       DateTime?
+  visitCount        Int      @default(0)
+  qrCode            String?
 
   visits Visit[]
 }
