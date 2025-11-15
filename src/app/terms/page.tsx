@@ -10,7 +10,7 @@ export default function TermsPage() {
         </h1>
 
         <div className="prose prose-gray max-w-none">
-          <p className="text-lg text-gray-600 mb-6">
+          <p className="text-lg text-gray-800 mb-6">
             Selamat datang di UPer.li, layanan URL shortener eksklusif untuk Civitas Universitas Pertamina.
           </p>
 
@@ -44,7 +44,7 @@ export default function TermsPage() {
             Kami dapat mengubah syarat ini kapan saja. Penggunaan berkelanjutan berarti Anda menerima perubahan.
           </p>
 
-          <p className="mt-8 text-sm text-gray-500">
+          <p className="mt-8 text-sm text-gray-600">
             Terakhir diperbarui: November 2025
           </p>
         </div>

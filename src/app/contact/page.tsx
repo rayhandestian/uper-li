@@ -20,12 +20,6 @@ export default function ContactPage() {
               <li>
                 <strong>Email:</strong> support@uper.li
               </li>
-              <li>
-                <strong>Universitas:</strong> Universitas Pertamina
-              </li>
-              <li>
-                <strong>Lokasi:</strong> Jakarta, Indonesia
-              </li>
             </ul>
           </div>
 

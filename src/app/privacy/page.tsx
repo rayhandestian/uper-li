@@ -10,7 +10,7 @@ export default function PrivacyPage() {
         </h1>
 
         <div className="prose prose-gray max-w-none">
-          <p className="text-lg text-gray-600 mb-6">
+          <p className="text-lg text-gray-800 mb-6">
             Kebijakan privasi ini menjelaskan bagaimana UPer.li mengumpulkan, menggunakan, dan melindungi informasi Anda.
           </p>
 
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
             Kami dapat memperbarui kebijakan ini. Perubahan akan diumumkan melalui email atau situs.
           </p>
 
-          <p className="mt-8 text-sm text-gray-500">
+          <p className="mt-8 text-sm text-gray-600">
             Terakhir diperbarui: November 2025
           </p>
         </div>
