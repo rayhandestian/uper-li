@@ -6,7 +6,12 @@ import { sendEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
-    const { role, nimOrUsername, password, turnstileToken } = await request.json()
+    const { role, nimOrUsername, password, agreedToTerms, turnstileToken } = await request.json()
+
+    // Validate terms acceptance
+    if (!agreedToTerms) {
+      return NextResponse.json({ error: 'Anda harus menyetujui Syarat dan Ketentuan.' }, { status: 400 })
+    }
 
     // Validate Turnstile
     const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {

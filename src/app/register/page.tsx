@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [nimOrUsername, setNimOrUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -23,6 +24,12 @@ export default function RegisterPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
+
+    if (!agreedToTerms) {
+      setError('Anda harus menyetujui Syarat dan Ketentuan serta Kebijakan Privasi.')
+      setLoading(false)
+      return
+    }
 
     if (!turnstileToken) {
       setError('Harap selesaikan verifikasi CAPTCHA.')
@@ -51,6 +58,7 @@ export default function RegisterPage() {
         role,
         nimOrUsername,
         password,
+        agreedToTerms,
         turnstileToken,
       }),
     })
@@ -164,6 +172,27 @@ export default function RegisterPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
+          </div>
+
+          <div className="flex items-start">
+            <input
+              id="agreedToTerms"
+              name="agreedToTerms"
+              type="checkbox"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+            />
+            <label htmlFor="agreedToTerms" className="ml-2 text-sm text-gray-700">
+              Saya setuju dengan{' '}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
+                Syarat dan Ketentuan
+              </a>
+              {' '}serta{' '}
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
+                Kebijakan Privasi
+              </a>
+            </label>
           </div>
 
           <div className="flex justify-center">
