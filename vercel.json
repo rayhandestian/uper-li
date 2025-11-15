@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "includeFiles": "src/generated/**"
+    }
+  },
+  "includeFiles": [
+    "src/generated/**"
+  ]
+}
