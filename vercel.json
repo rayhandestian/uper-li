@@ -1,9 +1,6 @@
 {
-  "includeFiles": [
-    "src/generated/**"
-  ],
   "functions": {
-    "src/app/api/**/*.ts": {
+    "src/app/api/**": {
       "includeFiles": "src/generated/**"
     }
   }
