@@ -4,9 +4,16 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import EmailProvider from 'next-auth/providers/email'
 import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
-import sgMail from '@sendgrid/mail'
+import nodemailer from 'nodemailer'
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || '587'),
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+})
 
 const isUPerEmail = (email: string) => {
   return email.endsWith('@student.universitaspertamina.ac.id') || email.endsWith('@universitaspertamina.ac.id')
@@ -49,7 +56,7 @@ export const authOptions: NextAuthOptions = {
 
           // Send 2FA code via email
           try {
-            await sgMail.send({
+            await transporter.sendMail({
               to: user.email,
               from: 'noreply@uper.link',
               subject: 'Kode 2FA - UPer.link',
@@ -87,11 +94,11 @@ export const authOptions: NextAuthOptions = {
     }),
     EmailProvider({
       server: {
-        host: 'smtp.sendgrid.net',
-        port: 587,
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
         auth: {
-          user: 'apikey',
-          pass: process.env.SENDGRID_API_KEY
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
         }
       },
       from: 'noreply@uper.link',
@@ -100,7 +107,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email must be from Universitas Pertamina domain')
         }
 
-        await sgMail.send({
+        await transporter.sendMail({
           to: identifier,
           from: 'noreply@uper.link',
           subject: 'Sign in to UPer.link',
