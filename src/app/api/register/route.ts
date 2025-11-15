@@ -73,11 +73,11 @@ export async function POST(request: NextRequest) {
     const verificationUrl = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${verificationToken}`
     await sgMail.send({
       to: email,
-      from: 'noreply@uper.link',
-      subject: 'Verifikasi Akun UPer.link',
+      from: 'noreply@uper.li',
+      subject: 'Verifikasi Akun UPer.li',
       html: `
         <p>Halo,</p>
-        <p>Terima kasih telah mendaftar di UPer.link. Klik link berikut untuk verifikasi akun Anda:</p>
+        <p>Terima kasih telah mendaftar di UPer.li. Klik link berikut untuk verifikasi akun Anda:</p>
         <a href="${verificationUrl}">Verifikasi Akun</a>
         <p>Link ini akan kadaluarsa dalam 24 jam.</p>
         <p>Jika Anda tidak mendaftar, abaikan email ini.</p>

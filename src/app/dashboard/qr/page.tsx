@@ -33,7 +33,7 @@ export default function QRPage() {
     const link = links.find(l => l.id === selectedLink)
     if (!link) return
 
-    const url = `https://uper.link/${link.shortUrl}`
+    const url = `https://uper.li/${link.shortUrl}`
     setQrCode(url)
   }
 
@@ -71,7 +71,7 @@ export default function QRPage() {
               <option value="">Pilih link...</option>
               {links.map((link) => (
                 <option key={link.id} value={link.id}>
-                  uper.link/{link.shortUrl} - {link.longUrl}
+                  uper.li/{link.shortUrl} - {link.longUrl}
                 </option>
               ))}
             </select>

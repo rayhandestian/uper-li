@@ -8,14 +8,14 @@ export default function ContactPage() {
 
         <div className="prose prose-gray max-w-none">
           <p className="text-lg text-gray-600 mb-6">
-            Jika Anda memiliki pertanyaan atau masalah dengan UPer.link, hubungi kami melalui:
+            Jika Anda memiliki pertanyaan atau masalah dengan UPer.li, hubungi kami melalui:
           </p>
 
           <div className="bg-gray-50 p-6 rounded-lg">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Informasi Kontak</h2>
             <ul className="space-y-2 text-gray-700">
               <li>
-                <strong>Email:</strong> support@uper.link
+                <strong>Email:</strong> support@uper.li
               </li>
               <li>
                 <strong>Universitas:</strong> Universitas Pertamina

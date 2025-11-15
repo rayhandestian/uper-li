@@ -115,7 +115,7 @@ export default async function DashboardPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center">
                       <p className="text-sm font-medium text-blue-600 truncate">
-                        uper.link/{link.shortUrl}
+                        uper.li/{link.shortUrl}
                       </p>
                       <p className="ml-2 text-sm text-gray-500 truncate">
                         → {link.longUrl}

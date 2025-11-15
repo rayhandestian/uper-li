@@ -58,14 +58,14 @@ export const authOptions: NextAuthOptions = {
           try {
             await transporter.sendMail({
               to: user.email,
-              from: 'noreply@uper.link',
-              subject: 'Kode 2FA - UPer.link',
+              from: 'noreply@uper.li',
+              subject: 'Kode 2FA - UPer.li',
               html: `
                 <p>Halo ${user.nimOrUsername},</p>
                 <p>Kode verifikasi 2FA Anda: <strong>${verificationCode}</strong></p>
                 <p>Kode ini akan kadaluarsa dalam 10 menit.</p>
                 <p>Jika Anda tidak mencoba masuk, abaikan email ini.</p>
-                <p>Salam,<br>Tim UPer.link</p>
+                <p>Salam,<br>Tim UPer.li</p>
               `,
             })
           } catch (error) {
@@ -101,7 +101,7 @@ export const authOptions: NextAuthOptions = {
           pass: process.env.SMTP_PASS
         }
       },
-      from: 'noreply@uper.link',
+      from: 'noreply@uper.li',
       sendVerificationRequest: async ({ identifier, url }) => {
         if (!isUPerEmail(identifier)) {
           throw new Error('Email must be from Universitas Pertamina domain')
@@ -109,8 +109,8 @@ export const authOptions: NextAuthOptions = {
 
         await transporter.sendMail({
           to: identifier,
-          from: 'noreply@uper.link',
-          subject: 'Sign in to UPer.link',
+          from: 'noreply@uper.li',
+          subject: 'Sign in to UPer.li',
           html: `<p>Click <a href="${url}">here</a> to sign in.</p>`
         })
       }

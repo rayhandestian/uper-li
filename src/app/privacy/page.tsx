@@ -3,12 +3,12 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Kebijakan Privasi UPer.link
+          Kebijakan Privasi UPer.li
         </h1>
 
         <div className="prose prose-gray max-w-none">
           <p className="text-lg text-gray-600 mb-6">
-            Kebijakan privasi ini menjelaskan bagaimana UPer.link mengumpulkan, menggunakan, dan melindungi informasi Anda.
+            Kebijakan privasi ini menjelaskan bagaimana UPer.li mengumpulkan, menggunakan, dan melindungi informasi Anda.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">1. Informasi yang Kami Kumpulkan</h2>

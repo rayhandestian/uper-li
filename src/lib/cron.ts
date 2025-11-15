@@ -79,16 +79,16 @@ export function scheduleLinkDeactivation() {
           try {
             await sgMail.send({
               to: link.user.email,
-              from: 'noreply@uper.link',
-              subject: 'Pemberitahuan: Link Akan Dinonaktifkan - UPer.link',
+              from: 'noreply@uper.li',
+              subject: 'Pemberitahuan: Link Akan Dinonaktifkan - UPer.li',
               html: `
                 <p>Halo ${link.user.nimOrUsername},</p>
                 <p>Link Anda berikut akan segera dinonaktifkan karena tidak aktif selama 5 bulan:</p>
-                <p><strong>uper.link/${link.shortUrl}</strong></p>
+                <p><strong>uper.li/${link.shortUrl}</strong></p>
                 <p><strong>${link.longUrl}</strong></p>
                 <p>Silakan kunjungi link tersebut atau aktifkan kembali di dashboard Anda untuk memperpanjang masa aktif.</p>
                 <p>Jika tidak diaktifkan dalam 1 bulan, link akan dihapus secara permanen.</p>
-                <p>Salam,<br>Tim UPer.link</p>
+                <p>Salam,<br>Tim UPer.li</p>
               `,
             })
           } catch (emailError) {

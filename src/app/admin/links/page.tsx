@@ -138,7 +138,7 @@ export default function AdminLinksPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center">
                       <p className="text-sm font-medium text-blue-600 truncate">
-                        uper.link/{link.shortUrl}
+                        uper.li/{link.shortUrl}
                       </p>
                       <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         link.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'

@@ -241,7 +241,7 @@ export default function LinksPage() {
             </label>
             <div className="mt-1 flex rounded-md shadow-sm">
               <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                uper.link/
+                uper.li/
               </span>
               <input
                 type="text"
@@ -357,7 +357,7 @@ export default function LinksPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center">
                       <p className="text-sm font-medium text-blue-600 truncate">
-                        uper.link/{link.shortUrl}
+                        uper.li/{link.shortUrl}
                       </p>
                       <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         link.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -489,7 +489,7 @@ export default function LinksPage() {
                   <label className="block text-sm font-medium text-gray-700">Short URL</label>
                   <div className="mt-1 flex rounded-md shadow-sm">
                     <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                      uper.link/
+                      uper.li/
                     </span>
                     <input
                       type="text"

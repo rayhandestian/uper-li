@@ -3,17 +3,17 @@ export default function TermsPage() {
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Syarat dan Ketentuan UPer.link
+          Syarat dan Ketentuan UPer.li
         </h1>
 
         <div className="prose prose-gray max-w-none">
           <p className="text-lg text-gray-600 mb-6">
-            Selamat datang di UPer.link, layanan URL shortener eksklusif untuk Civitas Universitas Pertamina.
+            Selamat datang di UPer.li, layanan URL shortener eksklusif untuk Civitas Universitas Pertamina.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">1. Penerimaan Syarat</h2>
           <p>
-            Dengan menggunakan UPer.link, Anda menyetujui syarat dan ketentuan ini. Jika Anda tidak setuju, harap jangan gunakan layanan ini.
+            Dengan menggunakan UPer.li, Anda menyetujui syarat dan ketentuan ini. Jika Anda tidak setuju, harap jangan gunakan layanan ini.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">2. Penggunaan Layanan</h2>
@@ -33,7 +33,7 @@ export default function TermsPage() {
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">5. Penolakan Tanggung Jawab</h2>
           <p>
-            UPer.link tidak bertanggung jawab atas konten yang di-link oleh pengguna.
+            UPer.li tidak bertanggung jawab atas konten yang di-link oleh pengguna.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">6. Perubahan Syarat</h2>

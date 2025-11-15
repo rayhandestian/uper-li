@@ -92,7 +92,7 @@ export default async function AnalyticsPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-blue-600 truncate">
-                      uper.link/{link.shortUrl}
+                      uper.li/{link.shortUrl}
                     </p>
                     <p className="mt-1 text-sm text-gray-500 truncate">
                       {link.longUrl}
@@ -133,7 +133,7 @@ export default async function AnalyticsPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-blue-600">
-                          uper.link/{link?.shortUrl}
+                          uper.li/{link?.shortUrl}
                         </p>
                         <p className="text-sm text-gray-500">
                           {new Date(visit.visitedAt).toLocaleString('id-ID')}

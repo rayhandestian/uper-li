@@ -3,7 +3,7 @@ export default function Home() {
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
       <main className="text-center">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          UPer.link
+          UPer.li
         </h1>
         <p className="text-lg text-gray-600 mb-8 max-w-md">
           URL Shortener Eksklusif untuk Civitas Universitas Pertamina

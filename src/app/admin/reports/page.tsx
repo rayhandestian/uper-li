@@ -87,7 +87,7 @@ export default async function AdminReportsPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">System Reports</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Detailed statistics and analytics for the UPer.link system
+          Detailed statistics and analytics for the UPer.li system
         </p>
       </div>
 

@@ -43,15 +43,15 @@ export async function POST(request: NextRequest) {
   try {
     await sgMail.send({
       to: user.email,
-      from: 'noreply@uper.link',
-      subject: 'Verifikasi Aktivasi 2FA - UPer.link',
+      from: 'noreply@uper.li',
+      subject: 'Verifikasi Aktivasi 2FA - UPer.li',
       html: `
         <p>Halo ${user.nimOrUsername},</p>
-        <p>Anda telah meminta untuk mengaktifkan Two-Factor Authentication (2FA) pada akun UPer.link Anda.</p>
+        <p>Anda telah meminta untuk mengaktifkan Two-Factor Authentication (2FA) pada akun UPer.li Anda.</p>
         <p>Kode verifikasi Anda: <strong>${verificationCode}</strong></p>
         <p>Kode ini akan kadaluarsa dalam 10 menit.</p>
         <p>Jika Anda tidak meminta aktivasi 2FA, abaikan email ini.</p>
-        <p>Salam,<br>Tim UPer.link</p>
+        <p>Salam,<br>Tim UPer.li</p>
       `,
     })
 
