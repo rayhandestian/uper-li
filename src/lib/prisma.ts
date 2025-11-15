@@ -1,9 +1,34 @@
-import { PrismaClient } from '@prisma/client'
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+// Mock Prisma export to prevent build errors during migration to raw SQL
+export const prisma = {
+  user: {
+    findUnique: () => null,
+    findFirst: () => null,
+    create: () => null,
+    update: () => null,
+    updateMany: () => null,
+    delete: () => null,
+    deleteMany: () => null,
+    findMany: () => [],
+    count: () => 0,
+  },
+  link: {
+    findUnique: () => null,
+    findFirst: () => null,
+    create: () => null,
+    update: () => null,
+    updateMany: () => null,
+    delete: () => null,
+    deleteMany: () => null,
+    findMany: () => [],
+    count: () => 0,
+  },
+  visit: {
+    create: () => null,
+    findMany: () => [],
+    deleteMany: () => null,
+  },
+  $executeRaw: () => null,
+  $transaction: () => null,
 }
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient()
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+export default prisma

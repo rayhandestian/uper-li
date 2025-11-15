@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -18,47 +18,47 @@ export async function GET(request: NextRequest) {
 
   const skip = (page - 1) * limit
 
-  // Build where clause
-  const where: any = {}
+  // Build WHERE clause
+  let whereConditions = []
+  let params: any[] = []
+  let paramIndex = 1
 
   if (search) {
-    where.OR = [
-      { nimOrUsername: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } },
-    ]
+    whereConditions.push(`("nimOrUsername" ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`)
+    params.push(`%${search}%`)
+    paramIndex++
   }
 
   if (role && role !== 'all') {
-    where.role = role
+    whereConditions.push(`role = $${paramIndex}`)
+    params.push(role)
+    paramIndex++
   }
 
-  // Get total count for pagination
-  const total = await prisma.user.count({ where })
+  const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+
+  // Get total count
+  const countQuery = `SELECT COUNT(*) as total FROM "User" ${whereClause}`
+  const countResult = await db.query(countQuery, params)
+  const total = parseInt(countResult.rows[0].total)
 
   // Get paginated users
-  const users = await prisma.user.findMany({
-    where,
-    orderBy: { createdAt: 'desc' },
-    skip,
-    take: limit,
-    select: {
-      id: true,
-      email: true,
-      nimOrUsername: true,
-      role: true,
-      emailVerified: true,
-      twoFactorEnabled: true,
-      monthlyLinksCreated: true,
-      totalLinks: true,
-      createdAt: true,
-      active: true,
-    },
-  })
+  const usersQuery = `
+    SELECT id, email, "nimOrUsername", role, "emailVerified", "twoFactorEnabled", 
+           "monthlyLinksCreated", "totalLinks", "createdAt", active
+    FROM "User" 
+    ${whereClause}
+    ORDER BY "createdAt" DESC 
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+  `
+  
+  params.push(limit, skip)
+  const usersResult = await db.query(usersQuery, params)
 
   const totalPages = Math.ceil(total / limit)
 
   return NextResponse.json({
-    users,
+    users: usersResult.rows,
     pagination: {
       page,
       limit,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -16,13 +16,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi diperlukan.' }, { status: 400 })
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-  })
+  // Get user using raw SQL
+  const userResult = await db.query(
+    'SELECT * FROM "User" WHERE id = $1',
+    [session.user.id]
+  )
 
-  if (!user) {
+  if (userResult.rows.length === 0) {
     return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 })
   }
+
+  const user = userResult.rows[0]
 
   if (!user.twoFactorEnabled) {
     return NextResponse.json({ error: '2FA tidak diaktifkan.' }, { status: 400 })
@@ -32,7 +36,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi tidak ditemukan.' }, { status: 400 })
   }
 
-  if (user.verificationTokenExpires < new Date()) {
+  if (new Date(user.verificationTokenExpires) < new Date()) {
     return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa.' }, { status: 400 })
   }
 
@@ -40,14 +44,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi salah.' }, { status: 400 })
   }
 
-  // Clear the temporary 2FA code
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: {
-      twoFactorSecret: null,
-      verificationTokenExpires: null,
-    },
-  })
+  // Clear the temporary 2FA code using raw SQL
+  await db.query(
+    `UPDATE "User" 
+     SET "twoFactorSecret" = null, "verificationTokenExpires" = null, "updatedAt" = NOW()
+     WHERE id = $1`,
+    [session.user.id]
+  )
 
   return NextResponse.json({ message: 'Verifikasi 2FA berhasil.' })
 }
