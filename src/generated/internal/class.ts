@@ -32,15 +32,6 @@ const config: runtime.GetPrismaClientConfig = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
-        "native": true
-      },
-      {
-        "fromEnvVar": null,
-        "value": "rhel-openssl-3.0.x"
-      },
-      {
-        "fromEnvVar": null,
         "value": "linux-musl-openssl-3.0.x"
       }
     ],
@@ -64,8 +55,8 @@ const config: runtime.GetPrismaClientConfig = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider      = \"prisma-client\"\n  output        = \"../src/generated\"\n  binaryTargets = [\"native\", \"rhel-openssl-3.0.x\", \"linux-musl-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum Role {\n  STUDENT\n  STAFF\n  ADMIN\n}\n\nenum Mode {\n  PREVIEW\n  DIRECT\n}\n\nmodel User {\n  id                       String    @id @default(cuid())\n  email                    String    @unique\n  name                     String?\n  role                     Role      @default(STUDENT)\n  nimOrUsername            String    @unique\n  password                 String?\n  emailVerified            DateTime?\n  verificationToken        String?\n  verificationTokenExpires DateTime?\n  createdAt                DateTime  @default(now())\n  updatedAt                DateTime  @updatedAt\n  monthlyLinksCreated      Int       @default(0)\n  totalLinks               Int       @default(0)\n  lastReset                DateTime  @default(now())\n  twoFactorEnabled         Boolean   @default(false)\n  twoFactorSecret          String?\n  active                   Boolean   @default(true)\n\n  links Link[]\n}\n\nmodel Link {\n  id              String    @id @default(cuid())\n  shortUrl        String    @unique\n  longUrl         String\n  userId          String\n  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)\n  custom          Boolean   @default(false)\n  customChanges   Int       @default(0)\n  customChangedAt DateTime?\n  password        String?\n  mode            Mode      @default(PREVIEW)\n  active          Boolean   @default(true)\n  deactivatedAt   DateTime?\n  createdAt       DateTime  @default(now())\n  updatedAt       DateTime  @updatedAt\n  lastVisited     DateTime?\n  visitCount      Int       @default(0)\n  qrCode          String?\n\n  visits Visit[]\n}\n\nmodel Visit {\n  id        String   @id @default(cuid())\n  linkId    String\n  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)\n  visitedAt DateTime @default(now())\n  ip        String?\n  userAgent String?\n}\n",
-  "inlineSchemaHash": "542dc0787184b8aa1dd88dacfae347b5ea2782ad836aec39121f1cc2f7097fb6",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider      = \"prisma-client\"\n  output        = \"../src/generated\"\n  binaryTargets = [\"linux-musl-openssl-3.0.x\"]\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum Role {\n  STUDENT\n  STAFF\n  ADMIN\n}\n\nenum Mode {\n  PREVIEW\n  DIRECT\n}\n\nmodel User {\n  id                       String    @id @default(cuid())\n  email                    String    @unique\n  name                     String?\n  role                     Role      @default(STUDENT)\n  nimOrUsername            String    @unique\n  password                 String?\n  emailVerified            DateTime?\n  verificationToken        String?\n  verificationTokenExpires DateTime?\n  createdAt                DateTime  @default(now())\n  updatedAt                DateTime  @updatedAt\n  monthlyLinksCreated      Int       @default(0)\n  totalLinks               Int       @default(0)\n  lastReset                DateTime  @default(now())\n  twoFactorEnabled         Boolean   @default(false)\n  twoFactorSecret          String?\n  active                   Boolean   @default(true)\n\n  links Link[]\n}\n\nmodel Link {\n  id              String    @id @default(cuid())\n  shortUrl        String    @unique\n  longUrl         String\n  userId          String\n  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)\n  custom          Boolean   @default(false)\n  customChanges   Int       @default(0)\n  customChangedAt DateTime?\n  password        String?\n  mode            Mode      @default(PREVIEW)\n  active          Boolean   @default(true)\n  deactivatedAt   DateTime?\n  createdAt       DateTime  @default(now())\n  updatedAt       DateTime  @updatedAt\n  lastVisited     DateTime?\n  visitCount      Int       @default(0)\n  qrCode          String?\n\n  visits Visit[]\n}\n\nmodel Visit {\n  id        String   @id @default(cuid())\n  linkId    String\n  link      Link     @relation(fields: [linkId], references: [id], onDelete: Cascade)\n  visitedAt DateTime @default(now())\n  ip        String?\n  userAgent String?\n}\n",
+  "inlineSchemaHash": "130f20d78b0cb6811f6042f2e3977c27518639ed7f3b9c63d35b6a6dd1a97742",
   "copyEngine": true,
   "runtimeDataModel": {
     "models": {},
