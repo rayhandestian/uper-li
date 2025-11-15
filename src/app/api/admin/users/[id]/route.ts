@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export async function PATCH(
   request: NextRequest,
@@ -16,32 +16,44 @@ export async function PATCH(
   const { active, role } = await request.json()
   const { id } = await params
 
-  const updateData: any = {}
+  const updateFields: string[] = []
+  const updateValues: any[] = []
+  let paramCount = 0
 
   if (active !== undefined) {
-    updateData.active = active
+    paramCount++
+    updateFields.push(`active = $${paramCount}`)
+    updateValues.push(active)
   }
 
   if (role !== undefined) {
-    updateData.role = role
+    paramCount++
+    updateFields.push(`role = $${paramCount}`)
+    updateValues.push(role)
   }
 
-  const updatedUser = await prisma.user.update({
-    where: { id },
-    data: updateData,
-    select: {
-      id: true,
-      email: true,
-      nimOrUsername: true,
-      role: true,
-      emailVerified: true,
-      twoFactorEnabled: true,
-      monthlyLinksCreated: true,
-      totalLinks: true,
-      createdAt: true,
-      active: true,
-    },
-  })
+  if (updateFields.length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
+  }
 
-  return NextResponse.json(updatedUser)
+  paramCount++
+  updateFields.push(`"updatedAt" = NOW()`)
+  updateValues.push(id)
+
+  const query = `
+    UPDATE "User"
+    SET ${updateFields.join(', ')}
+    WHERE id = $${paramCount}
+    RETURNING id, email, "nimOrUsername", role, "emailVerified",
+              "twoFactorEnabled", "monthlyLinksCreated", "totalLinks",
+              "createdAt", active
+  `
+
+  const result = await db.query(query, updateValues)
+
+  if (result.rows.length === 0) {
+    return NextResponse.json({ error: 'User not found' }, { status: 404 })
+  }
+
+  return NextResponse.json(result.rows[0])
 }

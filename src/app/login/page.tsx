@@ -108,7 +108,7 @@ function LoginForm() {
         {requires2FA ? (
           <form className="mt-8 space-y-6" onSubmit={handle2FASubmit}>
             <div>
-              <label htmlFor="twoFactorCode" className="sr-only">
+              <label htmlFor="twoFactorCode" className="block text-sm font-medium text-gray-700 mb-1">
                 Kode 2FA
               </label>
               <input
@@ -117,7 +117,7 @@ function LoginForm() {
                 type="text"
                 required
                 className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                placeholder="000000"
+                placeholder="Masukkan 6 digit kode"
                 value={twoFactorCode}
                 onChange={(e) => setTwoFactorCode(e.target.value)}
                 maxLength={6}
@@ -156,37 +156,36 @@ function LoginForm() {
           </form>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="nimOrUsername" className="sr-only">
-                NIM/Username
-              </label>
-              <input
-                id="nimOrUsername"
-                name="nimOrUsername"
-                type="text"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="NIM/Username"
-                value={nimOrUsername}
-                onChange={(e) => setNimOrUsername(e.target.value)}
-              />
-            </div>
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+          <div>
+            <label htmlFor="nimOrUsername" className="block text-sm font-medium text-gray-700 mb-1">
+              NIM/Username
+            </label>
+            <input
+              id="nimOrUsername"
+              name="nimOrUsername"
+              type="text"
+              required
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="123456789 atau john.doe"
+              value={nimOrUsername}
+              onChange={(e) => setNimOrUsername(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Masukkan password Anda"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
           </div>
 
           <div className="flex justify-center">

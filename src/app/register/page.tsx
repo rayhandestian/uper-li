@@ -122,7 +122,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label htmlFor="nimOrUsername" className="sr-only">
+            <label htmlFor="nimOrUsername" className="block text-sm font-medium text-gray-700 mb-1">
               {role === 'STUDENT' ? 'NIM' : 'Username'}
             </label>
             <input
@@ -131,7 +131,7 @@ export default function RegisterPage() {
               type="text"
               required
               className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder={role === 'STUDENT' ? 'NIM' : 'Username'}
+              placeholder={role === 'STUDENT' ? '123456789' : 'john.doe'}
               value={nimOrUsername}
               onChange={(e) => setNimOrUsername(e.target.value)}
             />
@@ -143,7 +143,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="sr-only">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
@@ -152,14 +152,14 @@ export default function RegisterPage() {
               type="password"
               required
               className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Password"
+              placeholder="Masukkan password Anda"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
 
           <div>
-            <label htmlFor="confirmPassword" className="sr-only">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
               Konfirmasi Password
             </label>
             <input
@@ -168,7 +168,7 @@ export default function RegisterPage() {
               type="password"
               required
               className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Konfirmasi Password"
+              placeholder="Ulangi password Anda"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />

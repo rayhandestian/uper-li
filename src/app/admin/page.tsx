@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions)
@@ -9,34 +9,37 @@ export default async function AdminDashboard() {
     return null
   }
 
-  // Get system statistics
-  const totalUsers = await prisma.user.count()
-  const totalLinks = await prisma.link.count()
-  const activeLinks = await prisma.link.count({ where: { active: true } })
-  const totalVisits = await prisma.visit.count()
+  // Get system statistics using raw SQL
+  const statsResult = await db.query(`
+    SELECT
+      (SELECT COUNT(*) FROM "User") as totalUsers,
+      (SELECT COUNT(*) FROM "Link") as totalLinks,
+      (SELECT COUNT(*) FROM "Link" WHERE active = true) as activeLinks,
+      (SELECT COUNT(*) FROM "Visit") as totalVisits
+  `)
 
-  const recentUsers = await prisma.user.findMany({
-    take: 5,
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      email: true,
-      nimOrUsername: true,
-      role: true,
-      createdAt: true,
-      twoFactorEnabled: true,
-    },
-  })
+  const stats = statsResult.rows[0]
 
-  const recentLinks = await prisma.link.findMany({
-    take: 5,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      user: {
-        select: { nimOrUsername: true, email: true },
-      },
-    },
-  })
+  // Get recent users using raw SQL
+  const recentUsersResult = await db.query(`
+    SELECT id, email, "nimOrUsername", role, "createdAt", "twoFactorEnabled"
+    FROM "User"
+    ORDER BY "createdAt" DESC
+    LIMIT 5
+  `)
+
+  const recentUsers = recentUsersResult.rows
+
+  // Get recent links using raw SQL with join
+  const recentLinksResult = await db.query(`
+    SELECT l.*, u."nimOrUsername", u.email
+    FROM "Link" l
+    JOIN "User" u ON l."userId" = u.id
+    ORDER BY l."createdAt" DESC
+    LIMIT 5
+  `)
+
+  const recentLinks = recentLinksResult.rows
 
   return (
     <div className="space-y-6">
@@ -63,7 +66,7 @@ export default async function AdminDashboard() {
                     Total Users
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {totalUsers}
+                    {stats.totalUsers}
                   </dd>
                 </dl>
               </div>
@@ -85,7 +88,7 @@ export default async function AdminDashboard() {
                     Total Links
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {totalLinks}
+                    {stats.totalLinks}
                   </dd>
                 </dl>
               </div>
@@ -107,7 +110,7 @@ export default async function AdminDashboard() {
                     Active Links
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {activeLinks}
+                    {stats.activeLinks}
                   </dd>
                 </dl>
               </div>
@@ -129,7 +132,7 @@ export default async function AdminDashboard() {
                     Total Visits
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {totalVisits}
+                    {stats.totalVisits}
                   </dd>
                 </dl>
               </div>

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { sendEmail } from '@/lib/email'
+import { db } from '@/lib/db'
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,21 +35,23 @@ export async function POST(request: NextRequest) {
       ? `${nimOrUsername}@student.universitaspertamina.ac.id`
       : `${nimOrUsername}@universitaspertamina.ac.id`
 
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    })
+    // Check if user exists by email using raw SQL
+    const existingUserResult = await db.query(
+      'SELECT id FROM "User" WHERE email = $1',
+      [email]
+    )
 
-    if (existingUser) {
+    if (existingUserResult.rows.length > 0) {
       return NextResponse.json({ error: 'Email sudah terdaftar.' }, { status: 400 })
     }
 
-    // Check nimOrUsername unique
-    const existingNimOrUsername = await prisma.user.findUnique({
-      where: { nimOrUsername },
-    })
+    // Check if nimOrUsername is unique using raw SQL
+    const existingUsernameResult = await db.query(
+      'SELECT id FROM "User" WHERE "nimOrUsername" = $1',
+      [nimOrUsername]
+    )
 
-    if (existingNimOrUsername) {
+    if (existingUsernameResult.rows.length > 0) {
       return NextResponse.json({ error: 'NIM/Username sudah digunakan.' }, { status: 400 })
     }
 
@@ -60,17 +62,17 @@ export async function POST(request: NextRequest) {
     const verificationToken = crypto.randomBytes(32).toString('hex')
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        email,
-        role,
-        nimOrUsername,
-        password: hashedPassword,
-        verificationToken,
-        verificationTokenExpires,
-      },
-    })
+    // Create user using raw SQL with RETURNING clause
+    const userResult = await db.query(
+      `INSERT INTO "User" (
+        id, email, role, "nimOrUsername", password, 
+        "verificationToken", "verificationTokenExpires", "createdAt", "updatedAt"
+      ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW()) 
+      RETURNING id`,
+      [email, role, nimOrUsername, hashedPassword, verificationToken, verificationTokenExpires]
+    )
+
+    const user = userResult.rows[0]
 
     // Send verification email
     const verificationUrl = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${verificationToken}`

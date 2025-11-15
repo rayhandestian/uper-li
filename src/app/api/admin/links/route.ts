@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -16,50 +16,56 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get('search') || ''
   const active = searchParams.get('active')
 
-  const skip = (page - 1) * limit
+  const offset = (page - 1) * limit
 
-  // Build where clause
-  const where: any = {}
+  // Build WHERE clause
+  const whereConditions = []
+  const queryParams: any[] = []
+  let paramCount = 0
 
   if (search) {
-    where.OR = [
-      { shortUrl: { contains: search, mode: 'insensitive' } },
-      { longUrl: { contains: search, mode: 'insensitive' } },
-      { user: { nimOrUsername: { contains: search, mode: 'insensitive' } } },
-      { user: { email: { contains: search, mode: 'insensitive' } } },
-    ]
+    paramCount++
+    whereConditions.push(`(
+      l."shortUrl" ILIKE $${paramCount} OR
+      l."longUrl" ILIKE $${paramCount} OR
+      u."nimOrUsername" ILIKE $${paramCount} OR
+      u.email ILIKE $${paramCount}
+    )`)
+    queryParams.push(`%${search}%`)
   }
 
   if (active !== null && active !== undefined) {
-    where.active = active === 'true'
+    paramCount++
+    whereConditions.push(`l.active = $${paramCount}`)
+    queryParams.push(active === 'true')
   }
 
-  // Get total count for pagination
-  const total = await prisma.link.count({
-    where: {
-      ...where,
-      user: where.user || undefined,
-    }
-  })
+  const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+
+  // Get total count
+  const countQuery = `
+    SELECT COUNT(*) as total
+    FROM "Link" l
+    JOIN "User" u ON l."userId" = u.id
+    ${whereClause}
+  `
+
+  const countResult = await db.query(countQuery, queryParams)
+  const total = parseInt(countResult.rows[0].total)
 
   // Get paginated links
-  const links = await prisma.link.findMany({
-    where: {
-      ...where,
-      user: where.user || undefined,
-    },
-    include: {
-      user: {
-        select: {
-          nimOrUsername: true,
-          email: true,
-        },
-      },
-    },
-    orderBy: { createdAt: 'desc' },
-    skip,
-    take: limit,
-  })
+  const linksQuery = `
+    SELECT l.*, u."nimOrUsername", u.email
+    FROM "Link" l
+    JOIN "User" u ON l."userId" = u.id
+    ${whereClause}
+    ORDER BY l."createdAt" DESC
+    LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
+  `
+
+  queryParams.push(limit, offset)
+  const linksResult = await db.query(linksQuery, queryParams)
+  const links = linksResult.rows
 
   const totalPages = Math.ceil(total / limit)
 

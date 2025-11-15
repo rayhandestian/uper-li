@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -10,23 +10,35 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      nimOrUsername: true,
-      emailVerified: true,
-      monthlyLinksCreated: true,
-      totalLinks: true,
-      twoFactorEnabled: true,
-    },
-  })
+  // Get user using raw SQL
+  const userResult = await db.query(
+    'SELECT id, email, "nimOrUsername", role, "emailVerified", "twoFactorEnabled", "monthlyLinksCreated", "totalLinks", "createdAt" FROM "User" WHERE id = $1',
+    [session.user.id]
+  )
 
-  if (!user) {
+  if (userResult.rows.length === 0) {
     return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 })
   }
 
-  return NextResponse.json(user)
+  return NextResponse.json(userResult.rows[0])
+}
+
+export async function PATCH(request: NextRequest) {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { name } = await request.json()
+
+  // Update user using raw SQL
+  await db.query(
+    `UPDATE "User" 
+     SET name = $1, "updatedAt" = NOW()
+     WHERE id = $2`,
+    [name, session.user.id]
+  )
+
+  return NextResponse.json({ message: 'Profil berhasil diperbarui.' })
 }

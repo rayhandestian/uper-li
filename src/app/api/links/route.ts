@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
@@ -23,41 +23,50 @@ export async function GET(request: NextRequest) {
 
   const skip = (page - 1) * limit
 
-  // Build where clause
-  const where: any = {
-    userId: session.user.id,
-  }
+  // Build WHERE clause
+  let whereConditions = ['"userId" = $1']
+  let params: any[] = [session.user.id]
+  let paramIndex = 2
 
   if (search) {
-    where.OR = [
-      { shortUrl: { contains: search, mode: 'insensitive' } },
-      { longUrl: { contains: search, mode: 'insensitive' } },
-    ]
+    whereConditions.push(`("shortUrl" ILIKE $${paramIndex} OR "longUrl" ILIKE $${paramIndex})`)
+    params.push(`%${search}%`)
+    paramIndex++
   }
 
   if (active !== null && active !== undefined) {
-    where.active = active === 'true'
+    whereConditions.push(`active = $${paramIndex}`)
+    params.push(active === 'true')
+    paramIndex++
   }
 
-  // Build orderBy
-  const orderBy: any = {}
-  orderBy[sort] = order
+  const whereClause = `WHERE ${whereConditions.join(' AND ')}`
 
-  // Get total count for pagination
-  const total = await prisma.link.count({ where })
+  // Build ORDER BY
+  const validSortFields = ['createdAt', 'updatedAt', 'shortUrl', 'visitCount', 'lastVisited']
+  const sortField = validSortFields.includes(sort) ? sort : 'createdAt'
+  const orderDirection = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC'
+
+  // Get total count
+  const countQuery = `SELECT COUNT(*) as total FROM "Link" ${whereClause}`
+  const countResult = await db.query(countQuery, params)
+  const total = parseInt(countResult.rows[0].total)
 
   // Get paginated links
-  const links = await prisma.link.findMany({
-    where,
-    orderBy,
-    skip,
-    take: limit,
-  })
+  const linksQuery = `
+    SELECT * FROM "Link" 
+    ${whereClause}
+    ORDER BY "${sortField}" ${orderDirection}
+    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+  `
+  
+  params.push(limit, skip)
+  const linksResult = await db.query(linksQuery, params)
 
   const totalPages = Math.ceil(total / limit)
 
   return NextResponse.json({
-    links,
+    links: linksResult.rows,
     pagination: {
       page,
       limit,
@@ -100,13 +109,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'URL terdeteksi berbahaya.' }, { status: 400 })
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-  })
+  // Get user using raw SQL
+  const userResult = await db.query(
+    'SELECT * FROM "User" WHERE id = $1',
+    [session.user.id]
+  )
 
-  if (!user) {
+  if (userResult.rows.length === 0) {
     return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 })
   }
+
+  const user = userResult.rows[0]
 
   // Check limits
   const maxMonthly = user.role === 'STUDENT' ? 5 : 10
@@ -129,11 +142,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if custom URL is taken
-    const existing = await prisma.link.findUnique({
-      where: { shortUrl: customUrl },
-    })
+    const existingResult = await db.query(
+      'SELECT id FROM "Link" WHERE "shortUrl" = $1',
+      [customUrl]
+    )
 
-    if (existing) {
+    if (existingResult.rows.length > 0) {
       return NextResponse.json({ error: 'Short URL kustom sudah digunakan.' }, { status: 400 })
     }
   } else {
@@ -145,7 +159,14 @@ export async function POST(request: NextRequest) {
       if (attempts > 10) {
         return NextResponse.json({ error: 'Gagal menghasilkan short URL.' }, { status: 500 })
       }
-    } while (await prisma.link.findUnique({ where: { shortUrl } }))
+      
+      const existingResult = await db.query(
+        'SELECT id FROM "Link" WHERE "shortUrl" = $1',
+        [shortUrl]
+      )
+      
+      if (existingResult.rows.length === 0) break
+    } while (true)
   }
 
   // Hash password if provided
@@ -157,25 +178,24 @@ export async function POST(request: NextRequest) {
     hashedPassword = await bcrypt.hash(password, 12)
   }
 
-  // Create link
-  const link = await prisma.link.create({
-    data: {
-      shortUrl,
-      longUrl,
-      userId: session.user.id,
-      custom: !!customUrl,
-      password: hashedPassword,
-    },
-  })
+  // Create link using raw SQL
+  const linkResult = await db.query(
+    `INSERT INTO "Link" (
+      id, "shortUrl", "longUrl", "userId", custom, password, "createdAt", "updatedAt"
+    ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW()) 
+    RETURNING *`,
+    [shortUrl, longUrl, session.user.id, !!customUrl, hashedPassword]
+  )
 
-  // Update user counters
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data: {
-      monthlyLinksCreated: { increment: 1 },
-      totalLinks: { increment: 1 },
-    },
-  })
+  const link = linkResult.rows[0]
+
+  // Update user counters using raw SQL
+  await db.query(
+    `UPDATE "User" 
+     SET "monthlyLinksCreated" = "monthlyLinksCreated" + 1, "totalLinks" = "totalLinks" + 1, "updatedAt" = NOW()
+     WHERE id = $1`,
+    [session.user.id]
+  )
 
   return NextResponse.json(link)
 }

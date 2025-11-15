@@ -1,8 +1,7 @@
 import { NextAuthOptions } from 'next-auth'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import EmailProvider from 'next-auth/providers/email'
-import { prisma } from './prisma'
+import { db } from './db'
 import bcrypt from 'bcryptjs'
 import nodemailer from 'nodemailer'
 
@@ -20,7 +19,6 @@ const isUPerEmail = (email: string) => {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -31,11 +29,17 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.nimOrUsername || !credentials?.password) return null
 
-        const user = await prisma.user.findUnique({
-          where: { nimOrUsername: credentials.nimOrUsername }
-        })
+        // Get user using raw SQL
+        const userResult = await db.query(
+          'SELECT * FROM "User" WHERE "nimOrUsername" = $1',
+          [credentials.nimOrUsername]
+        )
 
-        if (!user || !user.password) return null
+        if (userResult.rows.length === 0) return null
+
+        const user = userResult.rows[0]
+
+        if (!user.password) return null
 
         const isValid = await bcrypt.compare(credentials.password, user.password)
         if (!isValid) return null
@@ -46,13 +50,13 @@ export const authOptions: NextAuthOptions = {
           const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
           const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-          await prisma.user.update({
-            where: { id: user.id },
-            data: {
-              twoFactorSecret: verificationCode,
-              verificationTokenExpires: verificationCodeExpires,
-            },
-          })
+          // Update user with 2FA code using raw SQL
+          await db.query(
+            `UPDATE "User" 
+             SET "twoFactorSecret" = $1, "verificationTokenExpires" = $2, "updatedAt" = NOW()
+             WHERE id = $3`,
+            [verificationCode, verificationCodeExpires, user.id]
+          )
 
           // Send 2FA code via email
           try {

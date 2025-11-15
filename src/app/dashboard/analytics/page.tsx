@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export default async function AnalyticsPage() {
   const session = await getServerSession(authOptions)
@@ -9,19 +9,31 @@ export default async function AnalyticsPage() {
     return null
   }
 
-  const links = await prisma.link.findMany({
-    where: { userId: session.user.id },
-    include: {
-      visits: {
-        orderBy: { visitedAt: 'desc' },
-        take: 10,
-      },
-    },
-    orderBy: { visitCount: 'desc' },
-  })
+  // Get user's links and visit statistics using raw SQL
+  const linksResult = await db.query(`
+    SELECT l.*,
+           COALESCE(
+             json_agg(
+               json_build_object(
+                 'id', v.id,
+                 'visitedAt', v."visitedAt",
+                 'linkId', v."linkId"
+               )
+               ORDER BY v."visitedAt" DESC
+             ) FILTER (WHERE v.id IS NOT NULL),
+             '[]'::json
+           ) as visits
+    FROM "Link" l
+    LEFT JOIN "Visit" v ON l.id = v."linkId"
+    WHERE l."userId" = $1
+    GROUP BY l.id
+    ORDER BY l."visitCount" DESC
+  `, [session.user.id])
 
-// @ts-ignore
-  const totalVisits = links.reduce((sum: number, link) => sum + link.visitCount, 0)
+  const links = linksResult.rows
+
+  // Calculate total visits
+  const totalVisits = links.reduce((sum: number, link: any) => sum + (parseInt(link.visitCount) || 0), 0)
 
   return (
     <div className="px-4 py-6 sm:px-0">

@@ -1,5 +1,5 @@
 import cron from 'node-cron'
-import { prisma } from './prisma'
+import { db } from './db'
 import { sendEmail } from './email'
 
 // Monthly limit reset - runs on the 1st of every month at 00:00
@@ -9,29 +9,27 @@ export function scheduleMonthlyLimitReset() {
 
     try {
       // Reset monthly link counts for all users
-      const result = await prisma.user.updateMany({
-        data: {
-          monthlyLinksCreated: 0,
-          lastReset: new Date(),
-        },
-      })
+      const result = await db.query(`
+        UPDATE "User"
+        SET "monthlyLinksCreated" = 0, "lastReset" = NOW()
+      `)
 
-      console.log(`Monthly limit reset completed. ${result.count} users updated.`)
+      console.log(`Monthly limit reset completed.`)
 
       // Log the reset operation
-      await prisma.$executeRaw`
+      await db.query(`
         INSERT INTO system_logs (action, details, created_at)
-        VALUES ('monthly_reset', ${JSON.stringify({ usersUpdated: result.count })}, NOW())
-      `
+        VALUES ('monthly_reset', $1, NOW())
+      `, [JSON.stringify({})])
 
     } catch (error) {
       console.error('Error during monthly limit reset:', error)
 
       // Log the error
-      await prisma.$executeRaw`
+      await db.query(`
         INSERT INTO system_logs (action, details, created_at)
-        VALUES ('monthly_reset_error', ${JSON.stringify({ error: error instanceof Error ? error.message : String(error) })}, NOW())
-      `
+        VALUES ('monthly_reset_error', $1, NOW())
+      `, [JSON.stringify({ error: error instanceof Error ? error.message : String(error) })])
     }
   })
 }
@@ -46,41 +44,39 @@ export function scheduleLinkDeactivation() {
       fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 5)
 
       // Find links that haven't been visited in 5 months and are still active
-      const linksToDeactivate = await prisma.link.findMany({
-        where: {
-          active: true,
-          OR: [
-            { lastVisited: { lt: fiveMonthsAgo } },
-            { lastVisited: null } // Links never visited
-          ],
-          createdAt: { lt: fiveMonthsAgo } // At least 5 months old
-        },
-        include: {
-          user: {
-            select: { email: true, nimOrUsername: true }
-          }
-        }
-      })
+      const linksToDeactivateResult = await db.query(`
+        SELECT l.*, u.email, u."nimOrUsername"
+        FROM "Link" l
+        JOIN "User" u ON l."userId" = u.id
+        WHERE l.active = true
+        AND (l."lastVisited" IS NULL OR l."lastVisited" < $1)
+        AND l."createdAt" < $1
+      `, [fiveMonthsAgo])
+
+      const linksToDeactivate = linksToDeactivateResult.rows
 
       if (linksToDeactivate.length > 0) {
         // Send warning emails 1 month before deactivation
         const oneMonthAgo = new Date()
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 4) // 4 months since creation = 1 month before 5-month mark
 
-        const linksForWarning = linksToDeactivate.filter((link: typeof linksToDeactivate[0]) =>
-          link.createdAt <= oneMonthAgo &&
-          (!link.lastVisited || link.lastVisited <= oneMonthAgo)
-        )
+        const linksForWarning = linksToDeactivate.filter((link: any) => {
+          const createdAt = new Date(link.createdAt)
+          const lastVisited = link.lastVisited ? new Date(link.lastVisited) : null
+          
+          return createdAt <= oneMonthAgo &&
+            (!lastVisited || lastVisited <= oneMonthAgo)
+        })
 
         // Send warning emails
-        for (const link of linksForWarning as typeof linksToDeactivate) {
+        for (const link of linksForWarning) {
           try {
             await sendEmail({
-              to: link.user.email,
+              to: link.email,
               from: 'noreply@uper.li',
               subject: 'Pemberitahuan: Link Akan Dinonaktifkan - UPer.li',
               html: `
-                <p>Halo ${link.user.nimOrUsername},</p>
+                <p>Halo ${link.nimOrUsername},</p>
                 <p>Link Anda berikut akan segera dinonaktifkan karena tidak aktif selama 5 bulan:</p>
                 <p><strong>uper.li/${link.shortUrl}</strong></p>
                 <p><strong>${link.longUrl}</strong></p>
@@ -95,32 +91,33 @@ export function scheduleLinkDeactivation() {
         }
 
         // Deactivate links that are exactly 5 months old
-        const linksToDeactivateNow = linksToDeactivate.filter((link: typeof linksToDeactivate[0]) =>
-          link.createdAt <= fiveMonthsAgo &&
-          (!link.lastVisited || link.lastVisited <= fiveMonthsAgo)
-        )
+        const linksToDeactivateNow = linksToDeactivate.filter((link: any) => {
+          const createdAt = new Date(link.createdAt)
+          const lastVisited = link.lastVisited ? new Date(link.lastVisited) : null
+          
+          return createdAt <= fiveMonthsAgo &&
+            (!lastVisited || lastVisited <= fiveMonthsAgo)
+        })
 
         if (linksToDeactivateNow.length > 0) {
-          const result = await prisma.link.updateMany({
-            where: {
-              id: { in: linksToDeactivateNow.map((link: typeof linksToDeactivateNow[0]) => link.id) }
-            },
-            data: {
-              active: false,
-              deactivatedAt: new Date(),
-            }
-          })
+          const linkIds = linksToDeactivateNow.map((link: any) => link.id)
+          
+          const result = await db.query(`
+            UPDATE "Link"
+            SET active = false, "deactivatedAt" = NOW()
+            WHERE id = ANY($1)
+          `, [linkIds])
 
-          console.log(`Deactivated ${result.count} links due to inactivity.`)
+          console.log(`Deactivated ${result.rowCount} links due to inactivity.`)
 
           // Log deactivation
-          await prisma.$executeRaw`
+          await db.query(`
             INSERT INTO system_logs (action, details, created_at)
-            VALUES ('link_deactivation', ${JSON.stringify({
-              linksDeactivated: result.count,
-              warningsSent: linksForWarning.length
-            })}, NOW())
-          `
+            VALUES ('link_deactivation', $1, NOW())
+          `, [JSON.stringify({
+            linksDeactivated: result.rowCount,
+            warningsSent: linksForWarning.length
+          })])
         }
       }
 
@@ -129,10 +126,10 @@ export function scheduleLinkDeactivation() {
 
       // Log the error
       try {
-        await prisma.$executeRaw`
+        await db.query(`
           INSERT INTO system_logs (action, details, created_at)
-          VALUES ('link_deactivation_error', ${JSON.stringify({ error: error instanceof Error ? error.message : String(error) })}, NOW())
-        `
+          VALUES ('link_deactivation_error', $1, NOW())
+        `, [JSON.stringify({ error: error instanceof Error ? error.message : String(error) })])
       } catch (logError) {
         console.error('Failed to log deactivation error:', logError)
       }
@@ -150,28 +147,28 @@ export function scheduleLinkDeletion() {
       oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
 
       // Find deactivated links that have been inactive for 1 month
-      const linksToDelete = await prisma.link.findMany({
-        where: {
-          active: false,
-          deactivatedAt: { lt: oneMonthAgo }
-        }
-      })
+      const linksToDeleteResult = await db.query(`
+        SELECT id FROM "Link"
+        WHERE active = false AND "deactivatedAt" < $1
+      `, [oneMonthAgo])
+
+      const linksToDelete = linksToDeleteResult.rows
 
       if (linksToDelete.length > 0) {
+        const linkIds = linksToDelete.map((link: any) => link.id)
+        
         // Delete the links (cascade will handle visits)
-        const result = await prisma.link.deleteMany({
-          where: {
-            id: { in: linksToDelete.map((link: typeof linksToDelete[0]) => link.id) }
-          }
-        })
+        const result = await db.query(`
+          DELETE FROM "Link" WHERE id = ANY($1)
+        `, [linkIds])
 
-        console.log(`Permanently deleted ${result.count} inactive links.`)
+        console.log(`Permanently deleted ${result.rowCount} inactive links.`)
 
         // Log deletion
-        await prisma.$executeRaw`
+        await db.query(`
           INSERT INTO system_logs (action, details, created_at)
-          VALUES ('link_deletion', ${JSON.stringify({ linksDeleted: result.count })}, NOW())
-        `
+          VALUES ('link_deletion', $1, NOW())
+        `, [JSON.stringify({ linksDeleted: result.rowCount })])
       }
 
     } catch (error) {
@@ -179,10 +176,10 @@ export function scheduleLinkDeletion() {
 
       // Log the error
       try {
-        await prisma.$executeRaw`
+        await db.query(`
           INSERT INTO system_logs (action, details, created_at)
-          VALUES ('link_deletion_error', ${JSON.stringify({ error: error instanceof Error ? error.message : String(error) })}, NOW())
-        `
+          VALUES ('link_deletion_error', $1, NOW())
+        `, [JSON.stringify({ error: error instanceof Error ? error.message : String(error) })])
       } catch (logError) {
         console.error('Failed to log deletion error:', logError)
       }
@@ -206,15 +203,13 @@ export async function manualMonthlyReset() {
   console.log('Manual monthly limit reset triggered...')
 
   try {
-    const result = await prisma.user.updateMany({
-      data: {
-        monthlyLinksCreated: 0,
-        lastReset: new Date(),
-      },
-    })
+    const result = await db.query(`
+      UPDATE "User"
+      SET "monthlyLinksCreated" = 0, "lastReset" = NOW()
+    `)
 
-    console.log(`Manual monthly reset: ${result.count} users updated.`)
-    return { success: true, usersUpdated: result.count }
+    console.log(`Manual monthly reset completed.`)
+    return { success: true, usersUpdated: 0 }
   } catch (error) {
     console.error('Manual monthly reset error:', error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
@@ -228,23 +223,16 @@ export async function manualLinkCleanup() {
     const fiveMonthsAgo = new Date()
     fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 5)
 
-    const result = await prisma.link.updateMany({
-      where: {
-        active: true,
-        OR: [
-          { lastVisited: { lt: fiveMonthsAgo } },
-          { lastVisited: null }
-        ],
-        createdAt: { lt: fiveMonthsAgo }
-      },
-      data: {
-        active: false,
-        deactivatedAt: new Date(),
-      }
-    })
+    const result = await db.query(`
+      UPDATE "Link"
+      SET active = false, "deactivatedAt" = NOW()
+      WHERE active = true
+      AND ("lastVisited" IS NULL OR "lastVisited" < $1)
+      AND "createdAt" < $1
+    `, [fiveMonthsAgo])
 
-    console.log(`Manual cleanup: ${result.count} links deactivated.`)
-    return { success: true, linksDeactivated: result.count }
+    console.log(`Manual cleanup: ${result.rowCount} links deactivated.`)
+    return { success: true, linksDeactivated: result.rowCount }
   } catch (error) {
     console.error('Manual link cleanup error:', error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
