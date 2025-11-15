@@ -1,11 +1,13 @@
+import Footer from '@/components/Footer'
+
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4">
-      <main className="text-center">
+    <div className="min-h-screen bg-white flex flex-col">
+      <main className="flex-grow flex flex-col items-center justify-center px-4">
         <h1 className="text-4xl font-bold text-gray-900 mb-4">
           UPer.li
         </h1>
-        <p className="text-lg text-gray-600 mb-8 max-w-md">
+        <p className="text-lg text-gray-600 mb-8 max-w-md text-center">
           URL Shortener Eksklusif untuk Civitas Universitas Pertamina
         </p>
         <div className="space-x-4">
@@ -23,6 +25,7 @@ export default function Home() {
           </a>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

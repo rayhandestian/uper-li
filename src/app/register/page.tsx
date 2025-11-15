@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Turnstile } from '@marsidev/react-turnstile'
+import Footer from '@/components/Footer'
 
 export default function RegisterPage() {
   const [role, setRole] = useState<'STUDENT' | 'STAFF'>('STUDENT')
@@ -66,16 +67,17 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Daftar UPer.li
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Buat akun untuk mulai membuat short link
-          </p>
-        </div>
+    <div className="min-h-screen bg-white flex flex-col">
+      <main className="flex-grow flex items-center justify-center px-4 py-12">
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Daftar UPer.li
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Buat akun untuk mulai membuat short link
+            </p>
+          </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div>
             <label className="text-sm font-medium text-gray-700">Peran</label>
@@ -195,7 +197,9 @@ export default function RegisterPage() {
             </a>
           </div>
         </form>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Turnstile } from '@marsidev/react-turnstile'
+import Footer from '@/components/Footer'
 
 function LoginForm() {
   const [nimOrUsername, setNimOrUsername] = useState('')
@@ -84,24 +85,25 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center px-4">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Masuk ke UPer.li
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            {requires2FA
-              ? 'Masukkan kode verifikasi 2FA dari email Anda'
-              : 'Masukkan NIM/Username dan password Anda'
-            }
-          </p>
-          {message && (
-            <div className="mt-4 text-green-600 text-sm text-center">
-              {message}
-            </div>
-          )}
-        </div>
+    <div className="min-h-screen bg-white flex flex-col">
+      <main className="flex-grow flex items-center justify-center px-4">
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Masuk ke UPer.li
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              {requires2FA
+                ? 'Masukkan kode verifikasi 2FA dari email Anda'
+                : 'Masukkan NIM/Username dan password Anda'
+              }
+            </p>
+            {message && (
+              <div className="mt-4 text-green-600 text-sm text-center">
+                {message}
+              </div>
+            )}
+          </div>
 
         {requires2FA ? (
           <form className="mt-8 space-y-6" onSubmit={handle2FASubmit}>
@@ -219,7 +221,9 @@ function LoginForm() {
           </div>
         </form>
         )}
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   )
 }

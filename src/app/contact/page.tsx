@@ -1,7 +1,10 @@
+import Footer from '@/components/Footer'
+
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-white flex flex-col">
+      <main className="flex-grow py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           Hubungi Kami
         </h1>
@@ -30,7 +33,9 @@ export default function ContactPage() {
             Kami akan berusaha menjawab pertanyaan Anda dalam 1-2 hari kerja.
           </p>
         </div>
-      </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   )
 }
