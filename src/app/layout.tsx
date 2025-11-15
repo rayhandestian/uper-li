@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "UPer.li - Link SHortener",
+  title: "UPer.li - Link Shortener",
   description: "Link shortener for Universitas Pertamina",
 };
 
