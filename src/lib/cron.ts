@@ -1,8 +1,6 @@
 import cron from 'node-cron'
 import { prisma } from './prisma'
-import sgMail from '@sendgrid/mail'
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
+import { sendEmail } from './email'
 
 // Monthly limit reset - runs on the 1st of every month at 00:00
 export function scheduleMonthlyLimitReset() {
@@ -77,7 +75,7 @@ export function scheduleLinkDeactivation() {
         // Send warning emails
         for (const link of linksForWarning as typeof linksToDeactivate) {
           try {
-            await sgMail.send({
+            await sendEmail({
               to: link.user.email,
               from: 'noreply@uper.li',
               subject: 'Pemberitahuan: Link Akan Dinonaktifkan - UPer.li',

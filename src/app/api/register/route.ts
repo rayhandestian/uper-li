@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
-import sgMail from '@sendgrid/mail'
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
+import { sendEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     // Send verification email
     const verificationUrl = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${verificationToken}`
-    await sgMail.send({
+    await sendEmail({
       to: email,
       from: 'noreply@uper.li',
       subject: 'Verifikasi Akun UPer.li',

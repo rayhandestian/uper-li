@@ -3,9 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
-import sgMail from '@sendgrid/mail'
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!)
+import { sendEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -41,7 +39,7 @@ export async function POST(request: NextRequest) {
 
   // Send verification email
   try {
-    await sgMail.send({
+    await sendEmail({
       to: user.email,
       from: 'noreply@uper.li',
       subject: 'Verifikasi Aktivasi 2FA - UPer.li',
