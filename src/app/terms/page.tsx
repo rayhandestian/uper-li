@@ -15,32 +15,32 @@ export default function TermsPage() {
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">1. Penerimaan Syarat</h2>
-          <p>
+          <p className="text-gray-900">
             Dengan menggunakan UPer.li, Anda menyetujui syarat dan ketentuan ini. Jika Anda tidak setuju, harap jangan gunakan layanan ini.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">2. Penggunaan Layanan</h2>
-          <p>
+          <p className="text-gray-900">
             Layanan ini hanya untuk mahasiswa, dosen, dan staff Universitas Pertamina dengan email resmi universitas.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">3. Batasan Penggunaan</h2>
-          <p>
+          <p className="text-gray-900">
             Dilarang membuat link yang mengarah ke konten ilegal, berbahaya, atau melanggar hak cipta.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">4. Privasi</h2>
-          <p>
+          <p className="text-gray-900">
             Kami menghormati privasi Anda. Lihat Kebijakan Privasi untuk detail lebih lanjut.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">5. Penolakan Tanggung Jawab</h2>
-          <p>
+          <p className="text-gray-900">
             UPer.li tidak bertanggung jawab atas konten yang di-link oleh pengguna.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">6. Perubahan Syarat</h2>
-          <p>
+          <p className="text-gray-900">
             Kami dapat mengubah syarat ini kapan saja. Penggunaan berkelanjutan berarti Anda menerima perubahan.
           </p>
 

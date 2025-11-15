@@ -15,32 +15,32 @@ export default function PrivacyPage() {
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">1. Informasi yang Kami Kumpulkan</h2>
-          <p>
+          <p className="text-gray-900">
             Kami mengumpulkan email universitas, NIM/username, dan data penggunaan untuk menyediakan layanan.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">2. Penggunaan Informasi</h2>
-          <p>
+          <p className="text-gray-900">
             Informasi digunakan untuk verifikasi akun, penyediaan layanan, dan analitik internal.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">3. Berbagi Informasi</h2>
-          <p>
+          <p className="text-gray-900">
             Kami tidak menjual atau membagikan informasi pribadi Anda ke pihak ketiga tanpa izin.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">4. Keamanan Data</h2>
-          <p>
+          <p className="text-gray-900">
             Kami menggunakan enkripsi dan langkah keamanan untuk melindungi data Anda.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">5. Hak Anda</h2>
-          <p>
+          <p className="text-gray-900">
             Anda berhak mengakses, memperbarui, atau menghapus data Anda kapan saja.
           </p>
 
           <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-4">6. Perubahan Kebijakan</h2>
-          <p>
+          <p className="text-gray-900">
             Kami dapat memperbarui kebijakan ini. Perubahan akan diumumkan melalui email atau situs.
           </p>
 
