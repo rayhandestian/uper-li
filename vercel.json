@@ -1,7 +1,5 @@
 {
-  "functions": {
-    "src/app/api/**": {
-      "includeFiles": "src/generated/**"
-    }
-  }
+  "includeFiles": [
+    "src/generated/**"
+  ]
 }
