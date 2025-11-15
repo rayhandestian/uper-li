@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -9,19 +9,33 @@ export default async function DashboardPage() {
     return null
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      links: {
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-      },
-    },
-  })
+  // Get user data and links using raw SQL
+  const userResult = await db.query(`
+    SELECT u.*,
+           COALESCE(
+             json_agg(
+               json_build_object(
+                 'id', l.id,
+                 'shortUrl', l."shortUrl",
+                 'longUrl', l."longUrl",
+                 'active', l.active,
+                 'createdAt', l."createdAt"
+               )
+               ORDER BY l."createdAt" DESC
+             ) FILTER (WHERE l.id IS NOT NULL),
+             '[]'::json
+           ) as links
+    FROM "User" u
+    LEFT JOIN "Link" l ON u.id = l."userId"
+    WHERE u.id = $1
+    GROUP BY u.id
+  `, [session.user.id])
 
-  if (!user) {
+  if (userResult.rows.length === 0) {
     return null
   }
+
+  const user = userResult.rows[0]
 
   const totalLinks = user.totalLinks
   const monthlyLinks = user.monthlyLinksCreated
@@ -32,7 +46,7 @@ export default async function DashboardPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Beranda Dashboard</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Selamat datang, {user.name || user.nimOrUsername}
+          Selamat datang, {user.nimOrUsername}
         </p>
       </div>
 

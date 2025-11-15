@@ -1,5 +1,5 @@
 import { redirect, notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 interface PageProps {
   params: {
@@ -10,30 +10,31 @@ interface PageProps {
 export default async function ShortUrlPage({ params }: PageProps) {
   const { shortUrl } = params
 
-  const link = await prisma.link.findUnique({
-    where: { shortUrl },
-  })
+  // Get link using raw SQL
+  const linkResult = await db.query(
+    'SELECT * FROM "Link" WHERE "shortUrl" = $1 AND active = true',
+    [shortUrl]
+  )
 
-  if (!link) {
+  if (linkResult.rows.length === 0) {
     notFound()
   }
 
-  // Log visit
-  await prisma.visit.create({
-    data: {
-      linkId: link.id,
-      // ip and userAgent can be added later with headers
-    },
-  })
+  const link = linkResult.rows[0]
 
-  await prisma.link.update({
-    where: { id: link.id },
-    data: {
-      visitCount: { increment: 1 },
-      lastVisited: new Date(),
-    },
-  })
+  // Log visit using raw SQL
+  await db.query(
+    'INSERT INTO "Visit" ("linkId", "visitedAt") VALUES ($1, NOW())',
+    [link.id]
+  )
 
+  // Update visit count using raw SQL
+  await db.query(
+    'UPDATE "Link" SET "visitCount" = "visitCount" + 1, "lastVisited" = NOW() WHERE id = $1',
+    [link.id]
+  )
+
+  // Check if link is active (already checked above, but double-check)
   if (!link.active) {
     redirect('/inactive')
   }

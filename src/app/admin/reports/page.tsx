@@ -1,6 +1,6 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export default async function AdminReportsPage() {
   const session = await getServerSession(authOptions)
@@ -9,24 +9,34 @@ export default async function AdminReportsPage() {
     return null
   }
 
-  // Get detailed statistics
-  const totalUsers = await prisma.user.count()
-  const activeUsers = await prisma.user.count({ where: { active: true } })
-  const usersWith2FA = await prisma.user.count({ where: { twoFactorEnabled: true } })
+  // Get detailed statistics using raw SQL
+  const statsResult = await db.query(`
+    SELECT
+      (SELECT COUNT(*) FROM "User") as totalUsers,
+      (SELECT COUNT(*) FROM "User" WHERE active = true) as activeUsers,
+      (SELECT COUNT(*) FROM "User" WHERE "twoFactorEnabled" = true) as usersWith2FA,
+      (SELECT COUNT(*) FROM "Link") as totalLinks,
+      (SELECT COUNT(*) FROM "Link" WHERE active = true) as activeLinks,
+      (SELECT COUNT(*) FROM "Link" WHERE password IS NOT NULL) as passwordProtectedLinks,
+      (SELECT COUNT(*) FROM "Visit") as totalVisits
+  `)
 
-  const totalLinks = await prisma.link.count()
-  const activeLinks = await prisma.link.count({ where: { active: true } })
-  const passwordProtectedLinks = await prisma.link.count({ where: { password: { not: null } } })
+  const stats = statsResult.rows[0]
 
-  const totalVisits = await prisma.visit.count()
+  // Get user role distribution using raw SQL
+  const userRolesResult = await db.query(`
+    SELECT role, COUNT(*) as count
+    FROM "User"
+    GROUP BY role
+    ORDER BY count DESC
+  `)
 
-  // Get user role distribution
-  const userRoles = await prisma.user.groupBy({
-    by: ['role'],
-    _count: { role: true },
-  })
+  const userRoles = userRolesResult.rows.map(row => ({
+    role: row.role,
+    _count: { role: parseInt(row.count) }
+  }))
 
-  // Get monthly activity (last 12 months)
+  // Get monthly activity (last 12 months) using raw SQL
   const now = new Date()
   const monthlyStats = []
 
@@ -34,53 +44,32 @@ export default async function AdminReportsPage() {
     const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
 
-    const usersCreated = await prisma.user.count({
-      where: {
-        createdAt: {
-          gte: monthStart,
-          lt: monthEnd,
-        },
-      },
-    })
+    const monthStatsResult = await db.query(`
+      SELECT
+        (SELECT COUNT(*) FROM "User" WHERE "createdAt" >= $1 AND "createdAt" < $2) as usersCreated,
+        (SELECT COUNT(*) FROM "Link" WHERE "createdAt" >= $1 AND "createdAt" < $2) as linksCreated,
+        (SELECT COUNT(*) FROM "Visit" WHERE "visitedAt" >= $1 AND "visitedAt" < $2) as visits
+    `, [monthStart, monthEnd])
 
-    const linksCreated = await prisma.link.count({
-      where: {
-        createdAt: {
-          gte: monthStart,
-          lt: monthEnd,
-        },
-      },
-    })
-
-    const visits = await prisma.visit.count({
-      where: {
-        visitedAt: {
-          gte: monthStart,
-          lt: monthEnd,
-        },
-      },
-    })
+    const monthStats = monthStatsResult.rows[0]
 
     monthlyStats.push({
       month: monthStart.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }),
-      users: usersCreated,
-      links: linksCreated,
-      visits: visits,
+      users: parseInt(monthStats.usersCreated),
+      links: parseInt(monthStats.linksCreated),
+      visits: parseInt(monthStats.visits),
     })
   }
 
-  // Get top users by link count
-  const topUsers = await prisma.user.findMany({
-    take: 10,
-    orderBy: { totalLinks: 'desc' },
-    select: {
-      nimOrUsername: true,
-      email: true,
-      totalLinks: true,
-      monthlyLinksCreated: true,
-      role: true,
-    },
-  })
+  // Get top users by link count using raw SQL
+  const topUsersResult = await db.query(`
+    SELECT "nimOrUsername", email, "totalLinks", "monthlyLinksCreated", role
+    FROM "User"
+    ORDER BY "totalLinks" DESC
+    LIMIT 10
+  `)
+
+  const topUsers = topUsersResult.rows
 
   return (
     <div className="space-y-6">
@@ -107,10 +96,10 @@ export default async function AdminReportsPage() {
                     Total Users
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {totalUsers}
+                    {stats.totalUsers}
                   </dd>
                   <dd className="text-sm text-gray-500">
-                    {activeUsers} aktif
+                    {stats.activeUsers} aktif
                   </dd>
                 </dl>
               </div>
@@ -132,10 +121,10 @@ export default async function AdminReportsPage() {
                     Total Links
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {totalLinks}
+                    {stats.totalLinks}
                   </dd>
                   <dd className="text-sm text-gray-500">
-                    {activeLinks} aktif, {passwordProtectedLinks} dengan password
+                    {stats.activeLinks} aktif, {stats.passwordProtectedLinks} dengan password
                   </dd>
                 </dl>
               </div>
@@ -157,7 +146,7 @@ export default async function AdminReportsPage() {
                     Security
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {usersWith2FA}
+                    {stats.usersWith2FA}
                   </dd>
                   <dd className="text-sm text-gray-500">
                     users dengan 2FA
@@ -182,7 +171,7 @@ export default async function AdminReportsPage() {
                     Total Visits
                   </dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {totalVisits}
+                    {stats.totalVisits}
                   </dd>
                   <dd className="text-sm text-gray-500">
                     semua waktu

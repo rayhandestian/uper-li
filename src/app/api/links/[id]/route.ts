@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 export async function PATCH(
@@ -17,34 +17,47 @@ export async function PATCH(
   const { active, shortUrl, mode, password } = await request.json()
   const { id } = await params
 
-  const link = await prisma.link.findFirst({
-    where: {
-      id,
-      userId: session.user.id,
-    },
-  })
+  // Get link using raw SQL
+  const linkResult = await db.query(
+    'SELECT * FROM "Link" WHERE id = $1 AND "userId" = $2',
+    [id, session.user.id]
+  )
 
-  if (!link) {
+  if (linkResult.rows.length === 0) {
     return NextResponse.json({ error: 'Link tidak ditemukan.' }, { status: 404 })
   }
 
-  const updateData: any = {}
+  const link = linkResult.rows[0]
+
+  // Build dynamic update query
+  let updateFields = []
+  let queryParams: any[] = [id, session.user.id]
+  let paramIndex = 3
 
   if (active !== undefined) {
-    updateData.active = active
+    updateFields.push(`active = $${paramIndex}`)
+    queryParams.push(active)
+    paramIndex++
   }
 
   if (mode !== undefined) {
-    updateData.mode = mode
+    updateFields.push(`mode = $${paramIndex}`)
+    queryParams.push(mode)
+    paramIndex++
   }
 
   if (password !== undefined) {
     if (password === '') {
       // Remove password
-      updateData.password = null
+      updateFields.push(`password = $${paramIndex}`)
+      queryParams.push(null)
+      paramIndex++
     } else if (password.length >= 4) {
       // Set new password
-      updateData.password = await bcrypt.hash(password, 12)
+      const hashedPassword = await bcrypt.hash(password, 12)
+      updateFields.push(`password = $${paramIndex}`)
+      queryParams.push(hashedPassword)
+      paramIndex++
     } else {
       return NextResponse.json({ error: 'Password minimal 4 karakter.' }, { status: 400 })
     }
@@ -55,14 +68,16 @@ export async function PATCH(
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
-    if (link.customChangedAt && link.customChangedAt >= startOfMonth) {
+    if (link.customChangedAt && new Date(link.customChangedAt) >= startOfMonth) {
       if (link.customChanges >= 2) {
         return NextResponse.json({ error: 'Batas perubahan custom URL per bulan tercapai (maksimal 2x).' }, { status: 400 })
       }
     } else {
       // Reset counter for new month
-      updateData.customChanges = 1
-      updateData.customChangedAt = now
+      updateFields.push(`customChanges = 1`)
+      updateFields.push(`"customChangedAt" = $${paramIndex}`)
+      queryParams.push(now)
+      paramIndex++
     }
 
     // Validate new short URL
@@ -71,24 +86,45 @@ export async function PATCH(
     }
 
     // Check if new short URL is taken
-    const existing = await prisma.link.findUnique({
-      where: { shortUrl },
-    })
+    const existingResult = await db.query(
+      'SELECT id FROM "Link" WHERE "shortUrl" = $1',
+      [shortUrl]
+    )
 
-    if (existing && existing.id !== id) {
+    if (existingResult.rows.length > 0 && existingResult.rows[0].id !== id) {
       return NextResponse.json({ error: 'Short URL kustom sudah digunakan.' }, { status: 400 })
     }
 
-    updateData.shortUrl = shortUrl
-    updateData.custom = true
-    updateData.customChanges = link.customChanges + 1
-    updateData.customChangedAt = now
+    updateFields.push(`"shortUrl" = $${paramIndex}`)
+    queryParams.push(shortUrl)
+    paramIndex++
+    
+    updateFields.push(`custom = true`)
+    updateFields.push(`"customChanges" = $${paramIndex}`)
+    queryParams.push(link.customChanges + 1)
+    paramIndex++
+    
+    updateFields.push(`"customChangedAt" = $${paramIndex}`)
+    queryParams.push(now)
+    paramIndex++
   }
 
-  const updatedLink = await prisma.link.update({
-    where: { id },
-    data: updateData,
-  })
+  if (updateFields.length === 0) {
+    return NextResponse.json({ error: 'Tidak ada data untuk diperbarui.' }, { status: 400 })
+  }
+
+  updateFields.push(`"updatedAt" = NOW()`)
+
+  // Update link using raw SQL
+  const updateQuery = `
+    UPDATE "Link" 
+    SET ${updateFields.join(', ')}
+    WHERE id = $1 AND "userId" = $2
+    RETURNING *
+  `
+  
+  const updatedResult = await db.query(updateQuery, queryParams)
+  const updatedLink = updatedResult.rows[0]
 
   return NextResponse.json(updatedLink)
 }
@@ -105,20 +141,21 @@ export async function DELETE(
 
   const { id } = await params
 
-  const link = await prisma.link.findFirst({
-    where: {
-      id,
-      userId: session.user.id,
-    },
-  })
+  // Get link using raw SQL
+  const linkResult = await db.query(
+    'SELECT * FROM "Link" WHERE id = $1 AND "userId" = $2',
+    [id, session.user.id]
+  )
 
-  if (!link) {
+  if (linkResult.rows.length === 0) {
     return NextResponse.json({ error: 'Link tidak ditemukan.' }, { status: 404 })
   }
 
-  await prisma.link.delete({
-    where: { id },
-  })
+  // Delete link using raw SQL
+  await db.query(
+    'DELETE FROM "Link" WHERE id = $1',
+    [id]
+  )
 
   return NextResponse.json({ message: 'Link berhasil dihapus.' })
 }

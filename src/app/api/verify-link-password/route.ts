@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
@@ -10,13 +10,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Short URL dan password diperlukan.' }, { status: 400 })
     }
 
-    const link = await prisma.link.findUnique({
-      where: { shortUrl },
-    })
+    const linkResult = await db.query(
+      'SELECT * FROM "Link" WHERE "shortUrl" = $1',
+      [shortUrl]
+    )
 
-    if (!link) {
+    if (linkResult.rows.length === 0) {
       return NextResponse.json({ error: 'Link tidak ditemukan.' }, { status: 404 })
     }
+
+    const link = linkResult.rows[0]
 
     if (!link.password) {
       return NextResponse.json({ error: 'Link ini tidak memerlukan password.' }, { status: 400 })

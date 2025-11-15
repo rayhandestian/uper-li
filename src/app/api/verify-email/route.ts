@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,36 +7,37 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get('token')
 
     if (!token) {
-      return NextResponse.json({ error: 'Token tidak valid.' }, { status: 400 })
+      return NextResponse.json({ error: 'Token diperlukan.' }, { status: 400 })
     }
 
-    const user = await prisma.user.findFirst({
-      where: {
-        verificationToken: token,
-        verificationTokenExpires: {
-          gt: new Date(),
-        },
-      },
-    })
+    // Find user by verification token using raw SQL
+    const userResult = await db.query(
+      'SELECT * FROM "User" WHERE "verificationToken" = $1',
+      [token]
+    )
 
-    if (!user) {
-      return NextResponse.json({ error: 'Token tidak valid atau sudah kadaluarsa.' }, { status: 400 })
+    if (userResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Token verifikasi tidak valid.' }, { status: 400 })
     }
 
-    // Verify email
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        emailVerified: new Date(),
-        verificationToken: null,
-        verificationTokenExpires: null,
-      },
-    })
+    const user = userResult.rows[0]
 
-    // Redirect to login with success message
-    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/login?message=Email berhasil diverifikasi. Silakan masuk.`)
+    // Check if token has expired
+    if (user.verificationTokenExpires && new Date(user.verificationTokenExpires) < new Date()) {
+      return NextResponse.json({ error: 'Token verifikasi telah kadaluarsa.' }, { status: 400 })
+    }
+
+    // Verify email using raw SQL
+    await db.query(
+      `UPDATE "User" 
+       SET "emailVerified" = NOW(), "verificationToken" = null, "verificationTokenExpires" = null, "updatedAt" = NOW()
+       WHERE id = $1`,
+      [user.id]
+    )
+
+    return NextResponse.redirect(`${process.env.NEXTAUTH_URL}/login?verified=true`)
   } catch (error) {
-    console.error('Verification error:', error)
+    console.error('Email verification error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }
