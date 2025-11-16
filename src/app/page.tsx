@@ -12,7 +12,7 @@ export default async function Home() {
         <h1 className="text-5xl font-bold text-gray-900 mb-6">
           UPer.li
         </h1>
-        <p className="text-xl text-gray-600 mb-12 max-w-lg text-center leading-relaxed">
+        <p className="text-xl text-gray-600 mb-12 max-w-2xl text-center leading-relaxed">
           URL Shortener Eksklusif untuk Civitas Universitas Pertamina
         </p>
         {session ? (
