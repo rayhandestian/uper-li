@@ -231,7 +231,7 @@ export default function LinksPage() {
               value={longUrl}
               onChange={(e) => setLongUrl(e.target.value)}
               required
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 sm:text-sm"
               placeholder="https://example.com/a-long-url/that-need-to-be-shortened"
             />
           </div>
@@ -239,8 +239,8 @@ export default function LinksPage() {
             <label htmlFor="customUrl" className="block text-sm font-medium text-gray-700">
               Short URL Kustom (opsional)
             </label>
-            <div className="mt-1 flex rounded-md shadow-sm">
-              <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+            <div className="mt-1 flex rounded-md shadow-sm border border-gray-300 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
+              <span className="inline-flex items-center px-3 rounded-l-md border-r border-gray-300 bg-gray-50 text-gray-700 text-sm font-medium">
                 uper.li/
               </span>
               <input
@@ -248,7 +248,7 @@ export default function LinksPage() {
                 id="customUrl"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
-                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-0 focus:ring-0 focus:outline-none sm:text-sm"
                 placeholder="ShortURL"
               />
             </div>
@@ -262,7 +262,7 @@ export default function LinksPage() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 sm:text-sm"
               placeholder="Lindungi link dengan password"
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -303,7 +303,7 @@ export default function LinksPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Cari berdasarkan short URL atau URL asli..."
-                className="flex-1 border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="flex-1 border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 sm:text-sm"
               />
               <button
                 onClick={handleSearch}
@@ -487,15 +487,16 @@ export default function LinksPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Short URL</label>
-                  <div className="mt-1 flex rounded-md shadow-sm">
-                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                  <div className="mt-1 flex rounded-md shadow-sm border border-gray-300 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
+                    <span className="inline-flex items-center px-3 rounded-l-md border-r border-gray-300 bg-gray-50 text-gray-700 text-sm font-medium">
                       uper.li/
                     </span>
                     <input
                       type="text"
                       value={editCustomUrl}
                       onChange={(e) => setEditCustomUrl(e.target.value)}
-                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-0 focus:ring-0 focus:outline-none sm:text-sm"
+                      placeholder="ShortURL"
                     />
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
