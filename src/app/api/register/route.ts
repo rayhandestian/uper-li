@@ -58,33 +58,32 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Generate verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex')
-    const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    // Generate 6-digit verification code
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
     // Create user using raw SQL with RETURNING clause
     const userResult = await db.query(
       `INSERT INTO "User" (
-        id, email, role, "nimOrUsername", password, 
+        id, email, role, "nimOrUsername", password,
         "verificationToken", "verificationTokenExpires", "createdAt", "updatedAt"
-      ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW()) 
+      ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())
       RETURNING id`,
-      [email, role, nimOrUsername, hashedPassword, verificationToken, verificationTokenExpires]
+      [email, role, nimOrUsername, hashedPassword, verificationCode, verificationTokenExpires]
     )
 
     const user = userResult.rows[0]
 
     // Send verification email
-    const verificationUrl = `${process.env.NEXTAUTH_URL}/api/verify-email?token=${verificationToken}`
     await sendEmail({
       to: email,
       from: 'noreply@uper.li',
       subject: 'Verifikasi Akun UPer.li',
       html: `
         <p>Halo,</p>
-        <p>Terima kasih telah mendaftar di UPer.li. Klik link berikut untuk verifikasi akun Anda:</p>
-        <a href="${verificationUrl}">Verifikasi Akun</a>
-        <p>Link ini akan kadaluarsa dalam 24 jam.</p>
+        <p>Terima kasih telah mendaftar di UPer.li. Gunakan kode verifikasi berikut untuk verifikasi akun Anda:</p>
+        <p style="font-size: 24px; font-weight: bold; text-align: center; margin: 20px 0;">${verificationCode}</p>
+        <p>Kode ini akan kadaluarsa dalam 10 menit.</p>
         <p>Jika Anda tidak mendaftar, abaikan email ini.</p>
       `,
     })

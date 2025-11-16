@@ -66,7 +66,10 @@ export default function RegisterPage() {
     const data = await response.json()
 
     if (response.ok) {
-      router.push('https://app.uper.li/login?message=Registrasi berhasil. Silakan cek email untuk verifikasi.')
+      // Store credentials for verification page
+      localStorage.setItem('verify_nimOrUsername', nimOrUsername)
+      localStorage.setItem('verify_password', password)
+      router.push('/verify')
     } else {
       setError(data.error || 'Terjadi kesalahan.')
     }

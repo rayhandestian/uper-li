@@ -39,6 +39,11 @@ export const authOptions: NextAuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password)
         if (!isValid) return null
 
+        // Check if email is verified
+        if (!user.emailVerified) {
+          return null
+        }
+
         // Check if 2FA is required
         if (user.twoFactorEnabled) {
           // Generate 2FA code and send email
