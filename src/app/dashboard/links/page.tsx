@@ -41,8 +41,7 @@ export default function LinksPage() {
   const [editPassword, setEditPassword] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
-  // Search and filter state
-  const [searchTerm, setSearchTerm] = useState('')
+  // Filter state
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [sortBy, setSortBy] = useState<'createdAt' | 'visitCount' | 'shortUrl'>('createdAt')
   const [sortOrder] = useState<'asc' | 'desc'>('desc')
@@ -55,10 +54,6 @@ export default function LinksPage() {
       sort: sortBy,
       order: sortOrder,
     })
-
-    if (searchTerm) {
-      params.append('search', searchTerm)
-    }
 
     if (activeFilter !== 'all') {
       params.append('active', activeFilter === 'active' ? 'true' : 'false')
@@ -187,11 +182,6 @@ export default function LinksPage() {
     setLoading(false)
   }
 
-  const handleSearch = () => {
-    setCurrentPage(1)
-    fetchLinks(1)
-  }
-
   const handleFilterChange = (filter: 'all' | 'active' | 'inactive') => {
     setActiveFilter(filter)
     setCurrentPage(1)
@@ -231,7 +221,7 @@ export default function LinksPage() {
               value={longUrl}
               onChange={(e) => setLongUrl(e.target.value)}
               required
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
+              className="mt-1 block w-full border-2 border-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
               placeholder="https://example.com/a-long-url/that-need-to-be-shortened"
             />
           </div>
@@ -239,8 +229,8 @@ export default function LinksPage() {
             <label htmlFor="customUrl" className="block text-sm font-medium text-gray-700">
               Short URL Kustom (opsional)
             </label>
-            <div className="mt-1 flex rounded-md shadow-sm border border-gray-300 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
-              <span className="inline-flex items-center px-3 rounded-l-md border-r border-gray-300 bg-gray-50 text-gray-700 text-sm font-medium">
+            <div className="mt-1 flex rounded-md shadow-sm border-2 border-gray-400 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
+              <span className="inline-flex items-center px-3 rounded-l-md border-r border-gray-400 bg-gray-50 text-gray-700 text-sm font-medium">
                 uper.li/
               </span>
               <input
@@ -262,7 +252,7 @@ export default function LinksPage() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
+              className="mt-1 block w-full border-2 border-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
               placeholder="Lindungi link dengan password"
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -289,31 +279,9 @@ export default function LinksPage() {
         </form>
       </div>
 
-      {/* Search and Filter Controls */}
+      {/* Filter Controls */}
       <div className="bg-white shadow rounded-lg p-6 mb-6">
         <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-              Cari Link
-            </label>
-            <div className="flex">
-              <input
-                type="text"
-                id="search"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Cari berdasarkan short URL atau URL asli..."
-                className="flex-1 border-gray-300 rounded-l-md focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 sm:text-sm"
-              />
-              <button
-                onClick={handleSearch}
-                className="px-4 py-2 border border-l-0 border-gray-300 bg-gray-50 rounded-r-md hover:bg-gray-100"
-              >
-                Cari
-              </button>
-            </div>
-          </div>
-
           <div>
             <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-1">
               Status
@@ -322,7 +290,7 @@ export default function LinksPage() {
               id="filter"
               value={activeFilter}
               onChange={(e) => handleFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
-              className="block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="block w-full border-2 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             >
               <option value="all">Semua</option>
               <option value="active">Aktif</option>
@@ -338,7 +306,7 @@ export default function LinksPage() {
               id="sort"
               value={sortBy}
               onChange={(e) => handleSortChange(e.target.value as 'createdAt' | 'visitCount' | 'shortUrl')}
-              className="block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="block w-full border-2 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             >
               <option value="createdAt">Tanggal Dibuat</option>
               <option value="visitCount">Jumlah Kunjungan</option>
@@ -487,15 +455,15 @@ export default function LinksPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Short URL</label>
-                  <div className="mt-1 flex rounded-md shadow-sm border border-gray-300 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
-                    <span className="inline-flex items-center px-3 rounded-l-md border-r border-gray-300 bg-gray-50 text-gray-700 text-sm font-medium">
+                  <div className="mt-1 flex rounded-md shadow-sm border-2 border-gray-400 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
+                    <span className="inline-flex items-center px-3 rounded-l-md border-r border-gray-400 bg-gray-50 text-gray-700 text-sm font-medium">
                       uper.li/
                     </span>
                     <input
                       type="text"
                       value={editCustomUrl}
                       onChange={(e) => setEditCustomUrl(e.target.value)}
-                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-0 focus:ring-0 focus:outline-none sm:text-sm"
+                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-0 focus:ring-0 focus:outline-none placeholder-gray-700 sm:text-sm"
                       placeholder="ShortURL"
                     />
                   </div>
