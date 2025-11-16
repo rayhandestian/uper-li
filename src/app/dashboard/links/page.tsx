@@ -208,11 +208,11 @@ export default function LinksPage() {
         </p>
       </div>
 
-      <div className="bg-white shadow rounded-lg p-6 mb-8">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Buat Link Baru</h2>
-        <form onSubmit={handleCreateLink} className="space-y-4">
+      <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8 mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-8">Buat Link Baru</h2>
+        <form onSubmit={handleCreateLink} className="space-y-8">
           <div>
-            <label htmlFor="longUrl" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="longUrl" className="block text-base font-medium text-gray-700 mb-3">
               URL Asli
             </label>
             <input
@@ -221,16 +221,16 @@ export default function LinksPage() {
               value={longUrl}
               onChange={(e) => setLongUrl(e.target.value)}
               required
-              className="mt-1 block w-full border-2 border-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-base"
               placeholder="https://example.com/a-long-url/that-need-to-be-shortened"
             />
           </div>
           <div>
-            <label htmlFor="customUrl" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="customUrl" className="block text-base font-medium text-gray-700 mb-3">
               Short URL Kustom (opsional)
             </label>
-            <div className="mt-1 flex rounded-md shadow-sm border-2 border-gray-400 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
-              <span className="inline-flex items-center px-3 rounded-l-md border-r border-gray-400 bg-gray-50 text-gray-700 text-sm font-medium">
+            <div className="flex rounded-md shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+              <span className="inline-flex items-center px-4 bg-gray-50 text-gray-500 text-base border-r border-gray-300">
                 uper.li/
               </span>
               <input
@@ -238,13 +238,13 @@ export default function LinksPage() {
                 id="customUrl"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
-                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-0 focus:ring-0 focus:outline-none placeholder-gray-700 sm:text-sm"
-                placeholder="ShortURL"
+                className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none placeholder-gray-400 text-base"
+                placeholder="custom-url"
               />
             </div>
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-base font-medium text-gray-700 mb-3">
               Password (opsional)
             </label>
             <input
@@ -252,27 +252,27 @@ export default function LinksPage() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full border-2 border-gray-400 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
-              placeholder="Lindungi link dengan password"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-base"
+              placeholder="Minimal 4 karakter"
             />
-            <p className="mt-1 text-xs text-gray-500">
-              Minimal 4 karakter. Kosongkan jika tidak ingin melindungi link.
+            <p className="mt-2 text-sm text-gray-500">
+              Kosongkan jika tidak ingin melindungi link.
             </p>
           </div>
           {error && (
-            <div className="text-red-600 text-sm">
+            <div className="text-red-600 text-base">
               {error}
             </div>
           )}
           {success && (
-            <div className="text-green-600 text-sm">
+            <div className="text-green-600 text-base">
               {success}
             </div>
           )}
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Membuat...' : 'Buat Link'}
           </button>
@@ -280,17 +280,17 @@ export default function LinksPage() {
       </div>
 
       {/* Filter Controls */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div>
-            <label htmlFor="filter" className="block text-sm font-medium text-gray-700 mb-1">
+      <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8 mb-6">
+        <div className="flex flex-col sm:flex-row gap-8">
+          <div className="flex-1">
+            <label htmlFor="filter" className="block text-base font-medium text-gray-700 mb-3">
               Status
             </label>
             <select
               id="filter"
               value={activeFilter}
               onChange={(e) => handleFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
-              className="block w-full border-2 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               <option value="all">Semua</option>
               <option value="active">Aktif</option>
@@ -298,15 +298,15 @@ export default function LinksPage() {
             </select>
           </div>
 
-          <div>
-            <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="flex-1">
+            <label htmlFor="sort" className="block text-base font-medium text-gray-700 mb-3">
               Urutkan
             </label>
             <select
               id="sort"
               value={sortBy}
               onChange={(e) => handleSortChange(e.target.value as 'createdAt' | 'visitCount' | 'shortUrl')}
-              className="block w-full border-2 border-gray-400 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
             >
               <option value="createdAt">Tanggal Dibuat</option>
               <option value="visitCount">Jumlah Kunjungan</option>
@@ -448,74 +448,72 @@ export default function LinksPage() {
 
       {/* Edit Modal */}
       {editingLink && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Edit Link</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Short URL</label>
-                  <div className="mt-1 flex rounded-md shadow-sm border-2 border-gray-400 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500">
-                    <span className="inline-flex items-center px-3 rounded-l-md border-r border-gray-400 bg-gray-50 text-gray-700 text-sm font-medium">
-                      uper.li/
-                    </span>
-                    <input
-                      type="text"
-                      value={editCustomUrl}
-                      onChange={(e) => setEditCustomUrl(e.target.value)}
-                      className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-0 focus:ring-0 focus:outline-none placeholder-gray-700 sm:text-sm"
-                      placeholder="ShortURL"
-                    />
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Perubahan bulan ini: {editingLink.customChanges}/2
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Mode Redirect</label>
-                  <select
-                    value={editMode}
-                    onChange={(e) => setEditMode(e.target.value as 'PREVIEW' | 'DIRECT')}
-                    className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  >
-                    <option value="PREVIEW">Preview (aman)</option>
-                    <option value="DIRECT">Direct (langsung)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Password</label>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-8">Edit Link</h3>
+            <div className="space-y-8">
+              <div>
+                <label className="block text-base font-medium text-gray-700 mb-3">Short URL</label>
+                <div className="flex rounded-md shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+                  <span className="inline-flex items-center px-4 bg-gray-50 text-gray-500 text-base border-r border-gray-300">
+                    uper.li/
+                  </span>
                   <input
-                    type="password"
-                    value={editPassword}
-                    onChange={(e) => setEditPassword(e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
-                    placeholder="Kosongkan untuk menghapus password"
+                    type="text"
+                    value={editCustomUrl}
+                    onChange={(e) => setEditCustomUrl(e.target.value)}
+                    className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none placeholder-gray-400 text-base"
+                    placeholder="custom-url"
                   />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Minimal 4 karakter. Kosongkan untuk menghapus proteksi password.
-                  </p>
                 </div>
+                <p className="mt-2 text-sm text-gray-500">
+                  Perubahan bulan ini: {editingLink.customChanges}/2
+                </p>
               </div>
-              {error && (
-                <div className="mt-4 text-red-600 text-sm">
-                  {error}
-                </div>
-              )}
-              <div className="flex justify-end space-x-2 mt-4">
-                <button
-                  onClick={cancelEdit}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
+              <div>
+                <label className="block text-base font-medium text-gray-700 mb-3">Mode Redirect</label>
+                <select
+                  value={editMode}
+                  onChange={(e) => setEditMode(e.target.value as 'PREVIEW' | 'DIRECT')}
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                 >
-                  Batal
-                </button>
-                <button
-                  onClick={saveEdit}
-                  disabled={loading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {loading ? 'Menyimpan...' : 'Simpan'}
-                </button>
+                  <option value="PREVIEW">Preview (aman)</option>
+                  <option value="DIRECT">Direct (langsung)</option>
+                </select>
               </div>
+              <div>
+                <label className="block text-base font-medium text-gray-700 mb-3">Password</label>
+                <input
+                  type="password"
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-base"
+                  placeholder="Kosongkan untuk menghapus password"
+                />
+                <p className="mt-2 text-sm text-gray-500">
+                  Minimal 4 karakter. Kosongkan untuk menghapus proteksi password.
+                </p>
+              </div>
+            </div>
+            {error && (
+              <div className="mt-6 text-red-600 text-base">
+                {error}
+              </div>
+            )}
+            <div className="flex justify-end space-x-4 mt-8">
+              <button
+                onClick={cancelEdit}
+                className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Batal
+              </button>
+              <button
+                onClick={saveEdit}
+                disabled={loading}
+                className="px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Menyimpan...' : 'Simpan'}
+              </button>
             </div>
           </div>
         </div>
@@ -523,33 +521,31 @@ export default function LinksPage() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Konfirmasi Hapus</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Apakah Anda yakin ingin menghapus link ini? Tindakan ini tidak dapat dibatalkan.
-              </p>
-              {error && (
-                <div className="mb-4 text-red-600 text-sm">
-                  {error}
-                </div>
-              )}
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={() => setShowDeleteConfirm(null)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={() => deleteLink(showDeleteConfirm)}
-                  disabled={loading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50"
-                >
-                  {loading ? 'Menghapus...' : 'Hapus'}
-                </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-6">Konfirmasi Hapus</h3>
+            <p className="text-base text-gray-600 mb-8">
+              Apakah Anda yakin ingin menghapus link ini? Tindakan ini tidak dapat dibatalkan.
+            </p>
+            {error && (
+              <div className="mb-6 text-red-600 text-base">
+                {error}
               </div>
+            )}
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => deleteLink(showDeleteConfirm)}
+                disabled={loading}
+                className="px-6 py-3 text-base font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Menghapus...' : 'Hapus'}
+              </button>
             </div>
           </div>
         </div>
