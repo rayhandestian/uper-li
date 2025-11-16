@@ -20,31 +20,31 @@ export default function LogoutButton({ className = "text-sm text-gray-600 hover:
       </button>
 
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-md shadow-lg max-w-sm w-full mx-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Konfirmasi Keluar
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Apakah Anda yakin ingin keluar?
-            </p>
-            <div className="flex justify-end space-x-4">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-gray-600 hover:text-gray-800"
-              >
-                Tidak
-              </button>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              >
-                Ya
-              </button>
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8 transform transition-all duration-300 ease-out opacity-100 scale-100">
+              <h3 className="text-xl font-semibold text-gray-900 mb-6">
+                Konfirmasi Keluar
+              </h3>
+              <p className="text-base text-gray-600 mb-8">
+                Apakah Anda yakin ingin keluar?
+              </p>
+              <div className="flex justify-end space-x-4">
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Tidak
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-6 py-3 text-base font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Ya
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
     </>
   )
 }
