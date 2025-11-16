@@ -5,7 +5,10 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ shortUrl: string }> }
 ) {
+  console.log('🔍 API /api/links/public/[shortUrl] called')
   const { shortUrl } = await params
+  console.log('ShortUrl parameter:', shortUrl)
+  console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
 
   // Get link using raw SQL
   const linkResult = await db.query(
@@ -13,7 +16,10 @@ export async function GET(
     [shortUrl]
   )
 
+  console.log('Query result:', linkResult.rows.length, 'rows found')
+
   if (linkResult.rows.length === 0) {
+    console.log('No link found for shortUrl:', shortUrl)
     return NextResponse.json({ status: 'not_found' })
   }
 

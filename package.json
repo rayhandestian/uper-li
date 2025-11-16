@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check-db": "node scripts/check-db.js"
   },
   "dependencies": {
     "@marsidev/react-turnstile": "^1.3.1",
