@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import Footer from '@/components/Footer'
 
 export default function TermsPage() {
@@ -5,6 +6,9 @@ export default function TermsPage() {
     <div className="min-h-screen bg-white flex flex-col">
       <main className="flex-grow py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
+        <Link href="/" className="inline-flex items-center px-4 py-2 mb-6 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          ← Back to Home
+        </Link>
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
           Syarat dan Ketentuan UPer.li
         </h1>
