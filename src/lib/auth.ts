@@ -1,6 +1,5 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import EmailProvider from 'next-auth/providers/email'
 import { db } from './db'
 import bcrypt from 'bcryptjs'
 import nodemailer from 'nodemailer'
@@ -13,10 +12,6 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS
   }
 })
-
-const isUPerEmail = (email: string) => {
-  return email.endsWith('@student.universitaspertamina.ac.id') || email.endsWith('@universitaspertamina.ac.id')
-}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -94,29 +89,6 @@ export const authOptions: NextAuthOptions = {
           role: user.role,
           requires2FA: false
         }
-      }
-    }),
-    EmailProvider({
-      server: {
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS
-        }
-      },
-      from: 'noreply@uper.li',
-      sendVerificationRequest: async ({ identifier, url }) => {
-        if (!isUPerEmail(identifier)) {
-          throw new Error('Email must be from Universitas Pertamina domain')
-        }
-
-        await transporter.sendMail({
-          to: identifier,
-          from: 'noreply@uper.li',
-          subject: 'Sign in to UPer.li',
-          html: `<p>Click <a href="${url}">here</a> to sign in.</p>`
-        })
       }
     })
   ],
