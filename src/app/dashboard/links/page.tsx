@@ -469,11 +469,11 @@ export default function LinksPage() {
                 </p>
               </div>
               <div>
-                <label className="block text-base font-medium text-gray-900 mb-3">Mode Redirect</label>
+                <label className="block text-base font-medium text-gray-700 mb-3">Mode Redirect</label>
                 <select
                   value={editMode}
                   onChange={(e) => setEditMode(e.target.value as 'PREVIEW' | 'DIRECT')}
-                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="block w-full px-4 py-3 border border-gray-900 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                 >
                   <option value="PREVIEW">Preview (aman)</option>
                   <option value="DIRECT">Direct (langsung)</option>
