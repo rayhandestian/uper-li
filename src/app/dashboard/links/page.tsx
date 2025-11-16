@@ -69,9 +69,9 @@ export default function LinksPage() {
   }
 
   useEffect(() => {
-    fetchLinks()
+    fetchLinks(1)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [activeFilter, sortBy, sortOrder])
 
   const handleCreateLink = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -185,13 +185,11 @@ export default function LinksPage() {
   const handleFilterChange = (filter: 'all' | 'active' | 'inactive') => {
     setActiveFilter(filter)
     setCurrentPage(1)
-    fetchLinks(1)
   }
 
   const handleSortChange = (sort: 'createdAt' | 'visitCount' | 'shortUrl') => {
     setSortBy(sort)
     setCurrentPage(1)
-    fetchLinks(1)
   }
 
   const handlePageChange = (page: number) => {

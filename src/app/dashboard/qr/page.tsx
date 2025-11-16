@@ -88,15 +88,17 @@ export default function QRPage() {
           {qrCode && (
             <div className="mt-8">
               <p className="text-base text-gray-600 mb-4">QR Code untuk: {qrCode}</p>
-              <div className="bg-gray-50 p-8 rounded-lg text-center">
-                <QRCodeCanvas
-                  value={qrCode}
-                  size={256}
-                  bgColor="#ffffff"
-                  fgColor="#000000"
-                  level="M"
-                  ref={qrRef}
-                />
+              <div className="bg-gray-50 p-4 rounded-lg text-center">
+                <div className="inline-block p-4 bg-white rounded">
+                  <QRCodeCanvas
+                    value={qrCode}
+                    size={256}
+                    bgColor="#ffffff"
+                    fgColor="#000000"
+                    level="M"
+                    ref={qrRef}
+                  />
+                </div>
                 <button
                   onClick={downloadQR}
                   className="mt-6 inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
