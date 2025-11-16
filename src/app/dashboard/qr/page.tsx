@@ -19,7 +19,7 @@ export default function QRPage() {
     const response = await fetch('/api/links')
     if (response.ok) {
       const data = await response.json()
-      setLinks(data)
+      setLinks(data.links)
     }
   }
 
