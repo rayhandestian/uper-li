@@ -231,7 +231,7 @@ export default function LinksPage() {
               value={longUrl}
               onChange={(e) => setLongUrl(e.target.value)}
               required
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 sm:text-sm"
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
               placeholder="https://example.com/a-long-url/that-need-to-be-shortened"
             />
           </div>
@@ -248,7 +248,7 @@ export default function LinksPage() {
                 id="customUrl"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
-                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-0 focus:ring-0 focus:outline-none sm:text-sm"
+                className="flex-1 min-w-0 block w-full px-3 py-2 rounded-none rounded-r-md border-0 focus:ring-0 focus:outline-none placeholder-gray-700 sm:text-sm"
                 placeholder="ShortURL"
               />
             </div>
@@ -262,7 +262,7 @@ export default function LinksPage() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 sm:text-sm"
+              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
               placeholder="Lindungi link dengan password"
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -520,7 +520,7 @@ export default function LinksPage() {
                     type="password"
                     value={editPassword}
                     onChange={(e) => setEditPassword(e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 py-3 sm:text-sm"
                     placeholder="Kosongkan untuk menghapus password"
                   />
                   <p className="mt-1 text-sm text-gray-500">
