@@ -5,13 +5,7 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ shortUrl: string }> }
 ) {
-  console.log('🔍 API /api/links/public/[shortUrl] called')
-  console.log('Params object:', params)
-  const resolvedParams = await params
-  console.log('Resolved params:', resolvedParams)
-  const { shortUrl } = resolvedParams
-  console.log('ShortUrl parameter:', shortUrl)
-  console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
+  const { shortUrl } = await params
 
   // Get link using raw SQL
   const linkResult = await db.query(

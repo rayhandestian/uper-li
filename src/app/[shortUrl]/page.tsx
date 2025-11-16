@@ -1,13 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-
-interface PageProps {
-  params: {
-    shortUrl: string
-  }
-}
+import { useRouter, useParams } from 'next/navigation'
 
 interface LinkData {
   status: 'not_found' | 'inactive' | 'locked' | 'ok'
@@ -16,8 +10,9 @@ interface LinkData {
   id?: number
 }
 
-export default function ShortUrlPage({ params }: PageProps) {
-  const { shortUrl } = params
+export default function ShortUrlPage() {
+  const params = useParams()
+  const shortUrl = params.shortUrl as string
   const [data, setData] = useState<LinkData | null>(null)
   const [loading, setLoading] = useState(true)
   const [password, setPassword] = useState('')
