@@ -1,4 +1,5 @@
 import Footer from '@/components/Footer'
+import LogoutButton from '@/components/LogoutButton'
 import Link from 'next/link'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
@@ -22,12 +23,7 @@ export default async function Home() {
             >
               Dashboard
             </Link>
-            <a
-              href="/api/auth/signout"
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              Keluar
-            </a>
+            <LogoutButton />
           </div>
         ) : (
           <div className="space-x-4">

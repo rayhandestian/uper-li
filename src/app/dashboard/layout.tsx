@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
+import LogoutButton from '@/components/LogoutButton'
 
 export default async function DashboardLayout({
   children,
@@ -44,9 +45,7 @@ export default async function DashboardLayout({
               <span className="text-sm text-gray-700 mr-4">
                 {session.user?.email}
               </span>
-              <a href="/api/auth/signout" className="text-blue-600 hover:text-blue-500">
-                Keluar
-              </a>
+              <LogoutButton className="text-blue-600 hover:text-blue-500" />
             </div>
           </div>
         </div>
