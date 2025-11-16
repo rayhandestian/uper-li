@@ -8,19 +8,19 @@ export default function Footer() {
           </div>
           <div className="flex space-x-6">
             <a
-              href="/terms"
+              href="https://app.uper.li/terms"
               className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
             >
               Syarat dan Ketentuan
             </a>
             <a
-              href="/privacy"
+              href="https://app.uper.li/privacy"
               className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
             >
               Kebijakan Privasi
             </a>
             <a
-              href="/contact"
+              href="https://app.uper.li/contact"
               className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
             >
               Hubungi Kami

@@ -76,7 +76,7 @@ function LoginForm() {
     const data = await response.json()
 
     if (response.ok) {
-      router.push('/dashboard')
+      router.push('https://app.uper.li/dashboard')
     } else {
       setError(data.error || 'Kode 2FA salah.')
     }
@@ -214,7 +214,7 @@ function LoginForm() {
           </div>
 
           <div className="text-center">
-            <a href="/register" className="text-blue-600 hover:text-blue-500">
+            <a href="https://app.uper.li/register" className="text-blue-600 hover:text-blue-500">
               Belum punya akun? Daftar di sini
             </a>
           </div>

@@ -12,13 +12,13 @@ export default function Home() {
         </p>
         <div className="space-x-4">
           <a
-            href="/register"
+            href="https://app.uper.li/register"
             className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition"
           >
             Daftar
           </a>
           <a
-            href="/login"
+            href="https://app.uper.li/login"
             className="bg-gray-200 text-gray-800 px-6 py-2 rounded-md hover:bg-gray-300 transition"
           >
             Masuk

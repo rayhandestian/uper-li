@@ -66,7 +66,7 @@ export default function RegisterPage() {
     const data = await response.json()
 
     if (response.ok) {
-      router.push('/login?message=Registrasi berhasil. Silakan cek email untuk verifikasi.')
+      router.push('https://app.uper.li/login?message=Registrasi berhasil. Silakan cek email untuk verifikasi.')
     } else {
       setError(data.error || 'Terjadi kesalahan.')
     }
@@ -185,11 +185,11 @@ export default function RegisterPage() {
             />
             <label htmlFor="agreedToTerms" className="ml-2 text-sm text-gray-700">
               Saya setuju dengan{' '}
-              <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
+              <a href="https://app.uper.li/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
                 Syarat dan Ketentuan
               </a>
               {' '}serta{' '}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
+              <a href="https://app.uper.li/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
                 Kebijakan Privasi
               </a>
             </label>
@@ -221,7 +221,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="text-center">
-            <a href="/login" className="text-blue-600 hover:text-blue-500">
+            <a href="https://app.uper.li/login" className="text-blue-600 hover:text-blue-500">
               Sudah punya akun? Masuk di sini
             </a>
           </div>
