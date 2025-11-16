@@ -196,8 +196,8 @@ export default function ShortUrlPage() {
     )
   }
 
-  if (data.status === 'ok' && data.longUrl) {
-    // Preview mode
+  if (data.status === 'ok' && data.longUrl && data.mode === 'PREVIEW') {
+    // Preview mode - show destination and let user click to continue
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-4">
         <div className="max-w-md w-full space-y-8 text-center">
@@ -221,6 +221,11 @@ export default function ShortUrlPage() {
         </div>
       </div>
     )
+  }
+
+  if (data.status === 'ok' && data.longUrl && data.mode === 'DIRECT') {
+    // Direct mode - redirect happens via useEffect, show nothing
+    return null
   }
 
   return null
