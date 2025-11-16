@@ -143,50 +143,50 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="px-4 py-6 sm:px-0">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Pengaturan Akun</h1>
-        <p className="mt-1 text-sm text-gray-600">
+    <div className="px-6 py-8 sm:px-0">
+      <div className="mb-12">
+        <h1 className="text-3xl font-bold text-gray-900">Pengaturan Akun</h1>
+        <p className="mt-2 text-lg text-gray-600">
           Kelola informasi akun Anda
         </p>
       </div>
 
-      <div className="space-y-6">
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+      <div className="space-y-8">
+        <div className="bg-white shadow-sm border border-gray-200 rounded-lg">
+          <div className="px-8 py-8 sm:p-8">
+            <h3 className="text-2xl leading-6 font-semibold text-gray-900 mb-8">
               Informasi Akun
             </h3>
-            <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
               <div>
-                <dt className="text-sm font-medium text-gray-500">Email</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
+                <dt className="text-base font-medium text-gray-500">Email</dt>
+                <dd className="mt-2 text-lg text-gray-900">{user.email}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Peran</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-base font-medium text-gray-500">Peran</dt>
+                <dd className="mt-2 text-lg text-gray-900">
                   {user.role === 'STUDENT' ? 'Mahasiswa' : 'Dosen/Staff'}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">NIM/Username</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user.nimOrUsername}</dd>
+                <dt className="text-base font-medium text-gray-500">NIM/Username</dt>
+                <dd className="mt-2 text-lg text-gray-900">{user.nimOrUsername}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Status Verifikasi</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-base font-medium text-gray-500">Status Verifikasi</dt>
+                <dd className="mt-2 text-lg text-gray-900">
                   {user.emailVerified ? 'Terverifikasi' : 'Belum Terverifikasi'}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Link Bulan Ini</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-base font-medium text-gray-500">Link Bulan Ini</dt>
+                <dd className="mt-2 text-lg text-gray-900">
                   {user.monthlyLinksCreated} / {user.role === 'STUDENT' ? 5 : 10}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Total Link</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-base font-medium text-gray-500">Total Link</dt>
+                <dd className="mt-2 text-lg text-gray-900">
                   {user.totalLinks} / {user.role === 'STUDENT' ? 100 : 200}
                 </dd>
               </div>
@@ -194,27 +194,27 @@ export default function AccountPage() {
           </div>
         </div>
 
-        <div className="bg-white shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+        <div className="bg-white shadow-sm border border-gray-200 rounded-lg">
+          <div className="px-8 py-8 sm:p-8">
+            <h3 className="text-2xl leading-6 font-semibold text-gray-900 mb-8">
               Two-Factor Authentication (2FA)
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-base text-gray-600">
                     Tambahkan lapisan keamanan ekstra dengan 2FA via email
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-sm text-gray-500 mt-2">
                     Status: {user.twoFactorEnabled ? 'Aktif' : 'Nonaktif'}
                   </p>
                 </div>
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-4">
                   {user.twoFactorEnabled ? (
                     <button
                       onClick={handleDisable2FA}
                       disabled={twoFactorLoading}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {twoFactorLoading ? 'Menonaktifkan...' : 'Nonaktifkan 2FA'}
                     </button>
@@ -222,7 +222,7 @@ export default function AccountPage() {
                     <button
                       onClick={handleEnable2FA}
                       disabled={twoFactorLoading}
-                      className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-base leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {twoFactorLoading ? 'Mengirim kode...' : 'Aktifkan 2FA'}
                     </button>
@@ -231,23 +231,23 @@ export default function AccountPage() {
               </div>
 
               {showVerification && (
-                <div className="border-t pt-4">
-                  <p className="text-sm text-gray-600 mb-2">
+                <div className="border-t border-gray-200 pt-6">
+                  <p className="text-base text-gray-600 mb-4">
                     Masukkan kode verifikasi yang dikirim ke email Anda:
                   </p>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-4">
                     <input
                       type="text"
                       value={verificationCode}
                       onChange={(e) => setVerificationCode(e.target.value)}
                       placeholder="000000"
-                      className="flex-1 border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="flex-1 px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
                       maxLength={6}
                     />
                     <button
                       onClick={handleVerify2FA}
                       disabled={twoFactorLoading || verificationCode.length !== 6}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
+                      className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {twoFactorLoading ? 'Memverifikasi...' : 'Verifikasi'}
                     </button>
@@ -256,13 +256,13 @@ export default function AccountPage() {
               )}
 
               {error && (
-                <div className="text-red-600 text-sm">
+                <div className="text-red-600 text-base">
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="text-green-600 text-sm">
+                <div className="text-green-600 text-base">
                   {success}
                 </div>
               )}
