@@ -66,7 +66,7 @@ export default function QRPage() {
               id="link"
               value={selectedLink}
               onChange={(e) => setSelectedLink(e.target.value)}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
             >
               <option value="">Pilih link...</option>
               {links.map((link) => (

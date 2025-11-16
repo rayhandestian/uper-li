@@ -221,7 +221,7 @@ export default function LinksPage() {
               value={longUrl}
               onChange={(e) => setLongUrl(e.target.value)}
               required
-              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-base"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-base"
               placeholder="https://example.com/a-long-url/that-need-to-be-shortened"
             />
           </div>
@@ -238,7 +238,7 @@ export default function LinksPage() {
                 id="customUrl"
                 value={customUrl}
                 onChange={(e) => setCustomUrl(e.target.value)}
-                className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none placeholder-gray-400 text-base"
+                className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500 text-base"
                 placeholder="custom-url"
               />
             </div>
@@ -252,7 +252,7 @@ export default function LinksPage() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-base"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-base"
               placeholder="Minimal 4 karakter"
             />
             <p className="mt-2 text-sm text-gray-500">
@@ -290,7 +290,7 @@ export default function LinksPage() {
               id="filter"
               value={activeFilter}
               onChange={(e) => handleFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
             >
               <option value="all">Semua</option>
               <option value="active">Aktif</option>
@@ -306,7 +306,7 @@ export default function LinksPage() {
               id="sort"
               value={sortBy}
               onChange={(e) => handleSortChange(e.target.value as 'createdAt' | 'visitCount' | 'shortUrl')}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
             >
               <option value="createdAt">Tanggal Dibuat</option>
               <option value="visitCount">Jumlah Kunjungan</option>
@@ -462,7 +462,7 @@ export default function LinksPage() {
                     type="text"
                     value={editCustomUrl}
                     onChange={(e) => setEditCustomUrl(e.target.value)}
-                    className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none placeholder-gray-400 text-base"
+                    className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500 text-base"
                     placeholder="custom-url"
                   />
                 </div>
@@ -487,7 +487,7 @@ export default function LinksPage() {
                   type="password"
                   value={editPassword}
                   onChange={(e) => setEditPassword(e.target.value)}
-                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400 text-base"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-base"
                   placeholder="Kosongkan untuk menghapus password"
                 />
                 <p className="mt-2 text-sm text-gray-500">
