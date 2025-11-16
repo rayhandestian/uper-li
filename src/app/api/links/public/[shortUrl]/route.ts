@@ -6,7 +6,10 @@ export async function GET(
   { params }: { params: Promise<{ shortUrl: string }> }
 ) {
   console.log('🔍 API /api/links/public/[shortUrl] called')
-  const { shortUrl } = await params
+  console.log('Params object:', params)
+  const resolvedParams = await params
+  console.log('Resolved params:', resolvedParams)
+  const { shortUrl } = resolvedParams
   console.log('ShortUrl parameter:', shortUrl)
   console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL)
 
