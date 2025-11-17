@@ -15,6 +15,15 @@ const APP_ROUTES = [
 export function middleware(request: NextRequest) {
   const { hostname, pathname } = request.nextUrl
 
+  // HTTPS enforcement in production
+  if (process.env.NODE_ENV === 'production') {
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    if (forwardedProto === 'http') {
+      const httpsUrl = `https://${hostname}${pathname}${request.nextUrl.search}`
+      return NextResponse.redirect(httpsUrl)
+    }
+  }
+
   // Allow all routes on app subdomain
   if (hostname === 'app.uper.li') {
     return NextResponse.next()

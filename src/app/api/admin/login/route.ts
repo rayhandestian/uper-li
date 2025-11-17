@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
+import { withRateLimit } from '@/lib/rateLimit'
 
-export async function POST(request: NextRequest) {
+async function handleAdminLogin(request: NextRequest) {
   try {
     const { passcode, turnstileToken } = await request.json()
 
@@ -51,3 +52,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
+
+export const POST = withRateLimit(handleAdminLogin, { limit: 3, windowMs: 60 * 60 * 1000 }) // 3 attempts per hour

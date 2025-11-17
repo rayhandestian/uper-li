@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { withRateLimit } from '@/lib/rateLimit'
 
-export async function POST(request: NextRequest) {
+async function handleVerification(request: NextRequest) {
   try {
     const { code } = await request.json()
 
@@ -45,3 +46,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }
+
+export const POST = withRateLimit(handleVerification, { limit: 5, windowMs: 10 * 60 * 1000 }) // 5 attempts per 10 minutes

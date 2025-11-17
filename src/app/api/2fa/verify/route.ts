@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { withRateLimit } from '@/lib/rateLimit'
 
-export async function POST(request: NextRequest) {
+async function handle2FAVerify(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
@@ -54,3 +55,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ message: '2FA berhasil diaktifkan.' })
 }
+
+export const POST = withRateLimit(handle2FAVerify, { limit: 5, windowMs: 10 * 60 * 1000 }) // 5 attempts per 10 minutes

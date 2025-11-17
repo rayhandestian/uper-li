@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { db } from '@/lib/db'
+import { withRateLimit } from '@/lib/rateLimit'
 
-export async function POST(request: NextRequest) {
+async function handleRegistration(request: NextRequest) {
   try {
     const { role, nimOrUsername, password, agreedToTerms, turnstileToken } = await request.json()
 
@@ -90,3 +91,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }
+
+export const POST = withRateLimit(handleRegistration, { limit: 3, windowMs: 30 * 60 * 1000 }) // 3 attempts per 30 minutes
