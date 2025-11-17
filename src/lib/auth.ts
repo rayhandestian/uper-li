@@ -104,6 +104,7 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
+        token.requires2FA = user.requires2FA
       }
       return token
     },
@@ -111,6 +112,17 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.sub!
         session.user.role = token.role as string
+        if (token.requires2FA) {
+          // Check if 2FA verification code has been cleared (meaning verified)
+          const userResult = await db.query('SELECT "twoFactorSecret" FROM "User" WHERE id = $1', [token.sub])
+          if (userResult.rows.length > 0 && !userResult.rows[0].twoFactorSecret) {
+            session.user.requires2FA = false
+          } else {
+            session.user.requires2FA = true
+          }
+        } else {
+          session.user.requires2FA = false
+        }
       }
       return session
     }

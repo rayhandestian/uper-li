@@ -15,6 +15,11 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
+  // If 2FA is required but not verified, redirect to login
+  if (session.user.requires2FA) {
+    redirect('/login?message=2FA verification required')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardNav session={session} />
