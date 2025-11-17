@@ -46,6 +46,8 @@ export function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     if (pathname === '/') {
       url.pathname = '/admin'
+    } else if (pathname === '/login') {
+      url.pathname = '/login-admin'
     } else if (!pathname.startsWith('/admin')) {
       url.pathname = `/admin${pathname}`
     }
