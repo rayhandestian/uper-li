@@ -203,13 +203,20 @@ export async function manualMonthlyReset() {
   console.log('Manual monthly limit reset triggered...')
 
   try {
-    const result = await db.query(`
+    // Reset monthly link counts for all users
+    const userResult = await db.query(`
       UPDATE "User"
       SET "monthlyLinksCreated" = 0, "lastReset" = NOW()
     `)
 
-    console.log(`Manual monthly reset completed.`)
-    return { success: true, usersUpdated: 0 }
+    // Reset custom URL change counts for all links
+    const linkResult = await db.query(`
+      UPDATE "Link"
+      SET "customChanges" = 0
+    `)
+
+    console.log(`Manual monthly reset completed: ${userResult.rowCount} users and ${linkResult.rowCount} links updated.`)
+    return { success: true, usersUpdated: userResult.rowCount || 0, linksUpdated: linkResult.rowCount || 0 }
   } catch (error) {
     console.error('Manual monthly reset error:', error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
