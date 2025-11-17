@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+const APP_ROUTES = [
+  '/dashboard',
+  '/login',
+  '/register',
+  '/terms',
+  '/privacy',
+  '/contact',
+  '/verify',
+  '/admin'
+]
+
 export function middleware(request: NextRequest) {
   const { hostname, pathname } = request.nextUrl
 
@@ -16,7 +27,12 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('https://app.uper.li'))
     }
 
-    // Allow short URL routes (single segment paths)
+    // Redirect app-specific routes to app subdomain
+    if (APP_ROUTES.includes(pathname)) {
+      return NextResponse.redirect(new URL(`https://app.uper.li${pathname}`))
+    }
+
+    // Allow short URL routes (single segment paths that are not app routes)
     if (/^\/[^\/]+$/.test(pathname)) {
       return NextResponse.next()
     }

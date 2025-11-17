@@ -6,6 +6,17 @@ import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
+const RESERVED_PATHS = [
+  'dashboard',
+  'login',
+  'register',
+  'terms',
+  'privacy',
+  'contact',
+  'verify',
+  'admin'
+]
+
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
@@ -141,6 +152,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Short URL kustom tidak valid.' }, { status: 400 })
     }
 
+    // Check if custom URL is reserved
+    if (RESERVED_PATHS.includes(customUrl)) {
+      return NextResponse.json({ error: 'Short URL kustom tidak tersedia.' }, { status: 400 })
+    }
+
     // Check if custom URL is taken
     const existingResult = await db.query(
       'SELECT id FROM "Link" WHERE "shortUrl" = $1',
@@ -164,8 +180,8 @@ export async function POST(request: NextRequest) {
         'SELECT id FROM "Link" WHERE "shortUrl" = $1',
         [shortUrl]
       )
-      
-      if (existingResult.rows.length === 0) break
+
+      if (existingResult.rows.length === 0 && !RESERVED_PATHS.includes(shortUrl)) break
     } while (true)
   }
 
