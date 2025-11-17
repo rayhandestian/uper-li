@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "UPer.li - Link Shortener",
   description: "Link shortener for Universitas Pertamina",
+  icons: {
+    icon: "/UPer.li%20Circle%20256x256.png",
+  },
 };
 
 export default function RootLayout({
