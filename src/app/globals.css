@@ -25,6 +25,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+button:hover {
+  cursor: pointer;
+}
+
 /* Mobile-specific adjustments */
 @media (max-width: 640px) {
   /* Ensure minimum touch targets */
