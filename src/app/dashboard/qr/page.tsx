@@ -48,25 +48,25 @@ export default function QRPage() {
   }
 
   return (
-    <div className="px-6 py-8 sm:px-0">
-      <div className="mb-12">
-        <h1 className="text-3xl font-bold text-gray-900">QR Code</h1>
-        <p className="mt-2 text-lg text-gray-600">
+    <div className="px-4 py-6 sm:px-0">
+      <div className="mb-8 sm:mb-12">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">QR Code</h1>
+        <p className="mt-2 text-base sm:text-lg text-gray-600">
           Generate QR code untuk short link Anda
         </p>
       </div>
 
-      <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8">
-        <div className="space-y-8">
+      <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6 sm:p-8">
+        <div className="space-y-6 sm:space-y-8">
           <div>
-            <label htmlFor="link" className="block text-base font-medium text-gray-700 mb-3">
+            <label htmlFor="link" className="block text-sm sm:text-base font-medium text-gray-700 mb-3">
               Pilih Link
             </label>
             <select
               id="link"
               value={selectedLink}
               onChange={(e) => setSelectedLink(e.target.value)}
-              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm sm:text-base"
             >
               <option value="">Pilih link...</option>
               {links.map((link) => (
@@ -80,19 +80,19 @@ export default function QRPage() {
           <button
             onClick={generateQR}
             disabled={!selectedLink}
-            className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md shadow-sm text-sm sm:text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
           >
             Generate QR Code
           </button>
 
           {qrCode && (
-            <div className="mt-8">
-              <p className="text-base text-gray-600 mb-4">QR Code untuk: {qrCode}</p>
+            <div className="mt-6 sm:mt-8">
+              <p className="text-sm sm:text-base text-gray-600 mb-4">QR Code untuk: {qrCode}</p>
               <div className="bg-gray-50 p-4 rounded-lg text-center">
                 <div className="inline-block p-4 bg-white rounded">
                   <QRCodeCanvas
                     value={qrCode}
-                    size={256}
+                    size={window.innerWidth < 640 ? 200 : 256}
                     bgColor="#ffffff"
                     fgColor="#000000"
                     level="M"
@@ -101,7 +101,7 @@ export default function QRPage() {
                 </div>
                 <button
                   onClick={downloadQR}
-                  className="mt-6 inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  className="mt-6 inline-flex justify-center py-3 px-6 border border-transparent shadow-sm text-sm sm:text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 min-h-[44px]"
                 >
                   Download QR Code
                 </button>

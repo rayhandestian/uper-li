@@ -8,34 +8,34 @@ export default async function Home() {
   const session = await getServerSession(authOptions)
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <main className="flex-grow flex flex-col items-center justify-center px-6">
-        <h1 className="text-5xl font-bold text-gray-900 mb-6">
+      <main className="flex-grow flex flex-col items-center justify-center px-4 sm:px-6">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
           UPer.li
         </h1>
-        <p className="text-xl text-gray-600 mb-12 max-w-2xl text-center leading-relaxed">
+        <p className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-12 max-w-2xl text-center leading-relaxed">
           URL Shortener Eksklusif untuk Civitas Universitas Pertamina
         </p>
         {session ? (
-          <div className="space-x-6 flex items-center">
+          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 items-center">
             <Link
               href="/dashboard"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-base font-medium transition-colors shadow-sm"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-base font-medium transition-colors shadow-sm min-h-[44px] w-full sm:w-auto text-center"
             >
               Dashboard
             </Link>
-            <LogoutButton className="bg-white text-red-600 px-6 py-3 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 text-base font-medium transition-colors shadow-sm border border-red-300" />
+            <LogoutButton className="bg-white text-red-600 px-6 py-3 rounded-lg hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 text-base font-medium transition-colors shadow-sm border border-red-300 min-h-[44px] w-full sm:w-auto text-center" />
           </div>
         ) : (
-          <div className="space-x-6">
+          <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
             <Link
               href="/register"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-base font-medium transition-colors shadow-sm"
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-base font-medium transition-colors shadow-sm min-h-[44px] w-full sm:w-auto text-center"
             >
               Daftar
             </Link>
             <Link
               href="/login"
-              className="bg-white text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-base font-medium transition-colors shadow-sm border border-gray-300"
+              className="bg-white text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-base font-medium transition-colors shadow-sm border border-gray-300 min-h-[44px] w-full sm:w-auto text-center"
             >
               Masuk
             </Link>

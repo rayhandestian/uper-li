@@ -199,16 +199,16 @@ export default function LinksPage() {
 
   return (
     <div className="px-4 py-6 sm:px-0">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Kelola Link</h1>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Kelola Link</h1>
         <p className="mt-1 text-sm text-gray-600">
           Buat dan kelola short link Anda
         </p>
       </div>
 
-      <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8 mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-8">Buat Link Baru</h2>
-        <form onSubmit={handleCreateLink} className="space-y-8">
+      <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6 sm:p-8 mb-6 sm:mb-8">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6 sm:mb-8">Buat Link Baru</h2>
+        <form onSubmit={handleCreateLink} className="space-y-6 sm:space-y-8">
           <div>
             <label htmlFor="longUrl" className="block text-base font-medium text-gray-700 mb-3">
               URL Asli
@@ -338,16 +338,16 @@ export default function LinksPage() {
                       Dibuat: {new Date(link.createdAt).toLocaleDateString('id-ID')} | Kunjungan: {link.visitCount}
                     </p>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-0">
                     <button
                       onClick={() => startEdit(link)}
-                      className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200"
+                      className="inline-flex items-center justify-center px-3 py-2 sm:py-1 rounded-md text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 min-h-[44px] sm:min-h-0"
                     >
                       Edit
                     </button>
                     <button
                       onClick={() => toggleActive(link.id, link.active)}
-                      className={`inline-flex items-center px-3 py-1 rounded-md text-sm font-medium ${
+                      className={`inline-flex items-center justify-center px-3 py-2 sm:py-1 rounded-md text-sm font-medium min-h-[44px] sm:min-h-0 ${
                         link.active
                           ? 'text-red-700 bg-red-100 hover:bg-red-200'
                           : 'text-green-700 bg-green-100 hover:bg-green-200'
@@ -357,7 +357,7 @@ export default function LinksPage() {
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(link.id)}
-                      className="inline-flex items-center px-3 py-1 rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200"
+                      className="inline-flex items-center justify-center px-3 py-2 sm:py-1 rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 min-h-[44px] sm:min-h-0"
                     >
                       Hapus
                     </button>

@@ -143,24 +143,24 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="px-6 py-8 sm:px-0">
-      <div className="mb-12">
-        <h1 className="text-3xl font-bold text-gray-900">Pengaturan Akun</h1>
-        <p className="mt-2 text-lg text-gray-600">
+    <div className="px-4 py-6 sm:px-0">
+      <div className="mb-8 sm:mb-12">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pengaturan Akun</h1>
+        <p className="mt-2 text-base sm:text-lg text-gray-600">
           Kelola informasi akun Anda
         </p>
       </div>
 
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         <div className="bg-white shadow-sm border border-gray-200 rounded-lg">
-          <div className="px-8 py-8 sm:p-8">
-            <h3 className="text-2xl leading-6 font-semibold text-gray-900 mb-8">
+          <div className="px-6 py-6 sm:px-8 sm:py-8">
+            <h3 className="text-xl sm:text-2xl leading-6 font-semibold text-gray-900 mb-6 sm:mb-8">
               Informasi Akun
             </h3>
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-2">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:gap-x-6 sm:gap-y-8 sm:grid-cols-2">
               <div>
                 <dt className="text-base font-medium text-gray-500">Email</dt>
-                <dd className="mt-2 text-lg text-gray-900">{user.email}</dd>
+                <dd className="mt-2 text-sm sm:text-lg text-gray-900 break-words">{user.email}</dd>
               </div>
               <div>
                 <dt className="text-base font-medium text-gray-500">Peran</dt>

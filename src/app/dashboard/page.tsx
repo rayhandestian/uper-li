@@ -42,29 +42,29 @@ export default async function DashboardPage() {
   const maxMonthly = user.role === 'STUDENT' ? 5 : 10
 
   return (
-    <div className="px-6 py-8 sm:px-0">
-      <div className="mb-12">
-        <h1 className="text-3xl font-bold text-gray-900">Beranda Dashboard</h1>
-        <p className="mt-2 text-lg text-gray-600">
+    <div className="px-4 py-6 sm:px-0">
+      <div className="mb-8 sm:mb-12">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Beranda Dashboard</h1>
+        <p className="mt-2 text-base sm:text-lg text-gray-600">
           Selamat datang, {user.nimOrUsername}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
-          <div className="p-8">
+          <div className="p-6 sm:p-8">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg font-medium">L</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-base sm:text-lg font-medium">L</span>
                 </div>
               </div>
-              <div className="ml-6 w-0 flex-1">
+              <div className="ml-4 sm:ml-6 w-0 flex-1">
                 <dl>
-                  <dt className="text-base font-medium text-gray-500 truncate">
+                  <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
                     Total Link
                   </dt>
-                  <dd className="text-2xl font-semibold text-gray-900 mt-1">
+                  <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
                     {totalLinks}
                   </dd>
                 </dl>
@@ -74,19 +74,19 @@ export default async function DashboardPage() {
         </div>
 
         <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
-          <div className="p-8">
+          <div className="p-6 sm:p-8">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg font-medium">M</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-base sm:text-lg font-medium">M</span>
                 </div>
               </div>
-              <div className="ml-6 w-0 flex-1">
+              <div className="ml-4 sm:ml-6 w-0 flex-1">
                 <dl>
-                  <dt className="text-base font-medium text-gray-500 truncate">
+                  <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
                     Link Bulan Ini
                   </dt>
-                  <dd className="text-2xl font-semibold text-gray-900 mt-1">
+                  <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
                     {monthlyLinks} / {maxMonthly}
                   </dd>
                 </dl>
@@ -96,19 +96,19 @@ export default async function DashboardPage() {
         </div>
 
         <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
-          <div className="p-8">
+          <div className="p-6 sm:p-8">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center">
-                  <span className="text-white text-lg font-medium">R</span>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-base sm:text-lg font-medium">R</span>
                 </div>
               </div>
-              <div className="ml-6 w-0 flex-1">
+              <div className="ml-4 sm:ml-6 w-0 flex-1">
                 <dl>
-                  <dt className="text-base font-medium text-gray-500 truncate">
+                  <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
                     Peran
                   </dt>
-                  <dd className="text-2xl font-semibold text-gray-900 mt-1">
+                  <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
                     {user.role === 'STUDENT' ? 'Mahasiswa' : 'Dosen/Staff'}
                   </dd>
                 </dl>
@@ -125,17 +125,17 @@ export default async function DashboardPage() {
             {/* @ts-ignore */}
             {user.links.map((link) => (
               <li key={link.id}>
-                <div className="px-6 py-6 sm:px-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <p className="text-base font-medium text-blue-600 truncate">
+                <div className="px-4 py-4 sm:px-6 sm:py-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center">
+                      <p className="text-sm sm:text-base font-medium text-blue-600 break-words">
                         uper.li/{link.shortUrl}
                       </p>
-                      <p className="ml-3 text-base text-gray-500 truncate">
+                      <p className="mt-1 sm:mt-0 sm:ml-3 text-sm sm:text-base text-gray-500 break-words">
                         → {link.longUrl}
                       </p>
                     </div>
-                    <div className="flex items-center">
+                    <div className="flex items-center sm:justify-end">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
                         link.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
