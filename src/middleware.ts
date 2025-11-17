@@ -48,6 +48,8 @@ export function middleware(request: NextRequest) {
       url.pathname = '/admin'
     } else if (pathname === '/login') {
       url.pathname = '/login-admin'
+    } else if (pathname === '/login-admin') {
+      return NextResponse.next()
     } else if (!pathname.startsWith('/admin')) {
       url.pathname = `/admin${pathname}`
     }
