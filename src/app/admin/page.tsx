@@ -32,7 +32,18 @@ export default async function AdminDashboard() {
     LIMIT 5
   `)
 
-  const recentLinks = recentLinksResult.rows
+  const recentLinks = recentLinksResult.rows.map(link => {
+    const formattedLink = {
+      ...link,
+      user: {
+        nimOrUsername: link.nimOrUsername,
+        email: link.email
+      }
+    }
+    delete formattedLink.nimOrUsername
+    delete formattedLink.email
+    return formattedLink
+  })
 
   return (
     <div className="space-y-6">
