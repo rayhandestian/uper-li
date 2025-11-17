@@ -1,13 +1,6 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
 export default async function AdminDashboard() {
-  const session = await getServerSession(authOptions)
-
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
-    return null
-  }
 
   // Get system statistics using raw SQL
   const statsResult = await db.query(`

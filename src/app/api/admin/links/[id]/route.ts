@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions)
+  const cookieStore = await cookies()
+  const adminAuth = cookieStore.get('admin_auth')
 
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
+  if (!adminAuth || adminAuth.value !== 'true') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
@@ -57,9 +57,10 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions)
+  const cookieStore = await cookies()
+  const adminAuth = cookieStore.get('admin_auth')
 
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
+  if (!adminAuth || adminAuth.value !== 'true') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
