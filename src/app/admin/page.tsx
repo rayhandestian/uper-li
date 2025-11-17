@@ -1,5 +1,6 @@
 import { db } from '@/lib/db'
 import ManualCronJobs from '@/components/ManualCronJobs'
+import Link from 'next/link'
 
 export default async function AdminDashboard() {
 
@@ -151,7 +152,7 @@ export default async function AdminDashboard() {
 
       {/* Navigation Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        <a
+        <Link
           href="/admin/users"
           className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
         >
@@ -174,9 +175,9 @@ export default async function AdminDashboard() {
               </div>
             </div>
           </div>
-        </a>
+        </Link>
 
-        <a
+        <Link
           href="/admin/links"
           className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
         >
@@ -199,9 +200,9 @@ export default async function AdminDashboard() {
               </div>
             </div>
           </div>
-        </a>
+        </Link>
 
-        <a
+        <Link
           href="/admin/reports"
           className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
         >
@@ -224,7 +225,7 @@ export default async function AdminDashboard() {
               </div>
             </div>
           </div>
-        </a>
+        </Link>
       </div>
 
       {/* Recent Activity */}

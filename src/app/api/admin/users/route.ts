@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
   const skip = (page - 1) * limit
 
   // Build WHERE clause
-  let whereConditions = []
-  let params: any[] = []
+  const whereConditions = []
+  const params: unknown[] = []
   let paramIndex = 1
 
   if (search) {

@@ -28,6 +28,7 @@ export default async function AdminLayout({
               >
                 User Dashboard
               </a>
+              {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
                 href="/api/admin/logout"
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"

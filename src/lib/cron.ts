@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import cron from 'node-cron'
 import { db } from './db'
 import { sendEmail } from './email'

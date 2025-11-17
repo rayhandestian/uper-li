@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { QRCodeCanvas } from 'qrcode.react'
 
 interface Link {
@@ -15,17 +15,18 @@ export default function QRPage() {
   const [qrCode, setQrCode] = useState<string>('')
   const qrRef = useRef<HTMLCanvasElement>(null)
 
-  const fetchLinks = async () => {
+  const fetchLinks = useCallback(async () => {
     const response = await fetch('/api/links')
     if (response.ok) {
       const data = await response.json()
       setLinks(data.links)
     }
-  }
+  }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLinks()
-  }, [])
+  }, [fetchLinks])
 
   const generateQR = async () => {
     if (!selectedLink) return

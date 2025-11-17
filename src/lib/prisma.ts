@@ -1,4 +1,5 @@
 // Mock Prisma export to prevent build errors during migration to raw SQL
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 export const prisma = {
   user: {
     findUnique: (args: any) => ({ 

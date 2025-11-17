@@ -17,7 +17,7 @@ export async function PATCH(
   const { id } = await params
 
   const updateFields: string[] = []
-  const updateValues: any[] = []
+  const updateValues: unknown[] = []
   let paramCount = 0
 
   if (active !== undefined) {

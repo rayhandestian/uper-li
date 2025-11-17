@@ -22,9 +22,10 @@ function LoginForm() {
   useEffect(() => {
     const msg = searchParams.get('message')
     if (msg) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setMessage(msg)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {

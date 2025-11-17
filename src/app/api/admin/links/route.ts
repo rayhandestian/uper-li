@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
   // Build WHERE clause
   const whereConditions = []
-  const queryParams: any[] = []
+  const queryParams: unknown[] = []
   let paramCount = 0
 
   if (search) {

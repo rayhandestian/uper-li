@@ -28,7 +28,7 @@ interface PaginationData {
 }
 
 export default function LinksPage() {
-  const { data: session } = useSession()
+  useSession()
   const [links, setLinks] = useState<Link[]>([])
   const [pagination, setPagination] = useState<PaginationData | null>(null)
   const [longUrl, setLongUrl] = useState('')

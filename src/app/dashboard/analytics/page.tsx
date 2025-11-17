@@ -18,7 +18,7 @@ export default async function AnalyticsPage() {
   const links = linksResult.rows
 
   // Calculate total visits
-  const totalVisits = links.reduce((sum: number, link: any) => sum + (parseInt(link.visitCount) || 0), 0)
+  const totalVisits = links.reduce((sum: number, link: unknown) => sum + (parseInt((link as { visitCount: unknown }).visitCount as string) || 0), 0)
 
   return <AnalyticsContent links={links} totalVisits={totalVisits} />
 }

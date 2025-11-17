@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface User {
   id: string
@@ -23,7 +23,7 @@ export default function AdminUsersPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     const params = new URLSearchParams({
       page: currentPage.toString(),
       limit: '20',
@@ -44,11 +44,12 @@ export default function AdminUsersPage() {
       setTotalPages(data.pagination.totalPages)
     }
     setLoading(false)
-  }
+  }, [currentPage, searchTerm, roleFilter])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUsers()
-  }, [currentPage, searchTerm, roleFilter])
+  }, [fetchUsers])
 
   const toggleUserStatus = async (userId: string, active: boolean) => {
     await fetch(`/api/admin/users/${userId}`, {

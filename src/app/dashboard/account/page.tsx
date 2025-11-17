@@ -15,7 +15,7 @@ interface User {
 }
 
 export default function AccountPage() {
-  const { data: session } = useSession()
+  useSession()
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [twoFactorLoading, setTwoFactorLoading] = useState(false)
@@ -35,8 +35,8 @@ export default function AccountPage() {
         const userData = await response.json()
         setUser(userData)
       }
-    } catch (error) {
-      console.error('Failed to fetch user data:', error)
+    } catch {
+       console.error('Failed to fetch user data')
     } finally {
       setLoading(false)
     }
@@ -60,7 +60,7 @@ export default function AccountPage() {
       } else {
         setError(data.error || 'Terjadi kesalahan.')
       }
-    } catch (error) {
+    } catch {
       setError('Terjadi kesalahan.')
     } finally {
       setTwoFactorLoading(false)
@@ -90,8 +90,8 @@ export default function AccountPage() {
       } else {
         setError(data.error || 'Terjadi kesalahan.')
       }
-    } catch (error) {
-      setError('Terjadi kesalahan.')
+    } catch {
+       setError('Terjadi kesalahan.')
     } finally {
       setTwoFactorLoading(false)
     }
@@ -119,7 +119,7 @@ export default function AccountPage() {
       } else {
         setError(data.error || 'Terjadi kesalahan.')
       }
-    } catch (error) {
+    } catch {
       setError('Terjadi kesalahan.')
     } finally {
       setTwoFactorLoading(false)

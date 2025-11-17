@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import crypto from 'crypto'
 import { sendEmail } from '@/lib/email'
 import { db } from '@/lib/db'
 
@@ -63,16 +62,13 @@ export async function POST(request: NextRequest) {
     const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
     // Create user using raw SQL with RETURNING clause
-    const userResult = await db.query(
+    await db.query(
       `INSERT INTO "User" (
         id, email, role, "nimOrUsername", password,
         "verificationToken", "verificationTokenExpires", "createdAt", "updatedAt"
-      ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())
-      RETURNING id`,
+      ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())`,
       [email, role, nimOrUsername, hashedPassword, verificationCode, verificationTokenExpires]
     )
-
-    const user = userResult.rows[0]
 
     // Send verification email
     await sendEmail({

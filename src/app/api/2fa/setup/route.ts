@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import crypto from 'crypto'
 import { sendEmail } from '@/lib/email'
 
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
 

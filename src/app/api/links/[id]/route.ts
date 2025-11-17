@@ -41,8 +41,8 @@ export async function PATCH(
   const link = linkResult.rows[0]
 
   // Build dynamic update query
-  let updateFields = []
-  let queryParams: any[] = [id, session.user.id]
+  const updateFields = []
+  const queryParams: unknown[] = [id, session.user.id]
   let paramIndex = 3
 
   if (active !== undefined) {

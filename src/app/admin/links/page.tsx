@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface Link {
   id: string
@@ -24,7 +24,7 @@ export default function AdminLinksPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
-  const fetchLinks = async () => {
+  const fetchLinks = useCallback(async () => {
     const params = new URLSearchParams({
       page: currentPage.toString(),
       limit: '20',
@@ -45,11 +45,12 @@ export default function AdminLinksPage() {
       setTotalPages(data.pagination.totalPages)
     }
     setLoading(false)
-  }
+  }, [currentPage, searchTerm, activeFilter])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLinks()
-  }, [currentPage, searchTerm, activeFilter])
+  }, [fetchLinks])
 
   const toggleLinkStatus = async (linkId: string, active: boolean) => {
     await fetch(`/api/admin/links/${linkId}`, {

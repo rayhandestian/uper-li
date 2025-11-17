@@ -123,7 +123,7 @@ export default async function DashboardPage() {
         <h2 className="text-2xl font-semibold text-gray-900 mb-8">Link Terbaru</h2>
         <div className="bg-white shadow-sm border border-gray-200 overflow-hidden rounded-lg">
           <ul className="divide-y divide-gray-200">
-            {/* @ts-ignore */}
+            {/* @ts-expect-error: TypeScript cannot infer the type of user.links from the raw SQL query */}
             {user.links.map((link) => (
               <li key={link.id}>
                 <div className="px-4 py-4 sm:px-6 sm:py-6">

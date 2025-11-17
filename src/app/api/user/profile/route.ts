@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 
+/* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
 

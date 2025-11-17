@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
   const skip = (page - 1) * limit
 
   // Build WHERE clause
-  let whereConditions = ['"userId" = $1']
-  let params: any[] = [session.user.id]
+  const whereConditions = ['"userId" = $1']
+  const params: unknown[] = [session.user.id]
   let paramIndex = 2
 
   if (search) {
