@@ -27,6 +27,16 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('https://app.uper.li'))
     }
 
+    // Redirect admin login to admin subdomain
+    if (pathname === '/login-admin') {
+      return NextResponse.redirect(new URL('https://admin.uper.li/login-admin'))
+    }
+
+    // Redirect admin routes to admin subdomain
+    if (pathname.startsWith('/admin')) {
+      return NextResponse.redirect(new URL(`https://admin.uper.li${pathname}`))
+    }
+
     // Redirect app-specific routes to app subdomain
     if (APP_ROUTES.includes(pathname)) {
       return NextResponse.redirect(new URL(`https://app.uper.li${pathname}`))
