@@ -8,7 +8,7 @@ export default async function AdminDashboard() {
       (SELECT COUNT(*) FROM "User") as totalUsers,
       (SELECT COUNT(*) FROM "Link") as totalLinks,
       (SELECT COUNT(*) FROM "Link" WHERE active = true) as activeLinks,
-      (SELECT COUNT(*) FROM "Visit") as totalVisits
+      (SELECT SUM("visitCount") FROM "Link") as totalVisits
   `)
 
   const stats = statsResult.rows[0]
