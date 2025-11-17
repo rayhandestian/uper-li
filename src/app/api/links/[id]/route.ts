@@ -4,6 +4,17 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
+const RESERVED_PATHS = [
+  'dashboard',
+  'login',
+  'register',
+  'terms',
+  'privacy',
+  'contact',
+  'verify',
+  'admin'
+]
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -83,6 +94,11 @@ export async function PATCH(
     // Validate new short URL
     if (shortUrl.length > 255 || !/^[a-zA-Z0-9-_]+$/.test(shortUrl)) {
       return NextResponse.json({ error: 'Short URL kustom tidak valid.' }, { status: 400 })
+    }
+
+    // Check if new short URL is reserved
+    if (RESERVED_PATHS.includes(shortUrl)) {
+      return NextResponse.json({ error: 'Short URL kustom tidak tersedia.' }, { status: 400 })
     }
 
     // Check if new short URL is taken
