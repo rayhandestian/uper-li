@@ -14,6 +14,7 @@ interface Link {
   active: boolean
   createdAt: string
   visitCount: number
+  hasPassword: boolean
 }
 
 interface PaginationData {
@@ -39,6 +40,7 @@ export default function LinksPage() {
   const [editCustomUrl, setEditCustomUrl] = useState('')
   const [editMode, setEditMode] = useState<'PREVIEW' | 'DIRECT'>('PREVIEW')
   const [editPassword, setEditPassword] = useState('')
+  const [passwordRemoved, setPasswordRemoved] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
   // Filter state
@@ -122,6 +124,7 @@ export default function LinksPage() {
     setEditCustomUrl(link.shortUrl)
     setEditMode(link.mode)
     setEditPassword('')
+    setPasswordRemoved(false)
   }
 
   const cancelEdit = () => {
@@ -129,6 +132,7 @@ export default function LinksPage() {
     setEditCustomUrl('')
     setEditMode('PREVIEW')
     setEditPassword('')
+    setPasswordRemoved(false)
   }
 
   const saveEdit = async () => {
@@ -145,7 +149,7 @@ export default function LinksPage() {
       body: JSON.stringify({
         shortUrl: editCustomUrl !== editingLink.shortUrl ? editCustomUrl : undefined,
         mode: editMode,
-        password: editPassword || undefined,
+        password: editPassword,
       }),
     })
 
@@ -155,6 +159,7 @@ export default function LinksPage() {
       setSuccess('Link berhasil diperbarui!')
       fetchLinks(currentPage)
       cancelEdit()
+      setPasswordRemoved(false)
     } else {
       setError(data.error || 'Terjadi kesalahan.')
     }
@@ -486,10 +491,28 @@ export default function LinksPage() {
                   value={editPassword}
                   onChange={(e) => setEditPassword(e.target.value)}
                   className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-base"
-                  placeholder="Kosongkan untuk menghapus password"
+                  placeholder="Masukkan password baru"
                 />
+                {editingLink?.hasPassword && (
+                  <>
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => { setEditPassword(''); setPasswordRemoved(true); }}
+                        className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md"
+                      >
+                        Hapus Password
+                      </button>
+                    </div>
+                    {passwordRemoved && (
+                      <p className="mt-2 text-sm text-red-600">
+                        Password akan dihapus saat menyimpan perubahan.
+                      </p>
+                    )}
+                  </>
+                )}
                 <p className="mt-2 text-sm text-gray-500">
-                  Minimal 4 karakter. Kosongkan untuk menghapus proteksi password.
+                  Minimal 4 karakter. {editingLink?.hasPassword ? 'Klik "Hapus Password" untuk menghapus proteksi.' : 'Kosongkan untuk tidak menggunakan password.'}
                 </p>
               </div>
             </div>

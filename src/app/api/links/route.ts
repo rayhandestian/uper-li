@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 
   // Get paginated links
   const linksQuery = `
-    SELECT * FROM "Link" 
+    SELECT *, (password IS NOT NULL) as "hasPassword" FROM "Link"
     ${whereClause}
     ORDER BY "${sortField}" ${orderDirection}
     LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
