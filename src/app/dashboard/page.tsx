@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import ShortUrlActions from '@/components/ShortUrlActions'
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
@@ -128,12 +129,12 @@ export default async function DashboardPage() {
                 <div className="px-4 py-4 sm:px-6 sm:py-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                     <div className="flex flex-col sm:flex-row sm:items-center">
-                      <p className="text-sm sm:text-base font-medium text-blue-600 break-words">
-                        uper.li/{link.shortUrl}
-                      </p>
-                      <p className="mt-1 sm:mt-0 sm:ml-3 text-sm sm:text-base text-gray-500 break-words">
-                        → {link.longUrl}
-                      </p>
+                      <div className="flex flex-col sm:flex-row sm:items-center">
+                        <ShortUrlActions shortUrl={link.shortUrl} />
+                        <p className="mt-1 sm:mt-0 sm:ml-3 text-sm sm:text-base text-gray-500 break-words">
+                          → {link.longUrl}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex items-center sm:justify-end">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${

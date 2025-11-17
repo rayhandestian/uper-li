@@ -1,6 +1,7 @@
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import ShortUrlActions from '@/components/ShortUrlActions'
 
 export default async function AnalyticsPage() {
   const session = await getServerSession(authOptions)
@@ -87,9 +88,7 @@ export default async function AnalyticsPage() {
               <div className="px-8 py-6 sm:px-8">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-medium text-blue-600 truncate">
-                      uper.li/{link.shortUrl}
-                    </p>
+                    <ShortUrlActions shortUrl={link.shortUrl} />
                     <p className="mt-2 text-base text-gray-500 truncate">
                       {link.longUrl}
                     </p>

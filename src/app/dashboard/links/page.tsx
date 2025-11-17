@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import ShortUrlActions from '@/components/ShortUrlActions'
 
 interface Link {
   id: string
@@ -327,9 +328,7 @@ export default function LinksPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center">
-                      <p className="text-sm font-medium text-blue-600 truncate">
-                        uper.li/{link.shortUrl}
-                      </p>
+                      <ShortUrlActions shortUrl={link.shortUrl} />
                       <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                         link.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                       }`}>
