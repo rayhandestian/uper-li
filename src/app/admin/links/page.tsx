@@ -24,10 +24,6 @@ export default function AdminLinksPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchLinks()
-  }, [currentPage, searchTerm, activeFilter])
-
   const fetchLinks = async () => {
     const params = new URLSearchParams({
       page: currentPage.toString(),
@@ -50,6 +46,10 @@ export default function AdminLinksPage() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    fetchLinks()
+  }, [currentPage, searchTerm, activeFilter])
 
   const toggleLinkStatus = async (linkId: string, active: boolean) => {
     await fetch(`/api/admin/links/${linkId}`, {

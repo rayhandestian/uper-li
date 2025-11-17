@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
 
 interface User {
   id: string
@@ -17,17 +16,12 @@ interface User {
 }
 
 export default function AdminUsersPage() {
-  const { data: session } = useSession()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | 'STUDENT' | 'STAFF' | 'ADMIN'>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-
-  useEffect(() => {
-    fetchUsers()
-  }, [currentPage, searchTerm, roleFilter])
 
   const fetchUsers = async () => {
     const params = new URLSearchParams({
@@ -51,6 +45,10 @@ export default function AdminUsersPage() {
     }
     setLoading(false)
   }
+
+  useEffect(() => {
+    fetchUsers()
+  }, [currentPage, searchTerm, roleFilter])
 
   const toggleUserStatus = async (userId: string, active: boolean) => {
     await fetch(`/api/admin/users/${userId}`, {
@@ -173,29 +171,25 @@ export default function AdminUsersPage() {
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
-                    {user.id !== session?.user?.id && (
-                      <>
-                        <select
-                          value={user.role}
-                          onChange={(e) => changeUserRole(user.id, e.target.value as 'STUDENT' | 'STAFF' | 'ADMIN')}
-                          className="text-xs border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="STUDENT">Mahasiswa</option>
-                          <option value="STAFF">Dosen/Staff</option>
-                          <option value="ADMIN">Admin</option>
-                        </select>
-                        <button
-                          onClick={() => toggleUserStatus(user.id, user.active)}
-                          className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
-                            user.active
-                              ? 'text-red-700 bg-red-100 hover:bg-red-200'
-                              : 'text-green-700 bg-green-100 hover:bg-green-200'
-                          }`}
-                        >
-                          {user.active ? 'Nonaktifkan' : 'Aktifkan'}
-                        </button>
-                      </>
-                    )}
+                    <select
+                      value={user.role}
+                      onChange={(e) => changeUserRole(user.id, e.target.value as 'STUDENT' | 'STAFF' | 'ADMIN')}
+                      className="text-xs border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="STUDENT">Mahasiswa</option>
+                      <option value="STAFF">Dosen/Staff</option>
+                      <option value="ADMIN">Admin</option>
+                    </select>
+                    <button
+                      onClick={() => toggleUserStatus(user.id, user.active)}
+                      className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${
+                        user.active
+                          ? 'text-red-700 bg-red-100 hover:bg-red-200'
+                          : 'text-green-700 bg-green-100 hover:bg-green-200'
+                      }`}
+                    >
+                      {user.active ? 'Nonaktifkan' : 'Aktifkan'}
+                    </button>
                   </div>
                 </div>
               </div>

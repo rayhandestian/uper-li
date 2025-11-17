@@ -45,7 +45,7 @@ export async function PATCH(
       email: link.user_email
     }
   }
-  
+
   // Remove temporary fields
   delete formattedLink.user_nimorusername
   delete formattedLink.user_email

@@ -65,7 +65,21 @@ export async function GET(request: NextRequest) {
 
   queryParams.push(limit, offset)
   const linksResult = await db.query(linksQuery, queryParams)
-  const links = linksResult.rows
+
+  // Format links to match expected structure with nested user object
+  const links = linksResult.rows.map(link => {
+    const formattedLink = {
+      ...link,
+      user: {
+        nimOrUsername: link.nimOrUsername,
+        email: link.email
+      }
+    }
+    // Remove the flat user fields
+    delete formattedLink.nimOrUsername
+    delete formattedLink.email
+    return formattedLink
+  })
 
   const totalPages = Math.ceil(total / limit)
 

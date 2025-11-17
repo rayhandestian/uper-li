@@ -1,11 +1,11 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
 
 export default async function AdminReportsPage() {
-  const session = await getServerSession(authOptions)
+  const cookieStore = await cookies()
+  const adminAuth = cookieStore.get('admin_auth')
 
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
+  if (!adminAuth || adminAuth.value !== 'true') {
     return null
   }
 
@@ -18,7 +18,7 @@ export default async function AdminReportsPage() {
       (SELECT COUNT(*) FROM "Link") as totalLinks,
       (SELECT COUNT(*) FROM "Link" WHERE active = true) as activeLinks,
       (SELECT COUNT(*) FROM "Link" WHERE password IS NOT NULL) as passwordProtectedLinks,
-      (SELECT COUNT(*) FROM "Visit") as totalVisits
+      (SELECT SUM("visitCount") FROM "Link") as totalVisits
   `)
 
   const stats = statsResult.rows[0]
@@ -48,7 +48,7 @@ export default async function AdminReportsPage() {
       SELECT
         (SELECT COUNT(*) FROM "User" WHERE "createdAt" >= $1 AND "createdAt" < $2) as usersCreated,
         (SELECT COUNT(*) FROM "Link" WHERE "createdAt" >= $1 AND "createdAt" < $2) as linksCreated,
-        (SELECT COUNT(*) FROM "Visit" WHERE "visitedAt" >= $1 AND "visitedAt" < $2) as visits
+        (SELECT COALESCE(SUM("visitCount"), 0) FROM "Link" WHERE "createdAt" >= $1 AND "createdAt" < $2) as visits
     `, [monthStart, monthEnd])
 
     const monthStats = monthStatsResult.rows[0]
