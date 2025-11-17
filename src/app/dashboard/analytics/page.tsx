@@ -94,10 +94,15 @@ export default async function AnalyticsPage() {
                       {link.longUrl}
                     </p>
                   </div>
-                  <div className="flex items-center">
+                  <div className="flex flex-col items-end">
                     <span className="text-lg text-gray-900">
                       {link.visitCount} kunjungan
                     </span>
+                    {link.lastVisited && (
+                      <span className="text-sm text-gray-500 mt-1">
+                        Terakhir: {new Date(link.lastVisited).toLocaleString('id-ID')}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
