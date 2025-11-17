@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Turnstile } from '@marsidev/react-turnstile'
 
 export default function AdminLoginPage() {
   const [passcode, setPasscode] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -14,12 +16,18 @@ export default function AdminLoginPage() {
     setError('')
     setLoading(true)
 
+    if (!turnstileToken) {
+      setError('Please complete the CAPTCHA verification.')
+      setLoading(false)
+      return
+    }
+
     const response = await fetch('/api/admin/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ passcode }),
+      body: JSON.stringify({ passcode, turnstileToken }),
     })
 
     const data = await response.json()
@@ -60,6 +68,15 @@ export default function AdminLoginPage() {
                 placeholder="Enter admin passcode"
                 value={passcode}
                 onChange={(e) => setPasscode(e.target.value)}
+              />
+            </div>
+
+            <div className="flex justify-center">
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY!}
+                onSuccess={setTurnstileToken}
+                onError={() => setTurnstileToken('')}
+                onExpire={() => setTurnstileToken('')}
               />
             </div>
 

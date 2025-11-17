@@ -3,10 +3,27 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
-    const { passcode } = await request.json()
+    const { passcode, turnstileToken } = await request.json()
 
     if (!passcode) {
       return NextResponse.json({ error: 'Passcode is required' }, { status: 400 })
+    }
+
+    // Validate Turnstile
+    const turnstileResponse = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        secret: process.env.CLOUDFLARE_TURNSTILE_SECRET!,
+        response: turnstileToken,
+      }),
+    })
+
+    const turnstileData = await turnstileResponse.json()
+    if (!turnstileData.success) {
+      return NextResponse.json({ error: 'CAPTCHA verification failed.' }, { status: 400 })
     }
 
     const adminPasscode = process.env.ADMIN_PASSCODE
