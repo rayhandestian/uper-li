@@ -90,3 +90,11 @@ COMMENT ON TABLE "Visit" IS 'Visit tracking for shortened links';
 -- Add missing columns to existing Link table (for schema updates)
 ALTER TABLE "Link" ADD COLUMN IF NOT EXISTS "customChanges" INTEGER DEFAULT 0;
 ALTER TABLE "Link" ADD COLUMN IF NOT EXISTS "customChangedAt" TIMESTAMP;
+
+-- Migrate existing visit data to Link aggregates (run before dropping Visit table)
+UPDATE "Link" SET "visitCount" = COALESCE((SELECT COUNT(*) FROM "Visit" WHERE "linkId" = "Link".id), 0),
+"lastVisited" = (SELECT MAX("visitedAt") FROM "Visit" WHERE "linkId" = "Link".id);
+
+-- Drop Visit table and related index
+DROP INDEX IF EXISTS idx_visit_linkId;
+DROP TABLE IF EXISTS "Visit";

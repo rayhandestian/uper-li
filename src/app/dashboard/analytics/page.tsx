@@ -9,25 +9,9 @@ export default async function AnalyticsPage() {
     return null
   }
 
-  // Get user's links and visit statistics using raw SQL
+  // Get user's links using raw SQL
   const linksResult = await db.query(`
-    SELECT l.*,
-           COALESCE(
-             json_agg(
-               json_build_object(
-                 'id', v.id,
-                 'visitedAt', v."visitedAt",
-                 'linkId', v."linkId"
-               )
-               ORDER BY v."visitedAt" DESC
-             ) FILTER (WHERE v.id IS NOT NULL),
-             '[]'::json
-           ) as visits
-    FROM "Link" l
-    LEFT JOIN "Visit" v ON l.id = v."linkId"
-    WHERE l."userId" = $1
-    GROUP BY l.id
-    ORDER BY l."visitCount" DESC
+    SELECT * FROM "Link" WHERE "userId" = $1 ORDER BY "visitCount" DESC
   `, [session.user.id])
 
   const links = linksResult.rows
@@ -129,44 +113,6 @@ export default async function AnalyticsPage() {
         </ul>
       </div>
 
-      <div className="mt-12">
-        <h3 className="text-2xl leading-6 font-semibold text-gray-900 mb-8">
-          Kunjungan Terbaru
-        </h3>
-        <div className="bg-white shadow-sm border border-gray-200 overflow-hidden rounded-lg">
-          <ul className="divide-y divide-gray-200">
-            {/* @ts-ignore */}
-            {links.flatMap(link => link.visits).sort((a, b) => new Date(b.visitedAt).getTime() - new Date(a.visitedAt).getTime()).slice(0, 10).map((visit) => {
-              // @ts-ignore
-              const link = links.find(l => l.id === visit.linkId)
-              return (
-                <li key={visit.id}>
-                  <div className="px-8 py-6 sm:px-8">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-base font-medium text-blue-600">
-                          uper.li/{link?.shortUrl}
-                        </p>
-                        <p className="text-base text-gray-500">
-                          {new Date(visit.visitedAt).toLocaleString('id-ID')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </li>
-              )
-            })}
-            {/* @ts-ignore */}
-            {links.flatMap(link => link.visits).length === 0 && (
-              <li>
-                <div className="px-8 py-6 sm:px-8 text-center text-gray-500">
-                  Belum ada kunjungan.
-                </div>
-              </li>
-            )}
-          </ul>
-        </div>
-      </div>
     </div>
   )
 }
