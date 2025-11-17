@@ -103,10 +103,6 @@ export async function PATCH(
     updateFields.push(`"customChanges" = $${paramIndex}`)
     queryParams.push(link.customChanges + 1)
     paramIndex++
-
-    updateFields.push(`"customChangedAt" = $${paramIndex}`)
-    queryParams.push(now)
-    paramIndex++
   }
 
   if (updateFields.length === 0) {
