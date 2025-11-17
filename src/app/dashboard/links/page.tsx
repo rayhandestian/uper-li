@@ -473,7 +473,7 @@ export default function LinksPage() {
                 <select
                   value={editMode}
                   onChange={(e) => setEditMode(e.target.value as 'PREVIEW' | 'DIRECT')}
-                  className="block w-full px-4 py-3 border border-gray-900 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
                 >
                   <option value="PREVIEW">Preview</option>
                   <option value="DIRECT">Direct</option>
