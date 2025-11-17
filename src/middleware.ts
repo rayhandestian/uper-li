@@ -41,6 +41,17 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`https://app.uper.li${pathname}`))
   }
 
+  // For admin subdomain
+  if (hostname === 'admin.uper.li') {
+    const url = request.nextUrl.clone()
+    if (pathname === '/') {
+      url.pathname = '/admin'
+    } else if (!pathname.startsWith('/admin')) {
+      url.pathname = `/admin${pathname}`
+    }
+    return NextResponse.rewrite(url)
+  }
+
   // For other hostnames (e.g., localhost in development), allow all
   return NextResponse.next()
 }
