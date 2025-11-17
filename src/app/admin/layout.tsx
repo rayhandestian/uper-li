@@ -10,7 +10,7 @@ export default async function AdminLayout({
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.role || session.user.role !== 'ADMIN') {
-    redirect('/dashboard')
+    redirect('https://app.uper.li/dashboard')
   }
 
   return (
@@ -23,7 +23,7 @@ export default async function AdminLayout({
             </div>
             <div className="flex items-center space-x-4">
               <a
-                href="/dashboard"
+                href="https://app.uper.li/dashboard"
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
               >
                 User Dashboard
