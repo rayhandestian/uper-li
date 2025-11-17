@@ -86,3 +86,7 @@ CREATE TRIGGER update_link_updated_at BEFORE UPDATE ON "Link"
 COMMENT ON TABLE "User" IS 'User accounts for the UPer.li application';
 COMMENT ON TABLE "Link" IS 'Shortened links created by users';
 COMMENT ON TABLE "Visit" IS 'Visit tracking for shortened links';
+
+-- Add missing columns to existing Link table (for schema updates)
+ALTER TABLE "Link" ADD COLUMN IF NOT EXISTS "customChanges" INTEGER DEFAULT 0;
+ALTER TABLE "Link" ADD COLUMN IF NOT EXISTS "customChangedAt" TIMESTAMP;
