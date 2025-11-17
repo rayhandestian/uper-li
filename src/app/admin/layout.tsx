@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export default async function AdminLayout({
@@ -7,10 +6,11 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getServerSession(authOptions)
+  const cookieStore = await cookies()
+  const adminAuth = cookieStore.get('admin_auth')
 
-  if (!session?.user?.role || session.user.role !== 'ADMIN') {
-    redirect('https://app.uper.li/dashboard')
+  if (!adminAuth || adminAuth.value !== 'true') {
+    redirect('/admin/login')
   }
 
   return (
@@ -29,7 +29,7 @@ export default async function AdminLayout({
                 User Dashboard
               </a>
               <a
-                href="/api/auth/signout"
+                href="/api/admin/logout"
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Logout
