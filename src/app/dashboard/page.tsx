@@ -299,7 +299,7 @@ export default function DashboardPage() {
       <div className="mb-10">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Dashboard</h1>
         <p className="mt-3 text-lg text-gray-600">
-          Selamat datang, <span className="font-semibold">{session?.user?.email}</span>
+          Selamat datang, <span className="font-semibold">{session?.user?.nimOrUsername}</span>
         </p>
       </div>
 

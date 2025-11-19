@@ -83,6 +83,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
+            nimOrUsername: user.nimOrUsername,
             requires2FA: true
           }
         }
@@ -92,6 +93,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          nimOrUsername: user.nimOrUsername,
           requires2FA: false
         }
       }
@@ -105,6 +107,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.requires2FA = user.requires2FA
+        token.nimOrUsername = user.nimOrUsername
       }
       return token
     },
@@ -112,6 +115,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.sub!
         session.user.role = token.role as string
+        session.user.nimOrUsername = token.nimOrUsername as string
         if (token.requires2FA) {
           // Check if 2FA verification code has been cleared (meaning verified)
           const userResult = await db.query('SELECT "twoFactorSecret" FROM "User" WHERE id = $1', [token.sub])
