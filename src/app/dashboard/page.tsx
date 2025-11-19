@@ -574,7 +574,7 @@ export default function DashboardPage() {
                           <div className="flex items-center">
                             <ShortUrlActions shortUrl={link.shortUrl} />
                           </div>
-                          <p className="mt-1 text-base sm:text-sm text-gray-500 truncate">
+                          <p className="mt-1 text-base sm:text-sm text-gray-500 break-all sm:truncate">
                             {link.longUrl}
                           </p>
                           <p className="mt-1 text-sm sm:text-xs text-gray-400">
@@ -884,7 +884,7 @@ export default function DashboardPage() {
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                         <div className="flex-1 min-w-0">
                           <ShortUrlActions shortUrl={link.shortUrl} />
-                          <p className="mt-2 text-sm sm:text-base text-gray-500 truncate">
+                          <p className="mt-2 text-sm sm:text-base text-gray-500 break-all sm:truncate">
                             {link.longUrl}
                           </p>
                         </div>
