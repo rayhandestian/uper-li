@@ -372,7 +372,7 @@ export default function DashboardPage() {
                 <dt className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
                   Peran
                 </dt>
-                <dd className="text-2xl font-bold text-gray-900 mt-1">
+                <dd className="text-3xl font-bold text-gray-900 mt-1">
                   {userStats?.role === 'STUDENT' ? 'Mahasiswa' : 'Dosen/Staff'}
                 </dd>
               </div>
@@ -588,8 +588,8 @@ export default function DashboardPage() {
                           <button
                             onClick={() => toggleActive(link.id, link.active)}
                             className={`inline-flex items-center justify-center px-3 py-2 sm:py-1 rounded-md text-sm font-medium min-h-[44px] sm:min-h-0 ${link.active
-                                ? 'text-red-700 bg-red-100 hover:bg-red-200'
-                                : 'text-green-700 bg-green-100 hover:bg-green-200'
+                              ? 'text-red-700 bg-red-100 hover:bg-red-200'
+                              : 'text-green-700 bg-green-100 hover:bg-green-200'
                               }`}
                           >
                             {link.active ? 'Nonaktifkan' : 'Aktifkan'}
@@ -660,8 +660,8 @@ export default function DashboardPage() {
                             key={pageNum}
                             onClick={() => handlePageChange(pageNum)}
                             className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${pageNum === currentPage
-                                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
                               }`}
                           >
                             {pageNum}
