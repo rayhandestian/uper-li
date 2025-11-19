@@ -15,8 +15,8 @@ const APP_ROUTES = [
 export function middleware(request: NextRequest) {
   const { hostname, pathname } = request.nextUrl
 
-  // HTTPS enforcement in production
-  if (process.env.NODE_ENV === 'production') {
+  // HTTPS enforcement in production (skip for localhost)
+  if (process.env.NODE_ENV === 'production' && hostname !== 'localhost') {
     const forwardedProto = request.headers.get('x-forwarded-proto')
     if (forwardedProto === 'http') {
       const httpsUrl = `https://${hostname}${pathname}${request.nextUrl.search}`
