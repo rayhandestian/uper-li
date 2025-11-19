@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "UPer.li - Link Shortener",
   description: "Link shortener for Universitas Pertamina",
   icons: {
-    icon: "/UPer.li%20128x128%20Transparent.png",
+    icon: "/UPer.li-128x128.png",
   },
 };
 
