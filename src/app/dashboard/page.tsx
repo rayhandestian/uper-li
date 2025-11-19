@@ -566,10 +566,6 @@ export default function DashboardPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center">
                             <ShortUrlActions shortUrl={link.shortUrl} />
-                            <span className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${link.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                              {link.active ? 'Aktif' : 'Nonaktif'}
-                            </span>
                           </div>
                           <p className="mt-1 text-base sm:text-sm text-gray-500 truncate">
                             {link.longUrl}
