@@ -79,160 +79,169 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen gradient-bg flex flex-col">
       <main className="flex-grow flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <Link href="/" className="inline-flex items-center px-4 py-2 mb-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-              ← Back to Home
+        <div className="max-w-md w-full">
+          <div className="mb-8">
+            <Link href="/" className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Kembali ke Beranda
             </Link>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Daftar UPer.li
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Buat akun untuk mulai membuat short link
-            </p>
-          </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Peran</label>
-            <div className="mt-2 space-y-2">
-              <div className="flex items-center">
-                <input
-                  id="student"
-                  name="role"
-                  type="radio"
-                  value="STUDENT"
-                  checked={role === 'STUDENT'}
-                  onChange={() => setRole('STUDENT')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                />
-                <label htmlFor="student" className="ml-3 block text-sm font-medium text-gray-700">
-                  Mahasiswa
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  id="staff"
-                  name="role"
-                  type="radio"
-                  value="STAFF"
-                  checked={role === 'STAFF'}
-                  onChange={() => setRole('STAFF')}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                />
-                <label htmlFor="staff" className="ml-3 block text-sm font-medium text-gray-700">
-                  Dosen/Staff
-                </label>
-              </div>
-            </div>
           </div>
 
-          <div>
-            <label htmlFor="nimOrUsername" className="block text-sm font-medium text-gray-700 mb-1">
-              {role === 'STUDENT' ? 'NIM' : 'Username'}
-            </label>
-            <input
-              id="nimOrUsername"
-              name="nimOrUsername"
-              type="text"
-              required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder={role === 'STUDENT' ? '123456789' : 'john.doe'}
-              value={nimOrUsername}
-              onChange={(e) => setNimOrUsername(e.target.value)}
-            />
-            {nimOrUsername && (
-              <p className="mt-1 text-sm text-gray-500">
-                Email: {emailPreview}
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Daftar UPer.li
+              </h2>
+              <p className="text-base text-gray-600">
+                Buat akun untuk mulai membuat short link
               </p>
-            )}
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Masukkan password Anda"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-              Konfirmasi Password
-            </label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              required
-              className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="Ulangi password Anda"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="flex items-start">
-            <input
-              id="agreedToTerms"
-              name="agreedToTerms"
-              type="checkbox"
-              checked={agreedToTerms}
-              onChange={(e) => setAgreedToTerms(e.target.checked)}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
-            />
-            <label htmlFor="agreedToTerms" className="ml-2 text-sm text-gray-700">
-              Saya setuju dengan{' '}
-              <a href="https://app.uper.li/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
-                Syarat dan Ketentuan
-              </a>
-              {' '}serta{' '}
-              <a href="https://app.uper.li/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-500 underline">
-                Kebijakan Privasi
-              </a>
-            </label>
-          </div>
-
-          <div className="flex justify-center">
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY!}
-              onSuccess={setTurnstileToken}
-              onError={() => setTurnstileToken('')}
-              onExpire={() => setTurnstileToken('')}
-            />
-          </div>
-
-          {error && (
-            <div className="text-red-600 text-sm text-center">
-              {error}
             </div>
-          )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 min-h-[44px]"
-            >
-              {loading ? 'Mendaftarkan...' : 'Daftar'}
-            </button>
-          </div>
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Peran</label>
+                <div className="space-y-2.5">
+                  <label className="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer transition-all hover:border-blue-300 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50">
+                    <input
+                      id="student"
+                      name="role"
+                      type="radio"
+                      value="STUDENT"
+                      checked={role === 'STUDENT'}
+                      onChange={() => setRole('STUDENT')}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    />
+                    <span className="ml-3 text-sm font-medium text-gray-700">
+                      Mahasiswa
+                    </span>
+                  </label>
+                  <label className="flex items-center p-4 border-2 border-gray-200 rounded-xl cursor-pointer transition-all hover:border-blue-300 has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50">
+                    <input
+                      id="staff"
+                      name="role"
+                      type="radio"
+                      value="STAFF"
+                      checked={role === 'STAFF'}
+                      onChange={() => setRole('STAFF')}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                    />
+                    <span className="ml-3 text-sm font-medium text-gray-700">
+                      Dosen/Staff
+                    </span>
+                  </label>
+                </div>
+              </div>
 
-          <div className="text-center">
-            <a href="https://app.uper.li/login" className="text-blue-600 hover:text-blue-500">
-              Sudah punya akun? Masuk di sini
-            </a>
+              <div>
+                <label htmlFor="nimOrUsername" className="block text-sm font-semibold text-gray-700 mb-2">
+                  {role === 'STUDENT' ? 'NIM' : 'Username'}
+                </label>
+                <input
+                  id="nimOrUsername"
+                  name="nimOrUsername"
+                  type="text"
+                  required
+                  className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+                  placeholder={role === 'STUDENT' ? '123456789' : 'john.doe'}
+                  value={nimOrUsername}
+                  onChange={(e) => setNimOrUsername(e.target.value)}
+                />
+                {nimOrUsername && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Email: <span className="font-medium">{emailPreview}</span>
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+                  placeholder="Masukkan password Anda"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Konfirmasi Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+                  placeholder="Ulangi password Anda"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+
+              <div className="flex items-start p-4 bg-gray-50 rounded-xl">
+                <input
+                  id="agreedToTerms"
+                  name="agreedToTerms"
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-0.5"
+                />
+                <label htmlFor="agreedToTerms" className="ml-3 text-sm text-gray-700">
+                  Saya setuju dengan{' '}
+                  <a href="https://app.uper.li/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                    Syarat dan Ketentuan
+                  </a>
+                  {' '}serta{' '}
+                  <a href="https://app.uper.li/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-medium underline">
+                    Kebijakan Privasi
+                  </a>
+                </label>
+              </div>
+
+              <div className="flex justify-center">
+                <Turnstile
+                  siteKey={process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY!}
+                  onSuccess={setTurnstileToken}
+                  onError={() => setTurnstileToken('')}
+                  onExpire={() => setTurnstileToken('')}
+                />
+              </div>
+
+              {error && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              )}
+
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl min-h-[52px]"
+                >
+                  {loading ? 'Mendaftarkan...' : 'Daftar'}
+                </button>
+              </div>
+
+              <div className="text-center">
+                <a href="https://app.uper.li/login" className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors">
+                  Sudah punya akun? Masuk di sini
+                </a>
+              </div>
+            </form>
           </div>
-        </form>
         </div>
       </main>
       <Footer />
