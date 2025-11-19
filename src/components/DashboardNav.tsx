@@ -24,16 +24,7 @@ export default function DashboardNav({ session }: DashboardNavProps) {
             </div>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-1">
               <Link href="/dashboard" className="border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50 inline-flex items-center px-4 py-2 border-b-2 text-sm font-semibold transition-all rounded-t-lg">
-                Beranda
-              </Link>
-              <Link href="/dashboard/links" className="border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50 inline-flex items-center px-4 py-2 border-b-2 text-sm font-semibold transition-all rounded-t-lg">
-                Link
-              </Link>
-              <Link href="/dashboard/analytics" className="border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50 inline-flex items-center px-4 py-2 border-b-2 text-sm font-semibold transition-all rounded-t-lg">
-                Analitik
-              </Link>
-              <Link href="/dashboard/qr" className="border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50 inline-flex items-center px-4 py-2 border-b-2 text-sm font-semibold transition-all rounded-t-lg">
-                QR Code
+                Dashboard
               </Link>
               <Link href="/dashboard/account" className="border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50 inline-flex items-center px-4 py-2 border-b-2 text-sm font-semibold transition-all rounded-t-lg">
                 Akun
@@ -66,16 +57,7 @@ export default function DashboardNav({ session }: DashboardNavProps) {
       <div className={`${mobileMenuOpen ? 'block' : 'hidden'} sm:hidden border-t border-gray-200 bg-gray-50`}>
         <div className="px-2 pt-2 pb-3 space-y-1">
           <Link href="/dashboard" className="text-gray-900 hover:bg-white block px-4 py-3 rounded-lg text-base font-semibold transition-all" onClick={() => setMobileMenuOpen(false)}>
-            Beranda
-          </Link>
-          <Link href="/dashboard/links" className="text-gray-900 hover:bg-white block px-4 py-3 rounded-lg text-base font-semibold transition-all" onClick={() => setMobileMenuOpen(false)}>
-            Link
-          </Link>
-          <Link href="/dashboard/analytics" className="text-gray-900 hover:bg-white block px-4 py-3 rounded-lg text-base font-semibold transition-all" onClick={() => setMobileMenuOpen(false)}>
-            Analitik
-          </Link>
-          <Link href="/dashboard/qr" className="text-gray-900 hover:bg-white block px-4 py-3 rounded-lg text-base font-semibold transition-all" onClick={() => setMobileMenuOpen(false)}>
-            QR Code
+            Dashboard
           </Link>
           <Link href="/dashboard/account" className="text-gray-900 hover:bg-white block px-4 py-3 rounded-lg text-base font-semibold transition-all" onClick={() => setMobileMenuOpen(false)}>
             Akun

@@ -61,20 +61,6 @@ export async function GET(request: NextRequest) {
   // Get total count
   const countQuery = `SELECT COUNT(*) as total FROM "Link" ${whereClause}`
   const countResult = await db.query(countQuery, params)
-  const total = parseInt(countResult.rows[0].total)
-
-  // Get paginated links
-  const linksQuery = `
-    SELECT *, (password IS NOT NULL) as "hasPassword" FROM "Link"
-    ${whereClause}
-    ORDER BY "${sortField}" ${orderDirection}
-    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-  `
-  
-  params.push(limit, skip)
-  const linksResult = await db.query(linksQuery, params)
-
-  const totalPages = Math.ceil(total / limit)
 
   return NextResponse.json({
     links: linksResult.rows,
@@ -175,7 +161,7 @@ export async function POST(request: NextRequest) {
       if (attempts > 10) {
         return NextResponse.json({ error: 'Gagal menghasilkan short URL.' }, { status: 500 })
       }
-      
+
       const existingResult = await db.query(
         'SELECT id FROM "Link" WHERE "shortUrl" = $1',
         [shortUrl]
