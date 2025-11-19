@@ -208,6 +208,13 @@ export default function DashboardPage() {
     setLoading(true)
     setError('')
 
+    let passwordToSend = undefined
+    if (passwordRemoved) {
+      passwordToSend = ''
+    } else if (editPassword !== '') {
+      passwordToSend = editPassword
+    }
+
     const response = await fetch(`/api/links/${editingLink.id}`, {
       method: 'PATCH',
       headers: {
@@ -216,7 +223,7 @@ export default function DashboardPage() {
       body: JSON.stringify({
         shortUrl: editCustomUrl !== editingLink.shortUrl ? editCustomUrl : undefined,
         mode: editMode,
-        password: editPassword,
+        password: passwordToSend,
       }),
     })
 
@@ -719,29 +726,26 @@ export default function DashboardPage() {
                         type="password"
                         value={editPassword}
                         onChange={(e) => setEditPassword(e.target.value)}
-                        className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-base"
+                        disabled={passwordRemoved}
+                        className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
                         placeholder="Masukkan password baru"
                       />
-                      {editingLink?.hasPassword && (
-                        <>
-                          <div className="mt-2 flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() => { setEditPassword(''); setPasswordRemoved(true); }}
-                              className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md"
-                            >
-                              Hapus Password
-                            </button>
-                          </div>
-                          {passwordRemoved && (
-                            <p className="mt-2 text-sm text-red-600">
-                              Password akan dihapus saat menyimpan perubahan.
-                            </p>
-                          )}
-                        </>
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => { setEditPassword(''); setPasswordRemoved(true); }}
+                          className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md"
+                        >
+                          Hapus Password
+                        </button>
+                      </div>
+                      {passwordRemoved && (
+                        <p className="mt-2 text-sm text-red-600">
+                          Password akan dihapus saat menyimpan perubahan.
+                        </p>
                       )}
                       <p className="mt-2 text-sm text-gray-500">
-                        Minimal 4 karakter. {editingLink?.hasPassword ? 'Klik "Hapus Password" untuk menghapus proteksi.' : 'Kosongkan untuk tidak menggunakan password.'}
+                        Minimal 4 karakter. Klik "Hapus Password" untuk menghapus proteksi. Kosongkan untuk mempertahankan password yang ada.
                       </p>
                     </div>
                   </div>
