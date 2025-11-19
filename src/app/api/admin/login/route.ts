@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { withRateLimit } from '@/lib/rateLimit'
+import crypto from 'crypto'
+import { signAdminToken } from '@/lib/admin-auth'
 
 async function handleAdminLogin(request: NextRequest) {
   try {
@@ -32,13 +34,19 @@ async function handleAdminLogin(request: NextRequest) {
       return NextResponse.json({ error: 'Admin passcode not configured' }, { status: 500 })
     }
 
-    if (passcode !== adminPasscode) {
+    // Secure string comparison
+    const encoder = new TextEncoder()
+    const a = encoder.encode(passcode)
+    const b = encoder.encode(adminPasscode)
+
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
       return NextResponse.json({ error: 'Invalid passcode' }, { status: 401 })
     }
 
-    // Set cookie for admin auth
+    // Set signed cookie for admin auth
+    const token = signAdminToken()
     const cookieStore = await cookies()
-    cookieStore.set('admin_auth', 'true', {
+    cookieStore.set('admin_auth', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',

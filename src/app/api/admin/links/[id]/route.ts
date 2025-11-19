@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { db } from '@/lib/db'
+import { verifyAdminToken } from '@/lib/admin-auth'
 
 export async function PATCH(
   request: NextRequest,
@@ -9,7 +10,7 @@ export async function PATCH(
   const cookieStore = await cookies()
   const adminAuth = cookieStore.get('admin_auth')
 
-  if (!adminAuth || adminAuth.value !== 'true') {
+  if (!adminAuth || !verifyAdminToken(adminAuth.value)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
@@ -36,7 +37,7 @@ export async function PATCH(
   }
 
   const link = result.rows[0]
-  
+
   // Format response to match expected structure
   const formattedLink = {
     ...link,
@@ -60,7 +61,7 @@ export async function DELETE(
   const cookieStore = await cookies()
   const adminAuth = cookieStore.get('admin_auth')
 
-  if (!adminAuth || adminAuth.value !== 'true') {
+  if (!adminAuth || !verifyAdminToken(adminAuth.value)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 

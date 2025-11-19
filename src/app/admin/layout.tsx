@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { verifyAdminToken } from '@/lib/admin-auth'
 
 export default async function AdminLayout({
   children,
@@ -9,7 +10,7 @@ export default async function AdminLayout({
   const cookieStore = await cookies()
   const adminAuth = cookieStore.get('admin_auth')
 
-  if (!adminAuth || adminAuth.value !== 'true') {
+  if (!adminAuth || !verifyAdminToken(adminAuth.value)) {
     redirect('/login-admin')
   }
 
