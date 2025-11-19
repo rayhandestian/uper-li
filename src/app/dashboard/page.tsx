@@ -36,11 +36,8 @@ interface UserStats {
   role: 'STUDENT' | 'STAFF'
 }
 
-type TabType = 'links' | 'analytics'
-
 export default function DashboardPage() {
   const { data: session } = useSession()
-  const [activeTab, setActiveTab] = useState<TabType>('links')
   const [userStats, setUserStats] = useState<UserStats | null>(null)
 
   // Links tab state
@@ -121,12 +118,10 @@ export default function DashboardPage() {
   }, [])
 
   useEffect(() => {
-    if (activeTab === 'links') {
-      fetchLinks(1)
-      fetchAnalyticsLinks()
-    }
+    fetchLinks(1)
+    fetchAnalyticsLinks()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, activeFilter, sortBy, sortOrder])
+  }, [activeFilter, sortBy, sortOrder])
 
   // Links tab functions
   const handleCreateLink = async (e: React.FormEvent) => {
@@ -279,7 +274,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-12">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-12 max-w-7xl mx-auto">
         {/* Total Links Card */}
         <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-200 rounded-2xl transition-all duration-200">
           <div className="p-6 sm:p-8">
@@ -357,38 +352,65 @@ export default function DashboardPage() {
             <p className="text-xs text-purple-700 font-medium">Status akun Anda</p>
           </div>
         </div>
-      </div>
 
-      {/* Tab Navigation */}
-      <div className="mb-8">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8 overflow-x-auto" aria-label="Tabs">
-            <button
-              onClick={() => setActiveTab('links')}
-              className={`
-                whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm transition-colors
-                ${activeTab === 'links'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
-                Kelola Link
+        {/* Total Kunjungan Card */}
+        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-200 rounded-2xl transition-all duration-200">
+          <div className="p-6 sm:p-8">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </div>
               </div>
-            </button>
-          </nav>
+              <div className="ml-6 flex-1">
+                <dt className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  Total Kunjungan
+                </dt>
+                <dd className="text-3xl font-bold text-gray-900 mt-1">
+                  {totalVisits}
+                </dd>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 px-6 py-3">
+            <p className="text-xs text-orange-700 font-medium">Total kunjungan semua link</p>
+          </div>
+        </div>
+
+        {/* Jumlah Link Card */}
+        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-200 rounded-2xl transition-all duration-200">
+          <div className="p-6 sm:p-8">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-14 h-14 bg-gradient-to-br from-sky-500 to-sky-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-200">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-6 flex-1">
+                <dt className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                  Jumlah Link
+                </dt>
+                <dd className="text-3xl font-bold text-gray-900 mt-1">
+                  {analyticsLinks.length}
+                </dd>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gradient-to-r from-sky-50 to-sky-100/50 px-6 py-3">
+            <p className="text-xs text-sky-700 font-medium">Total link aktif</p>
+          </div>
         </div>
       </div>
 
-      {/* Tab Content */}
+
+      {/* Content */}
       <div className="mt-8">
-        {/* Links Tab */}
-        {activeTab === 'links' && (
-          <div>
+        <div>
             <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6 sm:p-8 mb-6 sm:mb-8">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6 sm:mb-8">Buat Link Baru</h2>
               <form onSubmit={handleCreateLink} className="space-y-6 sm:space-y-8">
@@ -458,56 +480,9 @@ export default function DashboardPage() {
                   {loading ? 'Membuat...' : 'Buat Link'}
                 </button>
               </form>
-             </div>
- 
-             {/* Analytics Cards */}
-             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8 sm:mb-12">
-               <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
-                 <div className="p-6 sm:p-8">
-                   <div className="flex items-center">
-                     <div className="flex-shrink-0">
-                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                         <span className="text-white text-base sm:text-lg font-medium">V</span>
-                       </div>
-                     </div>
-                     <div className="ml-4 sm:ml-6 w-0 flex-1">
-                       <dl>
-                         <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
-                           Total Kunjungan
-                         </dt>
-                         <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
-                           {totalVisits}
-                         </dd>
-                       </dl>
-                     </div>
-                   </div>
-                 </div>
-               </div>
- 
-               <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
-                 <div className="p-6 sm:p-8">
-                   <div className="flex items-center">
-                     <div className="flex-shrink-0">
-                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                         <span className="text-white text-base sm:text-lg font-medium">L</span>
-                       </div>
-                     </div>
-                     <div className="ml-4 sm:ml-6 w-0 flex-1">
-                       <dl>
-                         <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
-                           Jumlah Link
-                         </dt>
-                         <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
-                           {analyticsLinks.length}
-                         </dd>
-                       </dl>
-                     </div>
-                   </div>
-                 </div>
-               </div>
-             </div>
- 
-             {/* Filter Controls */}
+            </div>
+
+            {/* Filter Controls */}
              <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8 mb-6">
                <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                  <div>
@@ -857,7 +832,6 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
-        )}
 
 
       </div >
