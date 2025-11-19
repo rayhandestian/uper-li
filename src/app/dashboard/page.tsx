@@ -910,33 +910,67 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* QR Code Tab */}
-        {activeTab === 'qr' && (
+{/* QR Code Tab */ }
+{
+  activeTab === 'qr' && (
+    <div>
+      <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6 sm:p-8">
+        <div className="space-y-6 sm:space-y-8">
           <div>
-            <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6 sm:p-8">
-              <div className="space-y-6 sm:space-y-8">
-                <div>
-                  <label htmlFor="qr-link" className="block text-sm sm:text-base font-medium text-gray-700 mb-3">
-                    Pilih Link
-                  </label>
-                  <select
-                    id="qr-link"
-                    value={selectedLink}
-                    onChange={(e) => setSelectedLink(e.target.value)}
-                    className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm sm:text-base"
-                  >
-                    <option value="">Pilih link...</option>
-                    {qrLinks.map((link) => (
-                      <option key={link.id} value={link.id}>
-                        uper.li/{link.shortUrl} - {link.longUrl}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <label htmlFor="qr-link" className="block text-sm sm:text-base font-medium text-gray-700 mb-3">
+              Pilih Link
+            </label>
+            <select
+              id="qr-link"
+              value={selectedLink}
+              onChange={(e) => setSelectedLink(e.target.value)}
+              className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm sm:text-base"
+            >
+              <option value="">Pilih link...</option>
+              {qrLinks.map((link) => (
+                <option key={link.id} value={link.id}>
+                  uper.li/{link.shortUrl} - {link.longUrl}
+                </option>
+              ))}
+            </select>
+          </div>
 
-                <button
-                  onClick={generateQR}
-                  disabled={!selectedLink}
+          <button
+            onClick={generateQR}
+            disabled={!selectedLink}
+            className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Generate QR Code
+          </button>
+
+          {qrCode && (
+            <div className="mt-8 flex flex-col items-center space-y-6">
+              <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                <QRCodeCanvas
+                  value={qrCode}
+                  size={256}
+                  level="H"
+                  includeMargin={true}
+                  ref={qrRef}
+                />
+              </div>
+              <button
+                onClick={downloadQR}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download PNG
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
-              )
+  )
+}
+      </div >
+    </div >
+  )
 }

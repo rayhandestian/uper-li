@@ -62,6 +62,14 @@ export async function GET(request: NextRequest) {
   const countQuery = `SELECT COUNT(*) as total FROM "Link" ${whereClause}`
   const countResult = await db.query(countQuery, params)
 
+  const total = parseInt(countResult.rows[0].total)
+  const totalPages = Math.ceil(total / limit)
+
+  const query = `SELECT * FROM "Link" ${whereClause} ORDER BY "${sortField}" ${orderDirection} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
+  params.push(limit, skip)
+
+  const linksResult = await db.query(query, params)
+
   return NextResponse.json({
     links: linksResult.rows,
     pagination: {
