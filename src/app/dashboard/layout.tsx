@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth'
 import { redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
 import DashboardNav from '@/components/DashboardNav'
+import Footer from '@/components/Footer'
 
 export default async function DashboardLayout({
   children,
@@ -20,11 +21,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <DashboardNav session={session} />
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex-grow w-full">
         {children}
       </main>
+      <Footer />
     </div>
   )
 }
