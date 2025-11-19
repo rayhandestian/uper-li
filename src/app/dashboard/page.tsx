@@ -36,7 +36,7 @@ interface UserStats {
   role: 'STUDENT' | 'STAFF'
 }
 
-type TabType = 'links' | 'analytics' | 'qr'
+type TabType = 'links' | 'analytics'
 
 export default function DashboardPage() {
   const { data: session } = useSession()
@@ -68,11 +68,10 @@ export default function DashboardPage() {
   const [totalVisits, setTotalVisits] = useState(0)
   const [timeZone, setTimeZone] = useState('Asia/Jakarta')
 
-  // QR tab state
-  const [qrLinks, setQrLinks] = useState<Link[]>([])
-  const [selectedLink, setSelectedLink] = useState<string>('')
-  const [qrCode, setQrCode] = useState<string>('')
-  const qrRef = useRef<HTMLCanvasElement>(null)
+  // QR modal state
+  const [showQrModal, setShowQrModal] = useState(false)
+  const [qrModalLink, setQrModalLink] = useState<Link | null>(null)
+  const qrModalRef = useRef<HTMLCanvasElement>(null)
 
   // Fetch user stats
   const fetchUserStats = async () => {
@@ -116,14 +115,6 @@ export default function DashboardPage() {
     }
   }
 
-  // Fetch links for QR tab
-  const fetchQrLinks = useCallback(async () => {
-    const response = await fetch('/api/links?limit=100')
-    if (response.ok) {
-      const data = await response.json()
-      setQrLinks(data.links)
-    }
-  }, [])
 
   useEffect(() => {
     fetchUserStats()
@@ -134,8 +125,6 @@ export default function DashboardPage() {
       fetchLinks(1)
     } else if (activeTab === 'analytics') {
       fetchAnalyticsLinks()
-    } else if (activeTab === 'qr') {
-      fetchQrLinks()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, activeFilter, sortBy, sortOrder])
@@ -277,26 +266,6 @@ export default function DashboardPage() {
     fetchLinks(page)
   }
 
-  // QR tab functions
-  const generateQR = async () => {
-    if (!selectedLink) return
-
-    const link = qrLinks.find(l => l.id === selectedLink)
-    if (!link) return
-
-    const url = `https://uper.li/${link.shortUrl}`
-    setQrCode(url)
-  }
-
-  const downloadQR = () => {
-    if (!qrRef.current) return
-
-    const canvas = qrRef.current
-    const link = document.createElement('a')
-    link.download = `qr-${selectedLink}.png`
-    link.href = canvas.toDataURL()
-    link.click()
-  }
 
   const maxMonthly = userStats?.role === 'STUDENT' ? 5 : 10
   const monthlyLinks = userStats?.monthlyLinks || 0
@@ -427,23 +396,6 @@ export default function DashboardPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
                 Analitik
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab('qr')}
-              className={`
-                whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm transition-colors
-                ${activeTab === 'qr'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
-                QR Code
               </div>
             </button>
           </nav>
@@ -582,6 +534,12 @@ export default function DashboardPage() {
                           </p>
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-0">
+                          <button
+                            onClick={() => { setQrModalLink(link); setShowQrModal(true); }}
+                            className="inline-flex items-center justify-center px-3 py-2 sm:py-1 rounded-md text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 min-h-[44px] sm:min-h-0"
+                          >
+                            QR
+                          </button>
                           <button
                             onClick={() => startEdit(link)}
                             className="inline-flex items-center justify-center px-3 py-2 sm:py-1 rounded-md text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 min-h-[44px] sm:min-h-0"
@@ -804,6 +762,53 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+
+            {/* QR Modal */}
+            {showQrModal && qrModalLink && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 sm:p-8">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-6">QR Code</h3>
+                  <p className="text-base text-gray-600 mb-6">
+                    uper.li/{qrModalLink.shortUrl}
+                  </p>
+                  <div className="flex flex-col items-center space-y-6">
+                    <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                      <QRCodeCanvas
+                        value={`https://uper.li/${qrModalLink.shortUrl}`}
+                        size={256}
+                        level="H"
+                        includeMargin={true}
+                        ref={qrModalRef}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (!qrModalRef.current) return
+                        const canvas = qrModalRef.current
+                        const link = document.createElement('a')
+                        link.download = `qr-${qrModalLink.shortUrl}.png`
+                        link.href = canvas.toDataURL()
+                        link.click()
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg className="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download PNG
+                    </button>
+                  </div>
+                  <div className="flex justify-end mt-8">
+                    <button
+                      onClick={() => { setShowQrModal(false); setQrModalLink(null); }}
+                      className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      Tutup
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -910,66 +915,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* QR Code Tab */}
-        {
-          activeTab === 'qr' && (
-            <div>
-              <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6 sm:p-8">
-                <div className="space-y-6 sm:space-y-8">
-                  <div>
-                    <label htmlFor="qr-link" className="block text-sm sm:text-base font-medium text-gray-700 mb-3">
-                      Pilih Link
-                    </label>
-                    <select
-                      id="qr-link"
-                      value={selectedLink}
-                      onChange={(e) => setSelectedLink(e.target.value)}
-                      className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm sm:text-base"
-                    >
-                      <option value="">Pilih link...</option>
-                      {qrLinks.map((link) => (
-                        <option key={link.id} value={link.id}>
-                          uper.li/{link.shortUrl} - {link.longUrl}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <button
-                    onClick={generateQR}
-                    disabled={!selectedLink}
-                    className="w-full flex justify-center py-3 px-6 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Generate QR Code
-                  </button>
-
-                  {qrCode && (
-                    <div className="mt-8 flex flex-col items-center space-y-6">
-                      <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                        <QRCodeCanvas
-                          value={qrCode}
-                          size={256}
-                          level="H"
-                          includeMargin={true}
-                          ref={qrRef}
-                        />
-                      </div>
-                      <button
-                        onClick={downloadQR}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        <svg className="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download PNG
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )
-        }
       </div >
     </div >
   )
