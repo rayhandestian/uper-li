@@ -55,7 +55,7 @@ export default function ShortUrlClient({ initialData, shortUrl }: Props) {
     return (
       <div className="min-h-screen gradient-bg flex flex-col">
         <main className="flex-grow flex items-center justify-center px-4 py-12">
-          <div className="max-w-md w-full">
+          <div className="max-w-lg w-full">
             <div className="mb-8">
               <Link href="/" className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,10 +77,10 @@ export default function ShortUrlClient({ initialData, shortUrl }: Props) {
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-base text-gray-500">
                     Kemungkinan penyebab:
                   </p>
-                  <ul className="text-sm text-gray-500 text-left space-y-1">
+                  <ul className="text-base text-gray-500 text-left space-y-1">
                     <li>• Link sudah dihapus oleh pemilik</li>
                     <li>• URL yang Anda masukkan salah</li>
                     <li>• Link sudah kedaluwarsa</li>
@@ -108,7 +108,7 @@ export default function ShortUrlClient({ initialData, shortUrl }: Props) {
     return (
       <div className="min-h-screen gradient-bg flex flex-col">
         <main className="flex-grow flex items-center justify-center px-4 py-12">
-          <div className="max-w-md w-full">
+          <div className="max-w-lg w-full">
             <div className="mb-8">
               <Link href="/" className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,7 +156,7 @@ export default function ShortUrlClient({ initialData, shortUrl }: Props) {
     return (
       <div className="min-h-screen gradient-bg flex flex-col">
         <main className="flex-grow flex items-center justify-center px-4 py-12">
-          <div className="max-w-md w-full">
+          <div className="max-w-lg w-full">
             <div className="mb-8">
               <Link href="/" className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,7 +223,7 @@ export default function ShortUrlClient({ initialData, shortUrl }: Props) {
     return (
       <div className="min-h-screen gradient-bg flex flex-col">
         <main className="flex-grow flex items-center justify-center px-4 py-12">
-          <div className="max-w-md w-full">
+          <div className="max-w-lg w-full">
             <div className="mb-8">
               <Link href="/" className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,7 +245,7 @@ export default function ShortUrlClient({ initialData, shortUrl }: Props) {
                 </div>
 
                 <div className="bg-gray-50 rounded-xl p-4 mb-8">
-                  <p className="text-sm text-gray-700 break-all font-mono">
+                  <p className="text-base text-gray-700 break-all font-mono">
                     {initialData.longUrl}
                   </p>
                 </div>
