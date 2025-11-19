@@ -571,10 +571,10 @@ export default function DashboardPage() {
                               {link.active ? 'Aktif' : 'Nonaktif'}
                             </span>
                           </div>
-                          <p className="mt-1 text-sm text-gray-500 truncate">
+                          <p className="mt-1 text-base sm:text-sm text-gray-500 truncate">
                             {link.longUrl}
                           </p>
-                          <p className="mt-1 text-xs text-gray-400">
+                          <p className="mt-1 text-sm sm:text-xs text-gray-400">
                             Dibuat: {new Date(link.createdAt).toLocaleDateString('id-ID')} | Kunjungan: {link.visitCount}
                           </p>
                         </div>
@@ -685,7 +685,7 @@ export default function DashboardPage() {
             {/* Edit Modal */}
             {editingLink && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-8">
+                <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 sm:p-8">
                   <h3 className="text-xl font-semibold text-gray-900 mb-8">Edit Link</h3>
                   <div className="space-y-8">
                     <div>
@@ -776,7 +776,7 @@ export default function DashboardPage() {
             {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
               <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-8">
+                <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 sm:p-8">
                   <h3 className="text-xl font-semibold text-gray-900 mb-6">Konfirmasi Hapus</h3>
                   <p className="text-base text-gray-600 mb-8">
                     Apakah Anda yakin ingin menghapus link ini? Tindakan ini tidak dapat dibatalkan.
@@ -884,7 +884,7 @@ export default function DashboardPage() {
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                         <div className="flex-1 min-w-0">
                           <ShortUrlActions shortUrl={link.shortUrl} />
-                          <p className="mt-2 text-base text-gray-500 sm:truncate">
+                          <p className="mt-2 text-sm sm:text-base text-gray-500 truncate">
                             {link.longUrl}
                           </p>
                         </div>

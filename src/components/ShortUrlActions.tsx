@@ -27,7 +27,7 @@ export default function ShortUrlActions({ shortUrl }: ShortUrlActionsProps) {
 
   return (
     <div className="flex items-center space-x-2">
-      <span className="text-sm font-medium text-blue-600 break-words">
+      <span className="text-sm sm:text-base font-medium text-blue-600 break-words">
         {fullUrl}
       </span>
       <button
