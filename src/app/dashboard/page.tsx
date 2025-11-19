@@ -104,9 +104,9 @@ export default function DashboardPage() {
     }
   }
 
-  // Fetch links for Analytics tab
+  // Fetch links for analytics data
   const fetchAnalyticsLinks = async () => {
-    const response = await fetch('/api/links?sort=visitCount&order=desc&limit=100')
+    const response = await fetch('/api/links?sort=visitCount&order=desc')
     if (response.ok) {
       const data = await response.json()
       setAnalyticsLinks(data.links)
@@ -123,7 +123,6 @@ export default function DashboardPage() {
   useEffect(() => {
     if (activeTab === 'links') {
       fetchLinks(1)
-    } else if (activeTab === 'analytics') {
       fetchAnalyticsLinks()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -381,23 +380,6 @@ export default function DashboardPage() {
                 Kelola Link
               </div>
             </button>
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`
-                whitespace-nowrap py-4 px-1 border-b-2 font-semibold text-sm transition-colors
-                ${activeTab === 'analytics'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                Analitik
-              </div>
-            </button>
           </nav>
         </div>
       </div>
@@ -476,44 +458,108 @@ export default function DashboardPage() {
                   {loading ? 'Membuat...' : 'Buat Link'}
                 </button>
               </form>
-            </div>
-
-            {/* Filter Controls */}
-            <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8 mb-6">
-              <div className="flex flex-col sm:flex-row gap-8">
-                <div className="flex-1">
-                  <label htmlFor="filter" className="block text-base font-medium text-gray-700 mb-3">
-                    Status
-                  </label>
-                  <select
-                    id="filter"
-                    value={activeFilter}
-                    onChange={(e) => handleFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
-                    className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
-                  >
-                    <option value="all">Semua</option>
-                    <option value="active">Aktif</option>
-                    <option value="inactive">Nonaktif</option>
-                  </select>
-                </div>
-
-                <div className="flex-1">
-                  <label htmlFor="sort" className="block text-base font-medium text-gray-700 mb-3">
-                    Urutkan
-                  </label>
-                  <select
-                    id="sort"
-                    value={sortBy}
-                    onChange={(e) => handleSortChange(e.target.value as 'createdAt' | 'visitCount' | 'shortUrl')}
-                    className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
-                  >
-                    <option value="createdAt">Tanggal Dibuat</option>
-                    <option value="visitCount">Jumlah Kunjungan</option>
-                    <option value="shortUrl">Short URL</option>
-                  </select>
-                </div>
-              </div>
-            </div>
+             </div>
+ 
+             {/* Analytics Cards */}
+             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8 sm:mb-12">
+               <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
+                 <div className="p-6 sm:p-8">
+                   <div className="flex items-center">
+                     <div className="flex-shrink-0">
+                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                         <span className="text-white text-base sm:text-lg font-medium">V</span>
+                       </div>
+                     </div>
+                     <div className="ml-4 sm:ml-6 w-0 flex-1">
+                       <dl>
+                         <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
+                           Total Kunjungan
+                         </dt>
+                         <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
+                           {totalVisits}
+                         </dd>
+                       </dl>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+ 
+               <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
+                 <div className="p-6 sm:p-8">
+                   <div className="flex items-center">
+                     <div className="flex-shrink-0">
+                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                         <span className="text-white text-base sm:text-lg font-medium">L</span>
+                       </div>
+                     </div>
+                     <div className="ml-4 sm:ml-6 w-0 flex-1">
+                       <dl>
+                         <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
+                           Jumlah Link
+                         </dt>
+                         <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
+                           {analyticsLinks.length}
+                         </dd>
+                       </dl>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+ 
+             {/* Filter Controls */}
+             <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8 mb-6">
+               <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+                 <div>
+                   <label htmlFor="filter" className="block text-base font-medium text-gray-700 mb-3">
+                     Status
+                   </label>
+                   <select
+                     id="filter"
+                     value={activeFilter}
+                     onChange={(e) => handleFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
+                     className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
+                   >
+                     <option value="all">Semua</option>
+                     <option value="active">Aktif</option>
+                     <option value="inactive">Nonaktif</option>
+                   </select>
+                 </div>
+ 
+                 <div>
+                   <label htmlFor="sort" className="block text-base font-medium text-gray-700 mb-3">
+                     Urutkan
+                   </label>
+                   <select
+                     id="sort"
+                     value={sortBy}
+                     onChange={(e) => handleSortChange(e.target.value as 'createdAt' | 'visitCount' | 'shortUrl')}
+                     className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
+                   >
+                     <option value="createdAt">Tanggal Dibuat</option>
+                     <option value="visitCount">Jumlah Kunjungan</option>
+                     <option value="shortUrl">Short URL</option>
+                   </select>
+                 </div>
+ 
+                 <div>
+                   <label htmlFor="timezone" className="block text-base font-medium text-gray-700 mb-3">
+                     Zona Waktu
+                   </label>
+                   <select
+                     id="timezone"
+                     value={timeZone}
+                     onChange={(e) => setTimeZone(e.target.value)}
+                     className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
+                   >
+                     <option value="Asia/Jakarta">WIB (Jakarta)</option>
+                     <option value="Asia/Makassar">WITA (Makassar)</option>
+                     <option value="Asia/Jayapura">WIT (Jayapura)</option>
+                     <option value="UTC">UTC</option>
+                   </select>
+                 </div>
+               </div>
+             </div>
 
             {/* Links List */}
             <div className="bg-white shadow overflow-hidden sm:rounded-md">
@@ -532,6 +578,7 @@ export default function DashboardPage() {
                           <p className="mt-1 text-sm sm:text-xs text-gray-400">
                             Dibuat: {new Date(link.createdAt).toLocaleDateString('id-ID')} | Kunjungan: {link.visitCount}
                           </p>
+                          <TimeZoneDisplay timestamp={link.lastVisited ? new Date(link.lastVisited).toISOString() : null} timeZone={timeZone} />
                         </div>
                         <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-0">
                           <button
@@ -812,108 +859,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Analytics Tab */}
-        {activeTab === 'analytics' && (
-          <div>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 mb-8 sm:mb-12">
-              <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
-                <div className="p-6 sm:p-8">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-base sm:text-lg font-medium">V</span>
-                      </div>
-                    </div>
-                    <div className="ml-4 sm:ml-6 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
-                          Total Kunjungan
-                        </dt>
-                        <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
-                          {totalVisits}
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white overflow-hidden shadow-sm border border-gray-200 rounded-lg">
-                <div className="p-6 sm:p-8">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-lg flex items-center justify-center">
-                        <span className="text-white text-base sm:text-lg font-medium">L</span>
-                      </div>
-                    </div>
-                    <div className="ml-4 sm:ml-6 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
-                          Jumlah Link
-                        </dt>
-                        <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
-                          {analyticsLinks.length}
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white shadow-sm border border-gray-200 overflow-hidden rounded-lg">
-              <div className="px-8 py-8 sm:px-8">
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
-                  <h3 className="text-2xl leading-6 font-semibold text-gray-900">
-                    Link Terpopuler
-                  </h3>
-                  <div className="flex items-center gap-2 self-start sm:self-auto">
-                    <label className="text-sm text-gray-700">Zona Waktu:</label>
-                    <select
-                      value={timeZone}
-                      onChange={(e) => setTimeZone(e.target.value)}
-                      className="text-sm text-gray-900 border rounded px-2 py-1 bg-white"
-                    >
-                      <option value="Asia/Jakarta">WIB (Jakarta)</option>
-                      <option value="Asia/Makassar">WITA (Makassar)</option>
-                      <option value="Asia/Jayapura">WIT (Jayapura)</option>
-                      <option value="UTC">UTC</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <ul className="divide-y divide-gray-200">
-                {analyticsLinks.map((link) => (
-                  <li key={link.id}>
-                    <div className="px-8 py-6 sm:px-8">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
-                        <div className="flex-1 min-w-0">
-                          <ShortUrlActions shortUrl={link.shortUrl} />
-                          <p className="mt-2 text-sm sm:text-base text-gray-500 break-all sm:truncate">
-                            {link.longUrl}
-                          </p>
-                        </div>
-                        <div className="flex flex-col items-start sm:items-end">
-                          <span className="text-lg text-gray-900">
-                            {link.visitCount} kunjungan
-                          </span>
-                          <TimeZoneDisplay timestamp={link.lastVisited ? new Date(link.lastVisited).toISOString() : null} timeZone={timeZone} />
-                        </div>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-                {analyticsLinks.length === 0 && (
-                  <li>
-                    <div className="px-8 py-6 sm:px-8 text-center text-gray-500">
-                      Belum ada link yang dibuat.
-                    </div>
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
-        )}
 
       </div >
     </div >
