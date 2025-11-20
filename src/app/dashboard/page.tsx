@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import ShortUrlActions from '@/components/ShortUrlActions'
 import TimeZoneDisplay from '@/components/TimeZoneDisplay'
@@ -417,28 +418,28 @@ export default function DashboardPage() {
       {/* Content */}
       <div className="mt-8">
         <div>
-            <div className="bg-white shadow-md border border-gray-300 rounded-lg mb-6 sm:mb-8">
-              <div
-                className={`flex items-center justify-between p-6 sm:p-8 cursor-pointer hover:bg-gray-50 rounded-t-lg transition-colors border-b ${isCreateFormCollapsed ? 'bg-blue-50 border-blue-200' : 'border-gray-200'}`}
-                onClick={() => setIsCreateFormCollapsed(!isCreateFormCollapsed)}
-              >
-                <div className="flex items-center space-x-2">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Buat Link Baru</h2>
-                </div>
-                <svg
-                  className={`w-5 h-5 transform transition-transform ${isCreateFormCollapsed ? 'rotate-0' : 'rotate-180'}`}
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <div className="bg-white shadow-md border border-gray-300 rounded-lg mb-6 sm:mb-8">
+            <div
+              className={`flex items-center justify-between p-6 sm:p-8 cursor-pointer hover:bg-gray-50 rounded-t-lg transition-colors border-b ${isCreateFormCollapsed ? 'bg-blue-50 border-blue-200' : 'border-gray-200'}`}
+              onClick={() => setIsCreateFormCollapsed(!isCreateFormCollapsed)}
+            >
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Buat Link Baru</h2>
               </div>
-              {!isCreateFormCollapsed && <div className="p-6 sm:p-8">
-                <form onSubmit={handleCreateLink} className="space-y-6 sm:space-y-8">
+              <svg
+                className={`w-5 h-5 transform transition-transform ${isCreateFormCollapsed ? 'rotate-0' : 'rotate-180'}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+            {!isCreateFormCollapsed && <div className="p-6 sm:p-8">
+              <form onSubmit={handleCreateLink} className="space-y-6 sm:space-y-8">
                 <div>
                   <label htmlFor="longUrl" className="block text-base font-medium text-gray-700 mb-3">
                     URL Asli
@@ -505,419 +506,434 @@ export default function DashboardPage() {
                   {loading ? 'Membuat...' : 'Buat Link'}
                 </button>
               </form>
-             </div>}
-           </div>
+            </div>}
+          </div>
 
-            {/* Filter Controls */}
-             <div className="bg-white shadow-md border border-gray-300 rounded-lg p-8 mb-6">
-               <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-                 <div>
-                   <label htmlFor="filter" className="block text-base font-medium text-gray-700 mb-3">
-                     Status
-                   </label>
-                   <select
-                     id="filter"
-                     value={activeFilter}
-                     onChange={(e) => handleFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
-                     className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
-                   >
-                     <option value="all">Semua</option>
-                     <option value="active">Aktif</option>
-                     <option value="inactive">Nonaktif</option>
-                   </select>
-                 </div>
- 
-                 <div>
-                   <label htmlFor="sort" className="block text-base font-medium text-gray-700 mb-3">
-                     Urutkan
-                   </label>
-                   <select
-                     id="sort"
-                     value={sortBy}
-                     onChange={(e) => handleSortChange(e.target.value as 'createdAt' | 'visitCount' | 'shortUrl')}
-                     className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
-                   >
-                     <option value="createdAt">Tanggal Dibuat</option>
-                     <option value="visitCount">Jumlah Kunjungan</option>
-                     <option value="shortUrl">Short URL</option>
-                   </select>
-                 </div>
- 
-                 <div>
-                   <label htmlFor="timezone" className="block text-base font-medium text-gray-700 mb-3">
-                     Zona Waktu
-                   </label>
-                   <select
-                     id="timezone"
-                     value={timeZone}
-                     onChange={(e) => setTimeZone(e.target.value)}
-                     className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
-                   >
-                     <option value="Asia/Jakarta">WIB (Jakarta)</option>
-                     <option value="Asia/Makassar">WITA (Makassar)</option>
-                     <option value="Asia/Jayapura">WIT (Jayapura)</option>
-                     <option value="UTC">UTC</option>
-                   </select>
-                 </div>
-               </div>
-             </div>
+          {/* Filter Controls */}
+          <div className="bg-white shadow-md border border-gray-300 rounded-lg p-8 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+              <div>
+                <label htmlFor="filter" className="block text-base font-medium text-gray-700 mb-3">
+                  Status
+                </label>
+                <select
+                  id="filter"
+                  value={activeFilter}
+                  onChange={(e) => handleFilterChange(e.target.value as 'all' | 'active' | 'inactive')}
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
+                >
+                  <option value="all">Semua</option>
+                  <option value="active">Aktif</option>
+                  <option value="inactive">Nonaktif</option>
+                </select>
+              </div>
 
-            {/* Links List */}
-            <div className="bg-white shadow-md overflow-hidden sm:rounded-md">
-              <ul className="divide-y divide-gray-200">
-                {links.map((link) => (
-                  <li key={link.id}>
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center">
-                            <ShortUrlActions shortUrl={link.shortUrl} />
-                          </div>
-                          <p className="mt-1 text-base sm:text-sm text-gray-500 break-all sm:truncate">
-                            {link.longUrl}
-                          </p>
-                          <div className="mt-1 flex items-center space-x-4 text-sm sm:text-base text-gray-800">
-                            <div className="relative group">
-                              <span
-                                className="flex items-center gap-1 cursor-help"
-                                onClick={() => { setActiveTooltip('created-' + link.id); setTimeout(() => setActiveTooltip(null), 3000); }}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                {new Date(link.createdAt).toLocaleDateString('id-ID')}
-                              </span>
-                              <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md transition-opacity pointer-events-none whitespace-nowrap z-10 ${activeTooltip === 'created-' + link.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                                Dibuat
-                              </div>
-                            </div>
-                            <div className="relative group">
-                              <span
-                                className="flex items-center gap-1 cursor-help"
-                                onClick={() => { setActiveTooltip('visits-' + link.id); setTimeout(() => setActiveTooltip(null), 3000); }}
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                                {link.visitCount}
-                              </span>
-                              <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md transition-opacity pointer-events-none whitespace-nowrap z-10 ${activeTooltip === 'visits-' + link.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                                Kunjungan
-                              </div>
-                            </div>
-                          </div>
-                          <TimeZoneDisplay timestamp={link.lastVisited ? new Date(link.lastVisited).toISOString() : null} timeZone={timeZone} />
+              <div>
+                <label htmlFor="sort" className="block text-base font-medium text-gray-700 mb-3">
+                  Urutkan
+                </label>
+                <select
+                  id="sort"
+                  value={sortBy}
+                  onChange={(e) => handleSortChange(e.target.value as 'createdAt' | 'visitCount' | 'shortUrl')}
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
+                >
+                  <option value="createdAt">Tanggal Dibuat</option>
+                  <option value="visitCount">Jumlah Kunjungan</option>
+                  <option value="shortUrl">Short URL</option>
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="timezone" className="block text-base font-medium text-gray-700 mb-3">
+                  Zona Waktu
+                </label>
+                <select
+                  id="timezone"
+                  value={timeZone}
+                  onChange={(e) => setTimeZone(e.target.value)}
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
+                >
+                  <option value="Asia/Jakarta">WIB (Jakarta)</option>
+                  <option value="Asia/Makassar">WITA (Makassar)</option>
+                  <option value="Asia/Jayapura">WIT (Jayapura)</option>
+                  <option value="UTC">UTC</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Links List */}
+          <div className="bg-white shadow-md overflow-hidden sm:rounded-md">
+            <ul className="divide-y divide-gray-200">
+              {links.map((link) => (
+                <li key={link.id}>
+                  <div className="px-4 py-4 sm:px-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center">
+                          <ShortUrlActions shortUrl={link.shortUrl} />
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-0">
+                        <p className="mt-1 text-base sm:text-sm text-gray-500 break-all sm:truncate">
+                          {link.longUrl}
+                        </p>
+                        <div className="mt-1 flex items-center space-x-4 text-sm sm:text-base text-gray-800">
                           <div className="relative group">
-                            <button
-                              onClick={() => { setQrModalLink(link); setShowQrModal(true); }}
-                              className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 min-h-[40px] sm:min-h-[48px]"
+                            <span
+                              className="flex items-center gap-1 cursor-help"
+                              onClick={() => { setActiveTooltip('created-' + link.id); setTimeout(() => setActiveTooltip(null), 3000); }}
                             >
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
-                              <span className="sm:hidden ml-1">QR</span>
-                            </button>
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                              QR
+                              {new Date(link.createdAt).toLocaleDateString('id-ID')}
+                            </span>
+                            <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md transition-opacity pointer-events-none whitespace-nowrap z-10 ${activeTooltip === 'created-' + link.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                              Dibuat
                             </div>
                           </div>
                           <div className="relative group">
-                            <button
-                              onClick={() => startEdit(link)}
-                              className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 min-h-[40px] sm:min-h-[48px]"
+                            <span
+                              className="flex items-center gap-1 cursor-help"
+                              onClick={() => { setActiveTooltip('visits-' + link.id); setTimeout(() => setActiveTooltip(null), 3000); }}
                             >
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                               </svg>
-                              <span className="sm:hidden ml-1">Edit</span>
-                            </button>
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                              Edit
+                              {link.visitCount}
+                            </span>
+                            <div className={`absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md transition-opacity pointer-events-none whitespace-nowrap z-10 ${activeTooltip === 'visits-' + link.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                              Kunjungan
                             </div>
                           </div>
-                          <div className="relative group">
-                            <button
-                              onClick={() => toggleActive(link.id, link.active)}
-                              className={`inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium min-h-[40px] sm:min-h-[48px] ${link.active
-                                ? 'text-red-700 bg-red-100 hover:bg-red-200'
-                                : 'text-green-700 bg-green-100 hover:bg-green-200'
-                                }`}
-                            >
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
-                              <span className="sm:hidden ml-1">{link.active ? 'Nonaktifkan' : 'Aktifkan'}</span>
-                            </button>
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                              {link.active ? 'Nonaktifkan' : 'Aktifkan'}
-                            </div>
+                        </div>
+                        <TimeZoneDisplay timestamp={link.lastVisited ? new Date(link.lastVisited).toISOString() : null} timeZone={timeZone} />
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-0">
+                        <div className="relative group">
+                          <button
+                            onClick={() => { setQrModalLink(link); setShowQrModal(true); }}
+                            className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 min-h-[40px] sm:min-h-[48px]"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                            </svg>
+                            <span className="sm:hidden ml-1">QR</span>
+                          </button>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                            QR
                           </div>
-                          <div className="relative group">
-                            <button
-                              onClick={() => setShowDeleteConfirm(link.id)}
-                              className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 min-h-[40px] sm:min-h-[48px]"
-                            >
-                              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                              <span className="sm:hidden ml-1">Hapus</span>
-                            </button>
-                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                              Hapus
-                            </div>
+                        </div>
+                        <div className="relative group">
+                          <button
+                            onClick={() => startEdit(link)}
+                            className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 min-h-[40px] sm:min-h-[48px]"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span className="sm:hidden ml-1">Edit</span>
+                          </button>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                            Edit
+                          </div>
+                        </div>
+                        <div className="relative group">
+                          <button
+                            onClick={() => toggleActive(link.id, link.active)}
+                            className={`inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium min-h-[40px] sm:min-h-[48px] ${link.active
+                              ? 'text-red-700 bg-red-100 hover:bg-red-200'
+                              : 'text-green-700 bg-green-100 hover:bg-green-200'
+                              }`}
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span className="sm:hidden ml-1">{link.active ? 'Nonaktifkan' : 'Aktifkan'}</span>
+                          </button>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                            {link.active ? 'Nonaktifkan' : 'Aktifkan'}
+                          </div>
+                        </div>
+                        <div className="relative group">
+                          <button
+                            onClick={() => setShowDeleteConfirm(link.id)}
+                            className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 min-h-[40px] sm:min-h-[48px]"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span className="sm:hidden ml-1">Hapus</span>
+                          </button>
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-sm rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                            Hapus
                           </div>
                         </div>
                       </div>
                     </div>
-                  </li>
-                ))}
-                {links.length === 0 && (
-                  <li>
-                    <div className="px-4 py-4 sm:px-6 text-center text-gray-500">
-                      Belum ada link yang dibuat.
-                    </div>
-                  </li>
-                )}
-              </ul>
-            </div>
+                  </div>
+                </li>
+              ))}
+              {links.length === 0 && (
+                <li>
+                  <div className="px-4 py-4 sm:px-6 text-center text-gray-500">
+                    Belum ada link yang dibuat.
+                  </div>
+                </li>
+              )}
+            </ul>
+          </div>
 
-            {/* Pagination */}
-            {pagination && pagination.totalPages > 1 && (
-              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-300 sm:px-6 mt-6 shadow-md">
-                <div className="flex-1 flex justify-between sm:hidden">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={!pagination.hasPrev}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    Sebelumnya
-                  </button>
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={!pagination.hasNext}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    Selanjutnya
-                  </button>
+          {/* Pagination */}
+          {pagination && pagination.totalPages > 1 && (
+            <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-300 sm:px-6 mt-6 shadow-md">
+              <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!pagination.hasPrev}
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!pagination.hasNext}
+                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+              <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    Menampilkan <span className="font-medium">{(currentPage - 1) * pagination.limit + 1}</span> sampai{' '}
+                    <span className="font-medium">{Math.min(currentPage * pagination.limit, pagination.total)}</span> dari{' '}
+                    <span className="font-medium">{pagination.total}</span> hasil
+                  </p>
                 </div>
-                <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={!pagination.hasPrev}
+                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      <span className="sr-only">Sebelumnya</span>
+                      ‹
+                    </button>
+                    {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                      const pageNum = Math.max(1, Math.min(pagination.totalPages - 4, currentPage - 2)) + i
+                      if (pageNum > pagination.totalPages) return null
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${pageNum === currentPage
+                            ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                            }`}
+                        >
+                          {pageNum}
+                        </button>
+                      )
+                    })}
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={!pagination.hasNext}
+                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      <span className="sr-only">Selanjutnya</span>
+                      ›
+                    </button>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Edit Modal */}
+          {editingLink && typeof document !== 'undefined' && createPortal(
+            <div className="fixed inset-0 flex items-center justify-center p-4 z-[100]">
+              <div
+                className="fixed inset-0 bg-black/50 transition-opacity"
+                onClick={cancelEdit}
+              />
+              <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 sm:p-8 relative z-10">
+                <h3 className="text-xl font-semibold text-gray-900 mb-8">Edit Link</h3>
+                <div className="space-y-8">
                   <div>
-                    <p className="text-sm text-gray-700">
-                      Menampilkan <span className="font-medium">{(currentPage - 1) * pagination.limit + 1}</span> sampai{' '}
-                      <span className="font-medium">{Math.min(currentPage * pagination.limit, pagination.total)}</span> dari{' '}
-                      <span className="font-medium">{pagination.total}</span> hasil
+                    <label className="block text-base font-medium text-gray-700 mb-3">Short URL</label>
+                    <div className="flex rounded-md shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+                      <span className="inline-flex items-center px-4 bg-gray-50 text-gray-500 text-base border-r border-gray-300">
+                        uper.li/
+                      </span>
+                      <input
+                        type="text"
+                        value={editCustomUrl}
+                        onChange={(e) => setEditCustomUrl(e.target.value)}
+                        className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500 text-base"
+                        placeholder="custom-url"
+                      />
+                    </div>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Perubahan bulan ini: {editingLink.customChanges}/2
                     </p>
                   </div>
                   <div>
-                    <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                    <label className="block text-base font-medium text-gray-700 mb-3">Mode Redirect</label>
+                    <select
+                      value={editMode}
+                      onChange={(e) => setEditMode(e.target.value as 'PREVIEW' | 'DIRECT')}
+                      className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
+                    >
+                      <option value="PREVIEW">Preview</option>
+                      <option value="DIRECT">Direct</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-base font-medium text-gray-700 mb-3">Password</label>
+                    <input
+                      type="password"
+                      value={editPassword}
+                      onChange={(e) => setEditPassword(e.target.value)}
+                      disabled={passwordRemoved}
+                      className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      placeholder="Masukkan password baru"
+                    />
+                    <div className="mt-2 flex justify-end">
                       <button
-                        onClick={() => handlePageChange(currentPage - 1)}
-                        disabled={!pagination.hasPrev}
-                        className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        type="button"
+                        onClick={() => { setEditPassword(''); setPasswordRemoved(true); }}
+                        className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md"
                       >
-                        <span className="sr-only">Sebelumnya</span>
-                        ‹
+                        Hapus Password
                       </button>
-                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
-                        const pageNum = Math.max(1, Math.min(pagination.totalPages - 4, currentPage - 2)) + i
-                        if (pageNum > pagination.totalPages) return null
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => handlePageChange(pageNum)}
-                            className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${pageNum === currentPage
-                              ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                              : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                              }`}
-                          >
-                            {pageNum}
-                          </button>
-                        )
-                      })}
-                      <button
-                        onClick={() => handlePageChange(currentPage + 1)}
-                        disabled={!pagination.hasNext}
-                        className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-                      >
-                        <span className="sr-only">Selanjutnya</span>
-                        ›
-                      </button>
-                    </nav>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Edit Modal */}
-            {editingLink && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 sm:p-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-8">Edit Link</h3>
-                  <div className="space-y-8">
-                    <div>
-                      <label className="block text-base font-medium text-gray-700 mb-3">Short URL</label>
-                      <div className="flex rounded-md shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
-                        <span className="inline-flex items-center px-4 bg-gray-50 text-gray-500 text-base border-r border-gray-300">
-                          uper.li/
-                        </span>
-                        <input
-                          type="text"
-                          value={editCustomUrl}
-                          onChange={(e) => setEditCustomUrl(e.target.value)}
-                          className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500 text-base"
-                          placeholder="custom-url"
-                        />
-                      </div>
-                      <p className="mt-2 text-sm text-gray-500">
-                        Perubahan bulan ini: {editingLink.customChanges}/2
+                    </div>
+                    {passwordRemoved && (
+                      <p className="mt-2 text-sm text-red-600">
+                        Password akan dihapus saat menyimpan perubahan.
                       </p>
-                    </div>
-                    <div>
-                      <label className="block text-base font-medium text-gray-700 mb-3">Mode Redirect</label>
-                      <select
-                        value={editMode}
-                        onChange={(e) => setEditMode(e.target.value as 'PREVIEW' | 'DIRECT')}
-                        className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-base"
-                      >
-                        <option value="PREVIEW">Preview</option>
-                        <option value="DIRECT">Direct</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-base font-medium text-gray-700 mb-3">Password</label>
-                      <input
-                        type="password"
-                        value={editPassword}
-                        onChange={(e) => setEditPassword(e.target.value)}
-                        disabled={passwordRemoved}
-                        className="block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-base disabled:bg-gray-100 disabled:cursor-not-allowed"
-                        placeholder="Masukkan password baru"
-                      />
-                      <div className="mt-2 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => { setEditPassword(''); setPasswordRemoved(true); }}
-                          className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded-md"
-                        >
-                          Hapus Password
-                        </button>
-                      </div>
-                      {passwordRemoved && (
-                        <p className="mt-2 text-sm text-red-600">
-                          Password akan dihapus saat menyimpan perubahan.
-                        </p>
-                      )}
-                      <p className="mt-2 text-sm text-gray-500">
-                        Minimal 4 karakter. Klik "Hapus Password" untuk menghapus proteksi. Kosongkan untuk mempertahankan password yang ada.
-                      </p>
-                    </div>
-                  </div>
-                  {error && (
-                    <div className="mt-6 text-red-600 text-base">
-                      {error}
-                    </div>
-                  )}
-                  <div className="flex justify-end space-x-4 mt-8">
-                    <button
-                      onClick={cancelEdit}
-                      className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      onClick={saveEdit}
-                      disabled={loading}
-                      className="px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? 'Menyimpan...' : 'Simpan'}
-                    </button>
+                    )}
+                    <p className="mt-2 text-sm text-gray-500">
+                      Minimal 4 karakter. Klik "Hapus Password" untuk menghapus proteksi. Kosongkan untuk mempertahankan password yang ada.
+                    </p>
                   </div>
                 </div>
+                {error && (
+                  <div className="mt-6 text-red-600 text-base">
+                    {error}
+                  </div>
+                )}
+                <div className="flex justify-end space-x-4 mt-8">
+                  <button
+                    onClick={cancelEdit}
+                    className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={saveEdit}
+                    disabled={loading}
+                    className="px-6 py-3 text-base font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Menyimpan...' : 'Simpan'}
+                  </button>
+                </div>
               </div>
-            )}
+            </div>,
+            document.body
+          )}
 
-            {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 sm:p-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6">Konfirmasi Hapus</h3>
-                  <p className="text-base text-gray-600 mb-8">
-                    Apakah Anda yakin ingin menghapus link ini? Tindakan ini tidak dapat dibatalkan.
-                  </p>
-                  {error && (
-                    <div className="mb-6 text-red-600 text-base">
-                      {error}
-                    </div>
-                  )}
-                  <div className="flex justify-end space-x-4">
-                    <button
-                      onClick={() => setShowDeleteConfirm(null)}
-                      className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      onClick={() => deleteLink(showDeleteConfirm)}
-                      disabled={loading}
-                      className="px-6 py-3 text-base font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? 'Menghapus...' : 'Hapus'}
-                    </button>
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirm && typeof document !== 'undefined' && createPortal(
+            <div className="fixed inset-0 flex items-center justify-center p-4 z-[100]">
+              <div
+                className="fixed inset-0 bg-black/50 transition-opacity"
+                onClick={() => setShowDeleteConfirm(null)}
+              />
+              <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 sm:p-8 relative z-10">
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">Konfirmasi Hapus</h3>
+                <p className="text-base text-gray-600 mb-8">
+                  Apakah Anda yakin ingin menghapus link ini? Tindakan ini tidak dapat dibatalkan.
+                </p>
+                {error && (
+                  <div className="mb-6 text-red-600 text-base">
+                    {error}
                   </div>
+                )}
+                <div className="flex justify-end space-x-4">
+                  <button
+                    onClick={() => setShowDeleteConfirm(null)}
+                    className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => deleteLink(showDeleteConfirm)}
+                    disabled={loading}
+                    className="px-6 py-3 text-base font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? 'Menghapus...' : 'Hapus'}
+                  </button>
                 </div>
               </div>
-            )}
+            </div>,
+            document.body
+          )}
 
-            {/* QR Modal */}
-            {showQrModal && qrModalLink && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 sm:p-8">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-6">QR Code</h3>
-                  <p className="text-base text-gray-600 mb-6">
-                    uper.li/{qrModalLink.shortUrl}
-                  </p>
-                  <div className="flex flex-col items-center space-y-6">
-                    <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                      <QRCodeCanvas
-                        value={`https://uper.li/${qrModalLink.shortUrl}`}
-                        size={256}
-                        level="H"
-                        includeMargin={true}
-                        ref={qrModalRef}
-                      />
-                    </div>
-                    <button
-                      onClick={() => {
-                        if (!qrModalRef.current) return
-                        const canvas = qrModalRef.current
-                        const link = document.createElement('a')
-                        link.download = `qr-${qrModalLink.shortUrl}.png`
-                        link.href = canvas.toDataURL()
-                        link.click()
-                      }}
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      <svg className="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                      </svg>
-                      Download PNG
-                    </button>
+          {/* QR Modal */}
+          {showQrModal && qrModalLink && typeof document !== 'undefined' && createPortal(
+            <div className="fixed inset-0 flex items-center justify-center p-4 z-[100]">
+              <div
+                className="fixed inset-0 bg-black/50 transition-opacity"
+                onClick={() => { setShowQrModal(false); setQrModalLink(null); }}
+              />
+              <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 sm:p-8 relative z-10">
+                <h3 className="text-xl font-semibold text-gray-900 mb-6">QR Code</h3>
+                <p className="text-base text-gray-600 mb-6">
+                  uper.li/{qrModalLink.shortUrl}
+                </p>
+                <div className="flex flex-col items-center space-y-6">
+                  <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <QRCodeCanvas
+                      value={`https://uper.li/${qrModalLink.shortUrl}`}
+                      size={256}
+                      level="H"
+                      includeMargin={true}
+                      ref={qrModalRef}
+                    />
                   </div>
-                  <div className="flex justify-end mt-8">
-                    <button
-                      onClick={() => { setShowQrModal(false); setQrModalLink(null); }}
-                      className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                    >
-                      Tutup
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => {
+                      if (!qrModalRef.current) return
+                      const canvas = qrModalRef.current
+                      const link = document.createElement('a')
+                      link.download = `qr-${qrModalLink.shortUrl}.png`
+                      link.href = canvas.toDataURL()
+                      link.click()
+                    }}
+                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <svg className="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Download PNG
+                  </button>
+                </div>
+                <div className="flex justify-end mt-8">
+                  <button
+                    onClick={() => { setShowQrModal(false); setQrModalLink(null); }}
+                    className="px-6 py-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Tutup
+                  </button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>,
+            document.body
+          )}
+        </div>
 
 
       </div >
