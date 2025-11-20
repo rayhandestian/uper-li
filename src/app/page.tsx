@@ -101,7 +101,7 @@ export default function Home() {
     },
     {
       title: 'Profesional & Kredibel',
-      description: 'Tingkatkan kredibilitas link dengan domain resmi kampus daripada shortener umum'
+      description: 'Tingkatkan kredibilitas link dengan domain singkatan kampus daripada shortener umum'
     },
     {
       title: 'Free untuk Civitas',
