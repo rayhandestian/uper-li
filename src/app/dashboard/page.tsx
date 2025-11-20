@@ -282,7 +282,7 @@ export default function DashboardPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-12 max-w-7xl mx-auto">
         {/* Total Links Card */}
-        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-200 rounded-2xl transition-all duration-200">
+        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-300 rounded-2xl transition-all duration-200">
           <div className="p-6 sm:p-8">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -308,7 +308,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Monthly Links Card */}
-        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-200 rounded-2xl transition-all duration-200">
+        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-300 rounded-2xl transition-all duration-200">
           <div className="p-6 sm:p-8">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -334,7 +334,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Role Card */}
-        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-200 rounded-2xl transition-all duration-200">
+        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-300 rounded-2xl transition-all duration-200">
           <div className="p-6 sm:p-8">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -360,7 +360,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Total Kunjungan Card */}
-        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-200 rounded-2xl transition-all duration-200">
+        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-300 rounded-2xl transition-all duration-200">
           <div className="p-6 sm:p-8">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -387,7 +387,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Jumlah Link Card */}
-        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-200 rounded-2xl transition-all duration-200">
+        <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-300 rounded-2xl transition-all duration-200">
           <div className="p-6 sm:p-8">
             <div className="flex items-center">
               <div className="flex-shrink-0">
@@ -417,7 +417,7 @@ export default function DashboardPage() {
       {/* Content */}
       <div className="mt-8">
         <div>
-            <div className="bg-white shadow-sm border border-gray-200 rounded-lg mb-6 sm:mb-8">
+            <div className="bg-white shadow-md border border-gray-300 rounded-lg mb-6 sm:mb-8">
               <div
                 className={`flex items-center justify-between p-6 sm:p-8 cursor-pointer hover:bg-gray-50 rounded-t-lg transition-colors border-b ${isCreateFormCollapsed ? 'bg-blue-50 border-blue-200' : 'border-gray-200'}`}
                 onClick={() => setIsCreateFormCollapsed(!isCreateFormCollapsed)}
@@ -509,7 +509,7 @@ export default function DashboardPage() {
            </div>
 
             {/* Filter Controls */}
-             <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8 mb-6">
+             <div className="bg-white shadow-md border border-gray-300 rounded-lg p-8 mb-6">
                <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
                  <div>
                    <label htmlFor="filter" className="block text-base font-medium text-gray-700 mb-3">
@@ -563,7 +563,7 @@ export default function DashboardPage() {
              </div>
 
             {/* Links List */}
-            <div className="bg-white shadow overflow-hidden sm:rounded-md">
+            <div className="bg-white shadow-md overflow-hidden sm:rounded-md">
               <ul className="divide-y divide-gray-200">
                 {links.map((link) => (
                   <li key={link.id}>
@@ -686,7 +686,7 @@ export default function DashboardPage() {
 
             {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6 mt-6">
+              <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-300 sm:px-6 mt-6 shadow-md">
                 <div className="flex-1 flex justify-between sm:hidden">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -924,3 +924,4 @@ export default function DashboardPage() {
     </div >
   )
 }
+
