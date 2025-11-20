@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
             } else {
                 setError(data.error || 'Terjadi kesalahan.')
             }
-        } catch (err) {
+        } catch {
             setError('Terjadi kesalahan jaringan.')
         } finally {
             setLoading(false)

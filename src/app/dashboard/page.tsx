@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useSession } from 'next-auth/react'
 import ShortUrlActions from '@/components/ShortUrlActions'
@@ -816,7 +816,7 @@ export default function DashboardPage() {
                       </p>
                     )}
                     <p className="mt-2 text-sm text-gray-500">
-                      Minimal 4 karakter. Klik "Hapus Password" untuk menghapus proteksi. Kosongkan untuk mempertahankan password yang ada.
+                      Minimal 4 karakter. Klik &ldquo;Hapus Password&rdquo; untuk menghapus proteksi. Kosongkan untuk mempertahankan password yang ada.
                     </p>
                   </div>
                 </div>

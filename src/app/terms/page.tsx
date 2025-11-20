@@ -24,7 +24,7 @@ export default function TermsPage() {
 
             <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">1. Pendahuluan</h2>
             <p>
-              UPer.li ("Layanan") adalah layanan pemendek tautan (URL shortener) eksklusif yang disediakan untuk komunitas Universitas Pertamina. Dengan mengakses atau menggunakan Layanan ini, Anda setuju untuk terikat oleh Syarat dan Ketentuan ini. Jika Anda tidak setuju dengan bagian mana pun dari syarat ini, Anda tidak diperkenankan menggunakan Layanan kami.
+              UPer.li (&ldquo;Layanan&rdquo;) adalah layanan pemendek tautan (URL shortener) eksklusif yang disediakan untuk komunitas Universitas Pertamina. Dengan mengakses atau menggunakan Layanan ini, Anda setuju untuk terikat oleh Syarat dan Ketentuan ini. Jika Anda tidak setuju dengan bagian mana pun dari syarat ini, Anda tidak diperkenankan menggunakan Layanan kami.
             </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">2. Kelayakan Pengguna</h2>
@@ -75,7 +75,7 @@ export default function TermsPage() {
 
             <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">6. Penolakan Jaminan (Disclaimer)</h2>
             <p>
-              Layanan disediakan atas dasar "sebagaimana adanya" (AS IS) dan "sebagaimana tersedia" (AS AVAILABLE). UPer.li tidak memberikan jaminan bahwa Layanan akan tidak terganggu, aman, atau bebas dari kesalahan. Kami tidak menjamin keakuratan atau keandalan hasil apa pun yang diperoleh dari penggunaan Layanan.
+              Layanan disediakan atas dasar &ldquo;sebagaimana adanya&rdquo; (AS IS) dan &ldquo;sebagaimana tersedia&rdquo; (AS AVAILABLE). UPer.li tidak memberikan jaminan bahwa Layanan akan tidak terganggu, aman, atau bebas dari kesalahan. Kami tidak menjamin keakuratan atau keandalan hasil apa pun yang diperoleh dari penggunaan Layanan.
             </p>
 
             <h2 className="text-2xl font-bold text-gray-900 mt-8 mb-4">7. Batasan Tanggung Jawab</h2>

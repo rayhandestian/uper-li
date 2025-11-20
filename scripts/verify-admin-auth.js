@@ -1,4 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { signAdminToken, verifyAdminToken } = require('../src/lib/admin-auth');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const assert = require('assert');
 
 // Mock process.env

@@ -73,7 +73,7 @@ export default function NewPasswordPage() {
             } else {
                 setError(data.error || 'Terjadi kesalahan.')
             }
-        } catch (err) {
+        } catch {
             setError('Terjadi kesalahan jaringan.')
         } finally {
             setLoading(false)
