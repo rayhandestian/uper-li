@@ -200,6 +200,15 @@ function LoginForm() {
                   />
                 </div>
 
+                <div className="flex justify-end">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                  >
+                    Lupa password?
+                  </Link>
+                </div>
+
                 <div className="flex justify-center">
                   <Turnstile
                     siteKey={process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY!}
