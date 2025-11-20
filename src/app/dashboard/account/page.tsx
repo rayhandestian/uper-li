@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
+import ChangePasswordForm from './ChangePasswordForm'
 
 interface User {
   id: string
@@ -36,7 +37,7 @@ export default function AccountPage() {
         setUser(userData)
       }
     } catch {
-       console.error('Failed to fetch user data')
+      console.error('Failed to fetch user data')
     } finally {
       setLoading(false)
     }
@@ -91,7 +92,7 @@ export default function AccountPage() {
         setError(data.error || 'Terjadi kesalahan.')
       }
     } catch {
-       setError('Terjadi kesalahan.')
+      setError('Terjadi kesalahan.')
     } finally {
       setTwoFactorLoading(false)
     }
@@ -269,6 +270,8 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
+
+        <ChangePasswordForm />
       </div>
     </div>
   )
