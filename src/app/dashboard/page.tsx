@@ -73,6 +73,9 @@ export default function DashboardPage() {
   // Tooltip state
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
 
+  // Create form collapse state
+  const [isCreateFormCollapsed, setIsCreateFormCollapsed] = useState(true)
+
   // Fetch user stats
   const fetchUserStats = async () => {
     const response = await fetch('/api/user/stats')
@@ -414,9 +417,28 @@ export default function DashboardPage() {
       {/* Content */}
       <div className="mt-8">
         <div>
-            <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-6 sm:p-8 mb-6 sm:mb-8">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-6 sm:mb-8">Buat Link Baru</h2>
-              <form onSubmit={handleCreateLink} className="space-y-6 sm:space-y-8">
+            <div className="bg-white shadow-sm border border-gray-200 rounded-lg mb-6 sm:mb-8">
+              <div
+                className={`flex items-center justify-between p-6 sm:p-8 cursor-pointer hover:bg-gray-50 rounded-t-lg transition-colors border-b ${isCreateFormCollapsed ? 'bg-blue-50 border-blue-200' : 'border-gray-200'}`}
+                onClick={() => setIsCreateFormCollapsed(!isCreateFormCollapsed)}
+              >
+                <div className="flex items-center space-x-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Buat Link Baru</h2>
+                </div>
+                <svg
+                  className={`w-5 h-5 transform transition-transform ${isCreateFormCollapsed ? 'rotate-0' : 'rotate-180'}`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+              {!isCreateFormCollapsed && <div className="p-6 sm:p-8">
+                <form onSubmit={handleCreateLink} className="space-y-6 sm:space-y-8">
                 <div>
                   <label htmlFor="longUrl" className="block text-base font-medium text-gray-700 mb-3">
                     URL Asli
@@ -483,7 +505,8 @@ export default function DashboardPage() {
                   {loading ? 'Membuat...' : 'Buat Link'}
                 </button>
               </form>
-            </div>
+             </div>}
+           </div>
 
             {/* Filter Controls */}
              <div className="bg-white shadow-sm border border-gray-200 rounded-lg p-8 mb-6">
