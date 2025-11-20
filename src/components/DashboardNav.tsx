@@ -107,7 +107,7 @@ export default function DashboardNav({ session }: DashboardNavProps) {
             <div className="text-sm font-medium text-gray-900 break-words">
               {session.user?.email}
             </div>
-            <div onClick={closeMobileMenu}>
+            <div>
               <LogoutButton className="w-full px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 border border-red-200 hover:border-red-300" />
             </div>
           </div>
