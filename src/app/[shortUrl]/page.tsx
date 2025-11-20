@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { db } from '@/lib/db'
 import ShortUrlClient from './ShortUrlClient'
 
@@ -43,6 +44,13 @@ export default async function ShortUrlPage({
   params: Promise<{ shortUrl: string }>
 }) {
   const { shortUrl } = await params
+
+  const headersList = await headers()
+  const host = headersList.get('host')
+  if (!host || (host !== 'uper.li' && !host.startsWith('localhost'))) {
+    return <ShortUrlClient initialData={{ status: 'not_found' }} shortUrl={shortUrl} />
+  }
+
   const data = await getLinkData(shortUrl)
 
   if (data.status === 'ok' && data.mode === 'DIRECT' && data.longUrl) {
