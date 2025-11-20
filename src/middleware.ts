@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
 const APP_ROUTES = [
   '/dashboard',
@@ -12,7 +13,12 @@ const APP_ROUTES = [
   '/admin'
 ]
 
-export function middleware(request: NextRequest) {
+const isAuthPage = (pathname: string) => {
+  const authPaths = ['/login', '/register', '/forgot-password']
+  return authPaths.some(path => pathname === path || pathname.startsWith(`${path}/`))
+}
+
+export async function middleware(request: NextRequest) {
   const { hostname, pathname } = request.nextUrl
 
   // HTTPS enforcement in production (skip for localhost)
@@ -26,6 +32,12 @@ export function middleware(request: NextRequest) {
 
   // Allow all routes on app subdomain
   if (hostname === 'app.uper.li') {
+    if (isAuthPage(pathname)) {
+      const token = await getToken({ req: request })
+      if (token) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    }
     return NextResponse.next()
   }
 
@@ -76,6 +88,12 @@ export function middleware(request: NextRequest) {
   }
 
   // For other hostnames (e.g., localhost in development), allow all
+  if (isAuthPage(pathname)) {
+    const token = await getToken({ req: request })
+    if (token) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
   return NextResponse.next()
 }
 
