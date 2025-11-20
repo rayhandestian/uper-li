@@ -5,17 +5,17 @@ UPer.li is an exclusive URL shortener service designed for the Civitas Universit
 ## Features
 
 - **User Authentication**: Secure login and registration with email verification
-- **Role-Based Access**: Support for STUDENT, STAFF, and ADMIN roles
+- **Role-Based Access**: Support for STUDENT and LECTURER/STAFF
 - **Link Management**: Create, customize, and manage shortened URLs
 - **Password Protection**: Optional password protection for links
 - **QR Code Generation**: Automatic QR code generation for links
 - **Analytics Dashboard**: Track link visits, user statistics, and more
 - **Admin Panel**: Comprehensive admin interface for user and link management
-- **Two-Factor Authentication (2FA)**: Enhanced security with TOTP
+- **Two-Factor Authentication (2FA)**: Enhanced security with email 2FA
 - **Safe Browsing**: Integration with Google Safe Browsing API
 - **Email Notifications**: SMTP-based email system for verification and notifications
 - **CAPTCHA Integration**: Cloudflare Turnstile for spam protection
-- **Visit Tracking**: Detailed visit logs with IP and user agent data
+- **Visit Tracking**: Simple visit amount tracking and last visit date
 - **Custom Domains**: Support for custom short URLs (with limitations)
 - **Monthly Limits**: User-based monthly link creation limits
 
