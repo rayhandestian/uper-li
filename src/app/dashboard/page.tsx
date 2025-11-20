@@ -590,7 +590,7 @@ export default function DashboardPage() {
                           <div className="relative group">
                             <button
                               onClick={() => { setQrModalLink(link); setShowQrModal(true); }}
-                              className="inline-flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 min-h-[48px]"
+                              className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 min-h-[40px] sm:min-h-[48px]"
                             >
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -604,7 +604,7 @@ export default function DashboardPage() {
                           <div className="relative group">
                             <button
                               onClick={() => startEdit(link)}
-                              className="inline-flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 min-h-[48px]"
+                              className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 min-h-[40px] sm:min-h-[48px]"
                             >
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -618,7 +618,7 @@ export default function DashboardPage() {
                           <div className="relative group">
                             <button
                               onClick={() => toggleActive(link.id, link.active)}
-                              className={`inline-flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium min-h-[48px] ${link.active
+                              className={`inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium min-h-[40px] sm:min-h-[48px] ${link.active
                                 ? 'text-red-700 bg-red-100 hover:bg-red-200'
                                 : 'text-green-700 bg-green-100 hover:bg-green-200'
                                 }`}
@@ -635,7 +635,7 @@ export default function DashboardPage() {
                           <div className="relative group">
                             <button
                               onClick={() => setShowDeleteConfirm(link.id)}
-                              className="inline-flex items-center justify-center px-4 py-3 rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 min-h-[48px]"
+                              className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 min-h-[40px] sm:min-h-[48px]"
                             >
                               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
