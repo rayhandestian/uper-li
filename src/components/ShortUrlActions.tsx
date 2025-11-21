@@ -11,7 +11,8 @@ export default function ShortUrlActions({ shortUrl }: ShortUrlActionsProps) {
 
   const fullUrl = `uper.li/${shortUrl}`
 
-  const copyToClipboard = async () => {
+  const copyToClipboard = async (e: React.MouseEvent) => {
+    e.stopPropagation()
     try {
       await navigator.clipboard.writeText(fullUrl)
       setCopied(true)
@@ -21,7 +22,8 @@ export default function ShortUrlActions({ shortUrl }: ShortUrlActionsProps) {
     }
   }
 
-  const visitUrl = () => {
+  const visitUrl = (e: React.MouseEvent) => {
+    e.stopPropagation()
     window.open(`https://${fullUrl}`, '_blank')
   }
 
