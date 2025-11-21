@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
@@ -60,18 +60,18 @@ export async function GET(request: NextRequest) {
 
   // Get total count
   const countQuery = `SELECT COUNT(*) as total FROM "Link" ${whereClause}`
-  const countResult = await db.query(countQuery, params)
+  const countResult = await prisma.$queryRawUnsafe(countQuery, ...params) as { total: bigint }[]
 
-  const total = parseInt(countResult.rows[0].total)
+  const total = parseInt(countResult[0].total.toString())
   const totalPages = Math.ceil(total / limit)
 
   const query = `SELECT * FROM "Link" ${whereClause} ORDER BY "${sortField}" ${orderDirection} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
   params.push(limit, skip)
 
-  const linksResult = await db.query(query, params)
+  const linksResult = await prisma.$queryRawUnsafe(query, ...params)
 
   return NextResponse.json({
-    links: linksResult.rows,
+    links: linksResult,
     pagination: {
       page,
       limit,
@@ -114,98 +114,112 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'URL terdeteksi berbahaya.' }, { status: 400 })
   }
 
-  // Get user using raw SQL
-  const userResult = await db.query(
-    'SELECT * FROM "User" WHERE id = $1',
-    [session.user.id]
-  )
+  try {
+    const result = await prisma.$transaction(async (tx: any) => {
+      // Get user
+      const user = await tx.user.findUnique({
+        where: { id: session.user.id }
+      })
 
-  if (userResult.rows.length === 0) {
-    return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 })
-  }
-
-  const user = userResult.rows[0]
-
-  // Check limits
-  const maxMonthly = user.role === 'STUDENT' ? 5 : 10
-  const maxTotal = user.role === 'STUDENT' ? 100 : 200
-
-  if (user.monthlyLinksCreated >= maxMonthly) {
-    return NextResponse.json({ error: 'Batas link bulanan tercapai.' }, { status: 400 })
-  }
-
-  if (user.totalLinks >= maxTotal) {
-    return NextResponse.json({ error: 'Batas total link tercapai.' }, { status: 400 })
-  }
-
-  let shortUrl = customUrl
-
-  if (customUrl) {
-    // Validate custom URL
-    if (customUrl.length > 255 || !/^[a-zA-Z0-9-_]+$/.test(customUrl)) {
-      return NextResponse.json({ error: 'Short URL kustom tidak valid.' }, { status: 400 })
-    }
-
-    // Check if custom URL is reserved
-    if (RESERVED_PATHS.includes(customUrl)) {
-      return NextResponse.json({ error: 'Short URL kustom tidak tersedia.' }, { status: 400 })
-    }
-
-    // Check if custom URL is taken
-    const existingResult = await db.query(
-      'SELECT id FROM "Link" WHERE "shortUrl" = $1',
-      [customUrl]
-    )
-
-    if (existingResult.rows.length > 0) {
-      return NextResponse.json({ error: 'Short URL kustom sudah digunakan.' }, { status: 400 })
-    }
-  } else {
-    // Generate random short URL
-    let attempts = 0
-    do {
-      shortUrl = crypto.randomBytes(3).toString('hex') // 6 characters
-      attempts++
-      if (attempts > 10) {
-        return NextResponse.json({ error: 'Gagal menghasilkan short URL.' }, { status: 500 })
+      if (!user) {
+        throw new Error('User tidak ditemukan.')
       }
 
-      const existingResult = await db.query(
-        'SELECT id FROM "Link" WHERE "shortUrl" = $1',
-        [shortUrl]
-      )
+      // Check limits
+      const maxMonthly = user.role === 'STUDENT' ? 5 : 10
+      const maxTotal = user.role === 'STUDENT' ? 100 : 200
 
-      if (existingResult.rows.length === 0 && !RESERVED_PATHS.includes(shortUrl)) break
-    } while (true)
-  }
+      if ((user.monthlyLinksCreated || 0) >= maxMonthly) {
+        throw new Error('Batas link bulanan tercapai.')
+      }
 
-  // Hash password if provided
-  let hashedPassword = null
-  if (password) {
-    if (password.length < 4) {
-      return NextResponse.json({ error: 'Password minimal 4 karakter.' }, { status: 400 })
+      if ((user.totalLinks || 0) >= maxTotal) {
+        throw new Error('Batas total link tercapai.')
+      }
+
+      let shortUrl = customUrl
+
+      if (customUrl) {
+        // Validate custom URL
+        if (customUrl.length > 255 || !/^[a-zA-Z0-9-_]+$/.test(customUrl)) {
+          throw new Error('Short URL kustom tidak valid.')
+        }
+
+        // Check if custom URL is reserved
+        if (RESERVED_PATHS.includes(customUrl)) {
+          throw new Error('Short URL kustom tidak tersedia.')
+        }
+
+        // Check if custom URL is taken
+        const existingLink = await tx.link.findUnique({
+          where: { shortUrl: customUrl }
+        })
+
+        if (existingLink) {
+          throw new Error('Short URL kustom sudah digunakan.')
+        }
+      } else {
+        // Generate random short URL
+        let attempts = 0
+        do {
+          shortUrl = crypto.randomBytes(3).toString('hex') // 6 characters
+          attempts++
+          if (attempts > 10) {
+            throw new Error('Gagal menghasilkan short URL.')
+          }
+
+          const existingLink = await tx.link.findUnique({
+            where: { shortUrl: shortUrl }
+          })
+
+          if (!existingLink && !RESERVED_PATHS.includes(shortUrl)) break
+        } while (true)
+      }
+
+      // Hash password if provided
+      let hashedPassword = null
+      if (password) {
+        if (password.length < 4) {
+          throw new Error('Password minimal 4 karakter.')
+        }
+        hashedPassword = await bcrypt.hash(password, 12)
+      }
+
+      // Create link
+      const link = await tx.link.create({
+        data: {
+          shortUrl,
+          longUrl,
+          userId: session.user.id,
+          custom: !!customUrl,
+          password: hashedPassword,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      })
+
+      // Update user counters
+      await tx.user.update({
+        where: { id: session.user.id },
+        data: {
+          monthlyLinksCreated: { increment: 1 },
+          totalLinks: { increment: 1 },
+          updatedAt: new Date()
+        }
+      })
+
+      return link
+    })
+
+    return NextResponse.json(result)
+
+  } catch (error: any) {
+    // Handle specific errors
+    if (error.message === 'User tidak ditemukan.' || error.message === 'Batas link bulanan tercapai.' || error.message === 'Batas total link tercapai.' || error.message === 'Short URL kustom tidak valid.' || error.message === 'Short URL kustom tidak tersedia.' || error.message === 'Short URL kustom sudah digunakan.' || error.message === 'Password minimal 4 karakter.' || error.message === 'Gagal menghasilkan short URL.') {
+      return NextResponse.json({ error: error.message }, { status: 400 })
     }
-    hashedPassword = await bcrypt.hash(password, 12)
+
+    console.error('Link creation error:', error)
+    return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
-
-  // Create link using raw SQL
-  const linkResult = await db.query(
-    `INSERT INTO "Link" (
-      id, "shortUrl", "longUrl", "userId", custom, password, "createdAt", "updatedAt"
-    ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, NOW(), NOW()) 
-    RETURNING *`,
-    [shortUrl, longUrl, session.user.id, !!customUrl, hashedPassword]
-  )
-
-  const link = linkResult.rows[0]
-
-  // Update user counters using raw SQL
-  await db.query(
-    `UPDATE "User" 
-     SET "monthlyLinksCreated" = "monthlyLinksCreated" + 1, "totalLinks" = "totalLinks" + 1, "updatedAt" = NOW()
-     WHERE id = $1`,
-    [session.user.id]
-  )
-
-  return NextResponse.json(link)
 }
