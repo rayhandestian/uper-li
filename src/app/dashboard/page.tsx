@@ -906,7 +906,7 @@ export default function DashboardPage() {
                 className="fixed inset-0 bg-black/50 transition-opacity"
                 onClick={() => { setShowQrModal(false); setQrModalLink(null); }}
               />
-              <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 sm:p-8 relative z-10">
+              <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 sm:p-8 relative z-10 max-h-[90vh] overflow-y-auto">
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">QR Code</h3>
                 <p className="text-base text-gray-600 mb-6">
                   uper.li/{qrModalLink.shortUrl}
