@@ -1,13 +1,19 @@
 import crypto from 'crypto'
 
-const ADMIN_SECRET = process.env.ADMIN_PASSCODE || 'default-secret-do-not-use'
+function getAdminSecret(): string {
+  const secret = process.env.ADMIN_PASSCODE
+  if (!secret) {
+    throw new Error('ADMIN_PASSCODE environment variable must be set')
+  }
+  return secret
+}
 
 export function signAdminToken(): string {
     // Create a token with a timestamp and a signature
     const timestamp = Date.now().toString()
     const payload = Buffer.from(JSON.stringify({ admin: true, timestamp })).toString('base64')
     const signature = crypto
-        .createHmac('sha256', ADMIN_SECRET)
+        .createHmac('sha256', getAdminSecret())
         .update(payload)
         .digest('base64')
         .replace(/\+/g, '-')
@@ -25,7 +31,7 @@ export function verifyAdminToken(token: string | undefined | null): boolean {
 
     // Re-calculate signature
     const expectedSignature = crypto
-        .createHmac('sha256', ADMIN_SECRET)
+        .createHmac('sha256', getAdminSecret())
         .update(payload)
         .digest('base64')
         .replace(/\+/g, '-')
