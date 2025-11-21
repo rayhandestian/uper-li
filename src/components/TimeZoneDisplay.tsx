@@ -7,20 +7,24 @@ interface TimeZoneDisplayProps {
   timeZone: string
 }
 
+function formatDate(date: Date, timeZone: string): string {
+    return date.toLocaleString('id-ID', {
+        timeZone,
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
 export default function TimeZoneDisplay({ timestamp, timeZone, showIcon = true, className = "" }: TimeZoneDisplayProps & { showIcon?: boolean, className?: string }) {
   const [showTooltip, setShowTooltip] = useState(false)
 
-  if (!timestamp) return null
+  if (!timestamp) return <span className={className}>Belum pernah</span>
 
   const date = new Date(timestamp)
-  const displayString = date.toLocaleString('id-ID', {
-    timeZone,
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  const displayString = formatDate(date, timeZone)
 
   if (!showIcon) {
     return <span className={className}>{displayString}</span>

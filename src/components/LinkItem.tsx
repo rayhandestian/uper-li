@@ -26,6 +26,17 @@ interface LinkItemProps {
     onOpenQr: (link: Link) => void
 }
 
+function formatDate(date: Date, timeZone: string): string {
+    return date.toLocaleString('id-ID', {
+        timeZone,
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
 export default function LinkItem({
     link,
     timeZone,
@@ -89,15 +100,8 @@ export default function LinkItem({
                                             </svg>
                                             <span>Dibuat</span>
                                         </div>
-                                        <span className="font-medium text-gray-900">
-                                            {new Date(link.createdAt).toLocaleString('id-ID', {
-                                                timeZone,
-                                                year: 'numeric',
-                                                month: 'long',
-                                                day: 'numeric',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
+                                        <span className="font-medium text-gray-900 text-right">
+                                            {formatDate(new Date(link.createdAt), timeZone)}
                                         </span>
                                     </div>
 
@@ -109,7 +113,7 @@ export default function LinkItem({
                                             </svg>
                                             <span>Total Kunjungan</span>
                                         </div>
-                                        <span className="font-medium text-gray-900">{link.visitCount}</span>
+                                        <span className="font-medium text-gray-900 text-right">{link.visitCount}</span>
                                     </div>
 
                                     <div className="flex items-center justify-between text-sm">
@@ -119,9 +123,7 @@ export default function LinkItem({
                                             </svg>
                                             <span>Terakhir Dikunjungi</span>
                                         </div>
-                                        <div className="font-medium text-gray-900 text-right">
-                                            <TimeZoneDisplay timestamp={link.lastVisited ? new Date(link.lastVisited).toISOString() : null} timeZone={timeZone} showIcon={false} />
-                                        </div>
+                                        <TimeZoneDisplay timestamp={link.lastVisited ? new Date(link.lastVisited).toISOString() : null} timeZone={timeZone} showIcon={false} className="font-medium text-gray-900 text-right" />
                                     </div>
                                 </div>
                             </div>
