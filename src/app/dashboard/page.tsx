@@ -71,6 +71,23 @@ export default function DashboardPage() {
   const [qrModalLink, setQrModalLink] = useState<Link | null>(null)
   const qrModalRef = useRef<HTMLCanvasElement>(null)
 
+  // QR Customization State
+  const [qrFgColor, setQrFgColor] = useState('#000000')
+  const [qrBgColor, setQrBgColor] = useState('#ffffff')
+  const [qrSize, setQrSize] = useState(256)
+  const [qrLevel, setQrLevel] = useState<'L' | 'M' | 'Q' | 'H'>('H')
+  const [qrIncludeMargin, setQrIncludeMargin] = useState(true)
+
+  const openQrModal = (link: Link) => {
+    setQrModalLink(link)
+    setQrFgColor('#000000')
+    setQrBgColor('#ffffff')
+    setQrSize(256)
+    setQrLevel('H')
+    setQrIncludeMargin(true)
+    setShowQrModal(true)
+  }
+
   // Tooltip state
   const [activeTooltip, setActiveTooltip] = useState<string | null>(null)
 
@@ -613,7 +630,7 @@ export default function DashboardPage() {
                       <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-0">
                         <div className="relative group">
                           <button
-                            onClick={() => { setQrModalLink(link); setShowQrModal(true); }}
+                            onClick={() => openQrModal(link)}
                             className="inline-flex items-center justify-center px-3 py-2 sm:px-4 sm:py-3 rounded-md text-sm font-medium text-purple-700 bg-purple-100 hover:bg-purple-200 min-h-[40px] sm:min-h-[48px]"
                           >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -889,37 +906,113 @@ export default function DashboardPage() {
                 className="fixed inset-0 bg-black/50 transition-opacity"
                 onClick={() => { setShowQrModal(false); setQrModalLink(null); }}
               />
-              <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 sm:p-8 relative z-10">
+              <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full p-6 sm:p-8 relative z-10">
                 <h3 className="text-xl font-semibold text-gray-900 mb-6">QR Code</h3>
                 <p className="text-base text-gray-600 mb-6">
                   uper.li/{qrModalLink.shortUrl}
                 </p>
-                <div className="flex flex-col items-center space-y-6">
-                  <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-                    <QRCodeCanvas
-                      value={`https://uper.li/${qrModalLink.shortUrl}`}
-                      size={256}
-                      level="H"
-                      includeMargin={true}
-                      ref={qrModalRef}
-                    />
+                <div className="flex flex-col md:flex-row gap-8">
+                  <div className="flex-1 flex flex-col items-center space-y-6">
+                    <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                      <QRCodeCanvas
+                        value={`https://uper.li/${qrModalLink.shortUrl}`}
+                        size={qrSize}
+                        fgColor={qrFgColor}
+                        bgColor={qrBgColor}
+                        level={qrLevel}
+                        includeMargin={qrIncludeMargin}
+                        ref={qrModalRef}
+                        style={{ width: '256px', height: '256px' }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (!qrModalRef.current) return
+                        const canvas = qrModalRef.current
+                        const link = document.createElement('a')
+                        link.download = `qr-${qrModalLink.shortUrl}.png`
+                        link.href = canvas.toDataURL()
+                        link.click()
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    >
+                      <svg className="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                      </svg>
+                      Download PNG
+                    </button>
                   </div>
-                  <button
-                    onClick={() => {
-                      if (!qrModalRef.current) return
-                      const canvas = qrModalRef.current
-                      const link = document.createElement('a')
-                      link.download = `qr-${qrModalLink.shortUrl}.png`
-                      link.href = canvas.toDataURL()
-                      link.click()
-                    }}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <svg className="-ml-1 mr-2 h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Download PNG
-                  </button>
+
+                  {/* Customization Controls */}
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Warna QR</label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="color"
+                          value={qrFgColor}
+                          onChange={(e) => setQrFgColor(e.target.value)}
+                          className="h-8 w-8 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <span className="text-sm text-gray-500">{qrFgColor}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Warna Background</label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="color"
+                          value={qrBgColor}
+                          onChange={(e) => setQrBgColor(e.target.value)}
+                          className="h-8 w-8 rounded border border-gray-300 cursor-pointer"
+                        />
+                        <span className="text-sm text-gray-500">{qrBgColor}</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ukuran (px)</label>
+                      <select
+                        value={qrSize}
+                        onChange={(e) => setQrSize(Number(e.target.value))}
+                        className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                      >
+                        <option value={128}>128 x 128</option>
+                        <option value={256}>256 x 256</option>
+                        <option value={512}>512 x 512</option>
+                        <option value={1024}>1024 x 1024</option>
+                        <option value={2048}>2048 x 2048</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Error Correction Level</label>
+                      <select
+                        value={qrLevel}
+                        onChange={(e) => setQrLevel(e.target.value as 'L' | 'M' | 'Q' | 'H')}
+                        className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                      >
+                        <option value="L">Low (7%)</option>
+                        <option value="M">Medium (15%)</option>
+                        <option value="Q">Quartile (25%)</option>
+                        <option value="H">High (30%)</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center">
+                      <input
+                        id="include-margin"
+                        type="checkbox"
+                        checked={qrIncludeMargin}
+                        onChange={(e) => setQrIncludeMargin(e.target.checked)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor="include-margin" className="ml-2 block text-sm text-gray-900">
+                        Gunakan Margin
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 <div className="flex justify-end mt-8">
                   <button
