@@ -8,14 +8,18 @@ interface TimeZoneDisplayProps {
 }
 
 function formatDate(date: Date, timeZone: string): string {
-    return date.toLocaleString('id-ID', {
+    const dateStr = date.toLocaleString('id-ID', {
         timeZone,
         year: 'numeric',
         month: 'long',
-        day: 'numeric',
+        day: 'numeric'
+    });
+    const timeStr = date.toLocaleString('id-ID', {
+        timeZone,
         hour: '2-digit',
         minute: '2-digit'
-    });
+    }).replace('.', ':');
+    return `${dateStr} ${timeStr}`;
 }
 
 export default function TimeZoneDisplay({ timestamp, timeZone, showIcon = true, className = "" }: TimeZoneDisplayProps & { showIcon?: boolean, className?: string }) {
