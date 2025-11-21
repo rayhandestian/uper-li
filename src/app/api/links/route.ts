@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Get user
       const user = await tx.user.findUnique({
         where: { id: session.user.id }
