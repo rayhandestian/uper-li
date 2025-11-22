@@ -1,5 +1,9 @@
 # UPer.li - URL Shortener for Universitas Pertamina
 
+[![Tests](https://github.com/rayhandestian/UPer.li/actions/workflows/test.yml/badge.svg)](https://github.com/rayhandestian/UPer.li/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+
 UPer.li is an exclusive URL shortener service designed for the Civitas Universitas Pertamina (Pertamina University community). It provides a secure, feature-rich platform for creating and managing shortened links with analytics, user management, and administrative controls.
 
 ## Features
@@ -164,15 +168,12 @@ scripts/                 # Utility scripts
 public/                  # Static assets
 ```
 
+
 ## Contributing
 
-This project follows the [Conventional Commits](https://conventionalcommits.org/) specification. See [COMMIT_CONVENTION.md](docs/COMMIT_CONVENTION.md) for details.
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and contribute to the project.
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/your-feature`
-3. Commit changes: `git commit -m "feat: add your feature"`
-4. Push to the branch: `git push origin feat/your-feature`
-5. Submit a pull request
+Please also review our [Code of Conduct](CODE_OF_CONDUCT.md) and [Security Policy](SECURITY.md).
 
 ## Author
 
