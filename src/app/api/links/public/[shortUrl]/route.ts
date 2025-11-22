@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   request: NextRequest,
@@ -13,10 +14,10 @@ export async function GET(
     [shortUrl]
   )
 
-  console.log('Query result:', linkResult.rows.length, 'rows found')
+  logger.info('Query result:', { count: linkResult.rows.length })
 
   if (linkResult.rows.length === 0) {
-    console.log('No link found for shortUrl:', shortUrl)
+    logger.info('No link found for shortUrl:', { shortUrl })
     return NextResponse.json({ status: 'not_found' })
   }
 

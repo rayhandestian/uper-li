@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { db } from './db'
 import bcrypt from 'bcryptjs'
 import nodemailer from 'nodemailer'
+import { logger } from '@/lib/logger'
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -73,7 +74,7 @@ export const authOptions: NextAuthOptions = {
               `,
             })
           } catch (error) {
-            console.error('2FA email sending error:', error)
+            logger.error('2FA email sending error:', error)
             return null
           }
 

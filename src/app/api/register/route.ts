@@ -3,12 +3,12 @@ import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { db } from '@/lib/db'
 import { withRateLimit } from '@/lib/rateLimit'
+import { logger } from '@/lib/logger'
 
 async function handleRegistration(request: NextRequest) {
   try {
     const { role, nimOrUsername, password, agreedToTerms, turnstileToken } = await request.json()
 
-    // Validate terms acceptance
     if (!agreedToTerms) {
       return NextResponse.json({ error: 'Anda harus menyetujui Syarat dan Ketentuan.' }, { status: 400 })
     }
@@ -87,7 +87,7 @@ async function handleRegistration(request: NextRequest) {
 
     return NextResponse.json({ message: 'Registrasi berhasil. Silakan cek email untuk verifikasi.' })
   } catch (error) {
-    console.error('Registration error:', error)
+    logger.error('Registration error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }

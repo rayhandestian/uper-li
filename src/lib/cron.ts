@@ -1,22 +1,23 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import cron from 'node-cron'
-import { db } from './db'
-import { sendEmail } from './email'
+import { db } from '@/lib/db'
+import { sendEmail } from '@/lib/email'
+import { logger } from '@/lib/logger'
 
 interface Link {
   id: string
+  shortUrl: string
+  longUrl: string
+  userId: string
+  active: boolean
   createdAt: Date
   lastVisited: Date | null
   email: string
   nimOrUsername: string
-  shortUrl: string
-  longUrl: string
 }
 
-// Monthly limit reset - runs on the 1st of every month at 00:00
 export function scheduleMonthlyLimitReset() {
   cron.schedule('0 0 1 * *', async () => {
-    console.log('Running monthly limit reset...')
+    logger.info('Running monthly limit reset...')
 
     try {
       // Reset monthly link counts for all users
@@ -25,7 +26,7 @@ export function scheduleMonthlyLimitReset() {
         SET "monthlyLinksCreated" = 0, "lastReset" = NOW()
       `)
 
-      console.log(`Monthly limit reset completed.`)
+      logger.info(`Monthly limit reset completed.`)
 
       // Log the reset operation
       await db.query(`
@@ -34,7 +35,7 @@ export function scheduleMonthlyLimitReset() {
       `, [JSON.stringify({})])
 
     } catch (error) {
-      console.error('Error during monthly limit reset:', error)
+      logger.error('Error during monthly limit reset:', error)
 
       // Log the error
       await db.query(`
@@ -48,7 +49,7 @@ export function scheduleMonthlyLimitReset() {
 // Link deactivation check - runs daily at 02:00
 export function scheduleLinkDeactivation() {
   cron.schedule('0 2 * * *', async () => {
-    console.log('Running link deactivation check...')
+    logger.info('Running link deactivation check...')
 
     try {
       const fiveMonthsAgo = new Date()
@@ -97,7 +98,7 @@ export function scheduleLinkDeactivation() {
               `,
             })
           } catch (emailError) {
-            console.error(`Failed to send warning email for link ${link.shortUrl}:`, emailError)
+            logger.error(`Failed to send warning email for link ${link.shortUrl}:`, emailError)
           }
         }
 
@@ -119,7 +120,7 @@ export function scheduleLinkDeactivation() {
             WHERE id = ANY($1)
           `, [linkIds])
 
-          console.log(`Deactivated ${result.rowCount} links due to inactivity.`)
+          logger.info(`Deactivated ${result.rowCount} links due to inactivity.`)
 
           // Log deactivation
           await db.query(`
@@ -133,7 +134,7 @@ export function scheduleLinkDeactivation() {
       }
 
     } catch (error) {
-      console.error('Error during link deactivation check:', error)
+      logger.error('Error during link deactivation check:', error)
 
       // Log the error
       try {
@@ -142,7 +143,7 @@ export function scheduleLinkDeactivation() {
           VALUES ('link_deactivation_error', $1, NOW())
         `, [JSON.stringify({ error: error instanceof Error ? error.message : String(error) })])
       } catch (logError) {
-        console.error('Failed to log deactivation error:', logError)
+        logger.error('Failed to log deactivation error:', logError)
       }
     }
   })
@@ -151,7 +152,7 @@ export function scheduleLinkDeactivation() {
 // Permanent link deletion - runs daily at 03:00 (1 month after deactivation)
 export function scheduleLinkDeletion() {
   cron.schedule('0 3 * * *', async () => {
-    console.log('Running permanent link deletion check...')
+    logger.info('Running permanent link deletion check...')
 
     try {
       const oneMonthAgo = new Date()
@@ -173,7 +174,7 @@ export function scheduleLinkDeletion() {
           DELETE FROM "Link" WHERE id = ANY($1)
         `, [linkIds])
 
-        console.log(`Permanently deleted ${result.rowCount} inactive links.`)
+        logger.info(`Permanently deleted ${result.rowCount} inactive links.`)
 
         // Log deletion
         await db.query(`
@@ -183,7 +184,7 @@ export function scheduleLinkDeletion() {
       }
 
     } catch (error) {
-      console.error('Error during permanent link deletion:', error)
+      logger.error('Error during permanent link deletion:', error)
 
       // Log the error
       try {
@@ -192,7 +193,7 @@ export function scheduleLinkDeletion() {
           VALUES ('link_deletion_error', $1, NOW())
         `, [JSON.stringify({ error: error instanceof Error ? error.message : String(error) })])
       } catch (logError) {
-        console.error('Failed to log deletion error:', logError)
+        logger.error('Failed to log deletion error:', logError)
       }
     }
   })
@@ -200,18 +201,18 @@ export function scheduleLinkDeletion() {
 
 // Initialize all cron jobs
 export function initializeCronJobs() {
-  console.log('Initializing cron jobs...')
+  logger.info('Initializing cron jobs...')
 
   scheduleMonthlyLimitReset()
   scheduleLinkDeactivation()
   scheduleLinkDeletion()
 
-  console.log('All cron jobs initialized successfully')
+  logger.info('All cron jobs initialized successfully')
 }
 
 // Manual execution functions for testing/admin purposes
 export async function manualMonthlyReset() {
-  console.log('Manual monthly limit reset triggered...')
+  logger.info('Manual monthly limit reset triggered...')
 
   try {
     // Reset monthly link counts for all users
@@ -226,16 +227,16 @@ export async function manualMonthlyReset() {
       SET "customChanges" = 0
     `)
 
-    console.log(`Manual monthly reset completed: ${userResult.rowCount} users and ${linkResult.rowCount} links updated.`)
+    logger.info(`Manual monthly reset completed: ${userResult.rowCount} users and ${linkResult.rowCount} links updated.`)
     return { success: true, usersUpdated: userResult.rowCount || 0, linksUpdated: linkResult.rowCount || 0 }
   } catch (error) {
-    console.error('Manual monthly reset error:', error)
+    logger.error('Manual monthly reset error:', error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
 
 export async function manualLinkCleanup() {
-  console.log('Manual link cleanup triggered...')
+  logger.info('Manual link cleanup triggered...')
 
   try {
     const fiveMonthsAgo = new Date()
@@ -249,10 +250,10 @@ export async function manualLinkCleanup() {
       AND "createdAt" < $1
     `, [fiveMonthsAgo])
 
-    console.log(`Manual cleanup: ${result.rowCount} links deactivated.`)
+    logger.info(`Manual cleanup: ${result.rowCount} links deactivated.`)
     return { success: true, linksDeactivated: result.rowCount }
   } catch (error) {
-    console.error('Manual link cleanup error:', error)
+    logger.error('Manual link cleanup error:', error)
     return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 }

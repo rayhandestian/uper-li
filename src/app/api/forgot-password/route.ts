@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { sendEmail } from '@/lib/email'
 import { withRateLimit } from '@/lib/rateLimit'
+import { logger } from '@/lib/logger'
 
 async function handleForgotPassword(request: NextRequest) {
     try {
@@ -72,7 +73,7 @@ async function handleForgotPassword(request: NextRequest) {
 
         return NextResponse.json({ message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.' })
     } catch (error) {
-        console.error('Forgot password error:', error)
+        logger.error('Forgot password error:', error)
         return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
     }
 }

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer'
+import { logger } from '@/lib/logger'
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -17,6 +18,6 @@ export async function sendEmail(options: {
   html: string
 }) {
   const info = await transporter.sendMail(options)
-  console.log('Email sent:', info.messageId)
+  logger.info('Email sent:', { messageId: info.messageId })
   return info
 }

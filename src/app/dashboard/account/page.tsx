@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import ChangePasswordForm from './ChangePasswordForm'
+import { logger } from '@/lib/logger'
 
 interface User {
   id: string
@@ -37,7 +38,7 @@ export default function AccountPage() {
         setUser(userData)
       }
     } catch {
-      console.error('Failed to fetch user data')
+      logger.error('Failed to fetch user data')
     } finally {
       setLoading(false)
     }

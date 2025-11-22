@@ -3,6 +3,7 @@ import { cookies } from 'next/headers'
 import { withRateLimit } from '@/lib/rateLimit'
 import crypto from 'crypto'
 import { signAdminToken } from '@/lib/admin-auth'
+import { logger } from '@/lib/logger'
 
 async function handleAdminLogin(request: NextRequest) {
   try {
@@ -56,7 +57,7 @@ async function handleAdminLogin(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Admin login error:', error)
+    logger.error('Admin login error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

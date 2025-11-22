@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { withRateLimit } from '@/lib/rateLimit'
+import { logger } from '@/lib/logger'
 
 async function handleResetPassword(request: NextRequest) {
     try {
@@ -49,7 +50,7 @@ async function handleResetPassword(request: NextRequest) {
 
         return NextResponse.json({ message: 'Password berhasil diubah. Silakan login dengan password baru.' })
     } catch (error) {
-        console.error('Reset password error:', error)
+        logger.error('Reset password error:', error)
         return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
     }
 }

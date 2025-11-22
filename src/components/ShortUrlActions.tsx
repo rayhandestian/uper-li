@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { logger } from '@/lib/logger'
 
 interface ShortUrlActionsProps {
   shortUrl: string
@@ -18,7 +19,7 @@ export default function ShortUrlActions({ shortUrl }: ShortUrlActionsProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (err) {
-      console.error('Failed to copy: ', err)
+      logger.error('Failed to copy: ', err)
     }
   }
 

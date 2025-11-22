@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: Request) {
     try {
@@ -77,13 +78,13 @@ export async function POST(req: Request) {
         `,
             })
         } catch (error) {
-            console.error('Failed to send password change email:', error)
+            logger.error('Failed to send password change email:', error)
             // Don't fail the request if email fails, just log it
         }
 
         return NextResponse.json({ message: 'Password berhasil diubah' })
     } catch (error) {
-        console.error('Change password error:', error)
+        logger.error('Change password error:', error)
         return NextResponse.json(
             { error: 'Terjadi kesalahan saat mengubah password' },
             { status: 500 }

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
     try {
@@ -33,7 +34,7 @@ export async function GET() {
             role: user.role,
         })
     } catch (error) {
-        console.error('Error fetching user stats:', error)
+        logger.error('Error fetching user stats:', error)
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
     }
 }

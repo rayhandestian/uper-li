@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { withRateLimit } from '@/lib/rateLimit'
+import { logger } from '@/lib/logger'
 
 async function handleVerification(request: NextRequest) {
   try {
@@ -42,7 +43,7 @@ async function handleVerification(request: NextRequest) {
 
     return NextResponse.json({ message: 'Verifikasi berhasil.' })
   } catch (error) {
-    console.error('Code verification error:', error)
+    logger.error('Code verification error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }

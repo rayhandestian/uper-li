@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import crypto from 'crypto'
 import { sendEmail } from '@/lib/email'
 import { withRateLimit } from '@/lib/rateLimit'
+import { logger } from '@/lib/logger'
 
 async function handle2FASetup() {
   const session = await getServerSession(authOptions)
@@ -59,7 +60,7 @@ async function handle2FASetup() {
 
     return NextResponse.json({ message: 'Kode verifikasi telah dikirim ke email Anda.' })
   } catch (error) {
-    console.error('Email sending error:', error)
+    logger.error('Email sending error:', error)
     return NextResponse.json({ error: 'Gagal mengirim email verifikasi.' }, { status: 500 })
   }
 }

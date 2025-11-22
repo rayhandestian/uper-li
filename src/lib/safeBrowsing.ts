@@ -1,4 +1,5 @@
 import { google } from 'googleapis'
+import { logger } from '@/lib/logger'
 
 const safebrowsing = google.safebrowsing('v4')
 
@@ -23,7 +24,7 @@ export async function checkUrlSafety(url: string): Promise<boolean> {
     // If there are matches, the URL is unsafe
     return !response.data.matches || response.data.matches.length === 0
   } catch (error) {
-    console.error('Safe Browsing API error:', error)
+    logger.error('Safe Browsing API error:', error)
     // If API fails, allow the URL (fail-safe)
     return true
   }

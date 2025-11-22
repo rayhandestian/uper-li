@@ -6,6 +6,7 @@ import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import { Prisma } from '@prisma/client'
+import { logger } from '@/lib/logger'
 
 const RESERVED_PATHS = [
   'dashboard',
@@ -223,7 +224,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.error('Link creation error:', error)
+    logger.error('Link creation error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }

@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { logger } from '@/lib/logger';
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -15,7 +16,7 @@ export const db = {
 
 // Handle pool errors
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
+  logger.error('Unexpected error on idle client', err);
   process.exit(-1);
 });
 
