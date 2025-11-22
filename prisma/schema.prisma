@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Link {
+  id              String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  shortUrl        String    @unique
+  longUrl         String
+  userId          String
+  custom          Boolean?  @default(false)
+  customchanges   Int?      @default(0)
+  customChangedAt DateTime? @db.Timestamp(6)
+  password        String?
+  mode            String    @default("PREVIEW")
+  active          Boolean?  @default(true)
+  deactivatedAt   DateTime? @db.Timestamp(6)
+  createdAt       DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime? @default(now()) @db.Timestamp(6)
+  lastVisited     DateTime? @db.Timestamp(6)
+  visitCount      Int?      @default(0)
+  qrCode          String?
+  customChanges   Int?      @default(0)
+  User            User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([shortUrl], map: "idx_link_shorturl")
+  @@index([userId], map: "idx_link_userid")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model User {
+  id                       String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  email                    String    @unique
+  name                     String?
+  role                     String    @default("STUDENT")
+  nimOrUsername            String    @unique
+  password                 String?
+  emailVerified            DateTime? @db.Timestamp(6)
+  verificationToken        String?
+  verificationTokenExpires DateTime? @db.Timestamp(6)
+  createdAt                DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt                DateTime? @default(now()) @db.Timestamp(6)
+  monthlyLinksCreated      Int?      @default(0)
+  totalLinks               Int?      @default(0)
+  lastReset                DateTime? @default(now()) @db.Timestamp(6)
+  twoFactorEnabled         Boolean?  @default(false)
+  twoFactorSecret          String?
+  active                   Boolean?  @default(true)
+  Link                     Link[]
+
+  @@index([email], map: "idx_user_email")
+  @@index([nimOrUsername], map: "idx_user_nimorusername")
+}
