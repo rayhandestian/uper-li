@@ -32,6 +32,7 @@ describe('authOptions callbacks', () => {
                 nimOrUsername: 'testuser',
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result = await authOptions.callbacks!.jwt!({ token, user } as any)
 
             expect(result.role).toBe('USER')
@@ -42,6 +43,7 @@ describe('authOptions callbacks', () => {
         it('should return token unchanged if no user', async () => {
             const token = { existing: 'data' }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result = await authOptions.callbacks!.jwt!({ token } as any)
 
             expect(result).toEqual({ existing: 'data' })
@@ -52,6 +54,7 @@ describe('authOptions callbacks', () => {
         it('should add token properties to session', async () => {
             (db.query as jest.Mock).mockResolvedValue({ rows: [{ twoFactorSecret: null }] })
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const session = { user: {} } as any
             const token = {
                 sub: 'user-123',
@@ -60,6 +63,7 @@ describe('authOptions callbacks', () => {
                 requires2FA: true,
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result = await authOptions.callbacks!.session!({ session, token } as any)
 
             expect(result.user.id).toBe('user-123')
@@ -69,6 +73,7 @@ describe('authOptions callbacks', () => {
         })
 
         it('should handle session without 2FA requirement', async () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const session = { user: {} } as any
             const token = {
                 sub: 'user-123',
@@ -77,6 +82,7 @@ describe('authOptions callbacks', () => {
                 requires2FA: false,
             }
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const result = await authOptions.callbacks!.session!({ session, token } as any)
 
             expect(result.user.requires2FA).toBe(false)
