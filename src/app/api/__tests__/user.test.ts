@@ -1,0 +1,174 @@
+/**
+ * @jest-environment node
+ */
+import { GET as getProfile, PATCH as updateProfile } from '../user/profile/route'
+import { POST as changePassword } from '../user/change-password/route'
+import { NextRequest } from 'next/server'
+import { db } from '@/lib/db'
+import bcrypt from 'bcryptjs'
+import { sendEmail } from '@/lib/email'
+
+// Mock dependencies
+jest.mock('next-auth', () => ({
+    getServerSession: jest.fn(),
+}))
+
+jest.mock('@/lib/auth', () => ({
+    authOptions: {},
+}))
+
+jest.mock('@/lib/db', () => ({
+    db: {
+        query: jest.fn(),
+    },
+}))
+
+jest.mock('bcryptjs', () => ({
+    compare: jest.fn(),
+    hash: jest.fn(),
+}))
+
+jest.mock('@/lib/email', () => ({
+    sendEmail: jest.fn(),
+}))
+
+// Import getServerSession after mocking
+import { getServerSession } from 'next-auth'
+
+describe('/api/user', () => {
+    const mockSession = {
+        user: {
+            id: 'user-123',
+            email: 'test@example.com',
+            name: 'Test User',
+        },
+    }
+
+    beforeEach(() => {
+        jest.clearAllMocks()
+            ; (getServerSession as jest.Mock).mockResolvedValue(mockSession)
+    })
+
+    describe('Profile', () => {
+        describe('GET', () => {
+            it('should return 401 if not authenticated', async () => {
+                (getServerSession as jest.Mock).mockResolvedValue(null)
+                const req = new NextRequest('http://localhost/api/user/profile')
+                const res = await getProfile(req)
+                expect(res.status).toBe(401)
+            })
+
+            it('should return user profile', async () => {
+                const mockUser = { id: 'user-123', email: 'test@example.com' }
+                    ; (db.query as jest.Mock).mockResolvedValue({ rows: [mockUser] })
+
+                const req = new NextRequest('http://localhost/api/user/profile')
+                const res = await getProfile(req)
+                const data = await res.json()
+
+                expect(res.status).toBe(200)
+                expect(data).toEqual(mockUser)
+            })
+
+            it('should return 404 if user not found', async () => {
+                (db.query as jest.Mock).mockResolvedValue({ rows: [] })
+
+                const req = new NextRequest('http://localhost/api/user/profile')
+                const res = await getProfile(req)
+                expect(res.status).toBe(404)
+            })
+        })
+
+        describe('PATCH', () => {
+            it('should return 401 if not authenticated', async () => {
+                (getServerSession as jest.Mock).mockResolvedValue(null)
+                const req = new NextRequest('http://localhost/api/user/profile', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ name: 'New Name' }),
+                })
+                const res = await updateProfile(req)
+                expect(res.status).toBe(401)
+            })
+
+            it('should update user profile', async () => {
+                const req = new NextRequest('http://localhost/api/user/profile', {
+                    method: 'PATCH',
+                    body: JSON.stringify({ name: 'New Name' }),
+                })
+                const res = await updateProfile(req)
+
+                expect(res.status).toBe(200)
+                expect(db.query).toHaveBeenCalledWith(
+                    expect.stringContaining('UPDATE "User"'),
+                    ['New Name', mockSession.user.id]
+                )
+            })
+        })
+    })
+
+    describe('Change Password', () => {
+        const validBody = {
+            currentPassword: 'oldpassword',
+            newPassword: 'newpassword123',
+        }
+
+        it('should return 401 if not authenticated', async () => {
+            (getServerSession as jest.Mock).mockResolvedValue(null)
+            const req = new NextRequest('http://localhost/api/user/change-password', {
+                method: 'POST',
+                body: JSON.stringify(validBody),
+            })
+            const res = await changePassword(req)
+            expect(res.status).toBe(401)
+        })
+
+        it('should return 400 if passwords missing', async () => {
+            const req = new NextRequest('http://localhost/api/user/change-password', {
+                method: 'POST',
+                body: JSON.stringify({}),
+            })
+            const res = await changePassword(req)
+            expect(res.status).toBe(400)
+        })
+
+        it('should return 400 if new password too short', async () => {
+            const req = new NextRequest('http://localhost/api/user/change-password', {
+                method: 'POST',
+                body: JSON.stringify({ currentPassword: 'old', newPassword: 'short' }),
+            })
+            const res = await changePassword(req)
+            expect(res.status).toBe(400)
+        })
+
+        it('should return 400 if current password incorrect', async () => {
+            (db.query as jest.Mock).mockResolvedValue({ rows: [{ id: 'user-123', password: 'hashed' }] })
+                ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
+
+            const req = new NextRequest('http://localhost/api/user/change-password', {
+                method: 'POST',
+                body: JSON.stringify(validBody),
+            })
+            const res = await changePassword(req)
+            expect(res.status).toBe(400)
+        })
+
+        it('should change password successfully', async () => {
+            (db.query as jest.Mock).mockResolvedValue({ rows: [{ id: 'user-123', password: 'hashed', email: 'test@example.com' }] })
+                ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue('newhashed')
+
+            const req = new NextRequest('http://localhost/api/user/change-password', {
+                method: 'POST',
+                body: JSON.stringify(validBody),
+            })
+            const res = await changePassword(req)
+
+            expect(res.status).toBe(200)
+            expect(db.query).toHaveBeenCalledWith(
+                expect.stringContaining('UPDATE "User"'),
+                ['newhashed', 'user-123']
+            )
+            expect(sendEmail).toHaveBeenCalled()
+        })
+    })
+})
