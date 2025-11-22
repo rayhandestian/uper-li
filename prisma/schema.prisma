@@ -22,7 +22,7 @@ model Link {
   active          Boolean?  @default(true)
   deactivatedAt   DateTime? @db.Timestamp(6)
   createdAt       DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt       DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime? @default(now()) @updatedAt @db.Timestamp(6)
   lastVisited     DateTime? @db.Timestamp(6)
   visitCount      Int?      @default(0)
   qrCode          String?
@@ -46,7 +46,7 @@ model User {
   verificationToken        String?
   verificationTokenExpires DateTime? @db.Timestamp(6)
   createdAt                DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt                DateTime? @default(now()) @db.Timestamp(6)
+  updatedAt       DateTime? @default(now()) @updatedAt @db.Timestamp(6)
   monthlyLinksCreated      Int?      @default(0)
   totalLinks               Int?      @default(0)
   lastReset                DateTime? @default(now()) @db.Timestamp(6)
