@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
+import { Prisma } from '@prisma/client'
 
 const RESERVED_PATHS = [
   'dashboard',
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Get user
       const user = await tx.user.findUnique({
         where: { id: session.user.id }
@@ -213,10 +214,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle specific errors
-    if (error.message === 'User tidak ditemukan.' || error.message === 'Batas link bulanan tercapai.' || error.message === 'Batas total link tercapai.' || error.message === 'Short URL kustom tidak valid.' || error.message === 'Short URL kustom tidak tersedia.' || error.message === 'Short URL kustom sudah digunakan.' || error.message === 'Password minimal 4 karakter.' || error.message === 'Gagal menghasilkan short URL.') {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    if (error instanceof Error) {
+      const message = error.message
+      if (message === 'User tidak ditemukan.' || message === 'Batas link bulanan tercapai.' || message === 'Batas total link tercapai.' || message === 'Short URL kustom tidak valid.' || message === 'Short URL kustom tidak tersedia.' || message === 'Short URL kustom sudah digunakan.' || message === 'Password minimal 4 karakter.' || message === 'Gagal menghasilkan short URL.') {
+        return NextResponse.json({ error: message }, { status: 400 })
+      }
     }
 
     console.error('Link creation error:', error)

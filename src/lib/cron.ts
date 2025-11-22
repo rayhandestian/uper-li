@@ -1,7 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import cron from 'node-cron'
 import { db } from './db'
 import { sendEmail } from './email'
+
+interface Link {
+  id: string
+  createdAt: Date
+  lastVisited: Date | null
+  email: string
+  nimOrUsername: string
+  shortUrl: string
+  longUrl: string
+}
 
 // Monthly limit reset - runs on the 1st of every month at 00:00
 export function scheduleMonthlyLimitReset() {
@@ -61,10 +71,10 @@ export function scheduleLinkDeactivation() {
         const oneMonthAgo = new Date()
         oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 4) // 4 months since creation = 1 month before 5-month mark
 
-        const linksForWarning = linksToDeactivate.filter((link: any) => {
+        const linksForWarning = linksToDeactivate.filter((link: Link) => {
           const createdAt = new Date(link.createdAt)
           const lastVisited = link.lastVisited ? new Date(link.lastVisited) : null
-          
+
           return createdAt <= oneMonthAgo &&
             (!lastVisited || lastVisited <= oneMonthAgo)
         })
@@ -92,17 +102,17 @@ export function scheduleLinkDeactivation() {
         }
 
         // Deactivate links that are exactly 5 months old
-        const linksToDeactivateNow = linksToDeactivate.filter((link: any) => {
+        const linksToDeactivateNow = linksToDeactivate.filter((link: Link) => {
           const createdAt = new Date(link.createdAt)
           const lastVisited = link.lastVisited ? new Date(link.lastVisited) : null
-          
+
           return createdAt <= fiveMonthsAgo &&
             (!lastVisited || lastVisited <= fiveMonthsAgo)
         })
 
         if (linksToDeactivateNow.length > 0) {
-          const linkIds = linksToDeactivateNow.map((link: any) => link.id)
-          
+          const linkIds = linksToDeactivateNow.map((link: Link) => link.id)
+
           const result = await db.query(`
             UPDATE "Link"
             SET active = false, "deactivatedAt" = NOW()
@@ -156,8 +166,8 @@ export function scheduleLinkDeletion() {
       const linksToDelete = linksToDeleteResult.rows
 
       if (linksToDelete.length > 0) {
-        const linkIds = linksToDelete.map((link: any) => link.id)
-        
+        const linkIds = linksToDelete.map((link: Link) => link.id)
+
         // Delete the links (cascade will handle visits)
         const result = await db.query(`
           DELETE FROM "Link" WHERE id = ANY($1)

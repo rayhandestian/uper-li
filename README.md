@@ -109,6 +109,18 @@ npm start
 npm run lint
 ```
 
+### Testing
+
+Run the test suite:
+```bash
+npm test
+```
+
+Run tests in watch mode:
+```bash
+npm run test:watch
+```
+
 ## API Endpoints
 
 The application provides RESTful API endpoints for:
