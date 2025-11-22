@@ -23,7 +23,7 @@ UPer.li is an exclusive URL shortener service designed for the Civitas Universit
 
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes, NextAuth.js
-- **Database**: PostgreSQL with raw SQL migrations
+- **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth.js with custom adapter
 - **Email**: Nodemailer with SMTP
 - **Security**: bcryptjs for password hashing, Google Safe Browsing
@@ -59,8 +59,11 @@ Edit `.env.local` with your configuration values.
 
 4. Set up the database:
 ```bash
-# Run the migration script on your PostgreSQL database
-psql -U your_username -d your_database -f migration.sql
+# Generate Prisma client
+npx prisma generate
+
+# Push schema to database (for development)
+npx prisma db push
 ```
 
 5. Run the database check script:
@@ -83,7 +86,7 @@ Configure the following in your `.env`:
 
 ### Database Migration
 
-The `migration.sql` file contains the complete database schema. Run it on your PostgreSQL instance to set up the required tables.
+This project uses Prisma for database management. The `prisma/schema.prisma` file defines the database schema.
 
 ## Usage
 
@@ -95,6 +98,16 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Subdomain Routing
+
+The application uses middleware to handle subdomain routing:
+
+- **app.uper.li**: Main application dashboard
+- **admin.uper.li**: Admin panel
+- **uper.li**: Redirects to app.uper.li
+
+For local development, you may need to configure your hosts file or access via `localhost:3000`.
 
 ### Production Build
 
@@ -132,6 +145,9 @@ The application provides RESTful API endpoints for:
 - `/api/2fa/*`: Two-factor authentication
 - `/api/register`: User registration
 - `/api/verify-code`: Email verification
+- `/api/forgot-password`: Password reset request
+- `/api/reset-password`: Password reset execution
+- `/api/verify-link-password`: Link password verification
 
 ## Project Structure
 

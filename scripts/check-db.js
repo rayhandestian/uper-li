@@ -63,25 +63,13 @@ async function checkForeignKeyIntegrity() {
     issues.push(`Found ${orphanedLinks.rows[0].count} links without corresponding users`);
   }
 
-  // Check for visits without links
-  const orphanedVisitsQuery = `
-    SELECT COUNT(*) as count
-    FROM "Visit" v
-    LEFT JOIN "Link" l ON v."linkId" = l.id
-    WHERE l.id IS NULL;
-  `;
-  const orphanedVisits = await pool.query(orphanedVisitsQuery);
-  if (parseInt(orphanedVisits.rows[0].count) > 0) {
-    issues.push(`Found ${orphanedVisits.rows[0].count} visits without corresponding links`);
-  }
-
   return issues;
 }
 
 async function checkDatabase() {
   console.log('🔍 Checking database health...\n');
 
-  const tables = ['User', 'Link', 'Visit'];
+  const tables = ['User', 'Link'];
 
   try {
     // Check connection
