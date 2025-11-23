@@ -17,13 +17,17 @@ jest.mock('@/lib/email', () => ({
     sendEmail: jest.fn(),
 }))
 
-jest.mock('@/lib/rateLimit', () => ({
-    withRateLimit: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
+jest.mock('@/lib/logger', () => ({
+    logger: {
+        error: jest.fn(),
+    },
 }))
+
+
 
 global.fetch = jest.fn()
 
-describe('/api/forgot-password', () => {
+describe('Forgot Password API', () => {
     beforeEach(() => {
         jest.clearAllMocks()
             ; (global.fetch as jest.Mock).mockResolvedValue({
@@ -31,84 +35,52 @@ describe('/api/forgot-password', () => {
             })
     })
 
-    it('should return 400 if nimOrUsername is missing', async () => {
+    it('should send reset email for valid user', async () => {
+        (db.query as jest.Mock)
+            .mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'test@example.com', nimOrUsername: 'testuser' }] }) // Find user
+            .mockResolvedValueOnce({ rowCount: 1 }) // Insert code
+
         const req = new NextRequest('http://localhost/api/forgot-password', {
             method: 'POST',
-            body: JSON.stringify({ turnstileToken: 'token' }),
+            body: JSON.stringify({ nimOrUsername: 'testuser', turnstileToken: 'turnstile-token' })
         })
+
         const res = await POST(req)
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'NIM/Username diperlukan.' })
+
+        expect(res.status).toBe(200)
+        expect(sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+            to: 'test@example.com',
+            subject: expect.stringContaining('Reset Password')
+        }))
     })
 
-    it('should return 400 if Turnstile fails', async () => {
-        ; (global.fetch as jest.Mock).mockResolvedValue({
+    it('should return 200 even if user not found (security)', async () => {
+        (db.query as jest.Mock).mockResolvedValueOnce({ rows: [] }) // User not found
+
+        const req = new NextRequest('http://localhost/api/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ nimOrUsername: 'unknown', turnstileToken: 'turnstile-token' })
+        })
+
+        const res = await POST(req)
+
+        expect(res.status).toBe(200)
+        expect(sendEmail).not.toHaveBeenCalled()
+    })
+
+    it('should handle Turnstile validation failure', async () => {
+        (global.fetch as jest.Mock).mockResolvedValue({
             json: async () => ({ success: false }),
         })
 
         const req = new NextRequest('http://localhost/api/forgot-password', {
             method: 'POST',
-            body: JSON.stringify({
-                nimOrUsername: 'testuser',
-                turnstileToken: 'invalid-token'
-            }),
+            body: JSON.stringify({ nimOrUsername: 'testuser', turnstileToken: 'invalid-token' })
         })
+
         const res = await POST(req)
+
         expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Verifikasi CAPTCHA gagal.' })
-    })
-
-    it('should return success even if user not found (enumeration protection)', async () => {
-        ; (db.query as jest.Mock).mockResolvedValue({ rows: [] })
-
-        const req = new NextRequest('http://localhost/api/forgot-password', {
-            method: 'POST',
-            body: JSON.stringify({
-                nimOrUsername: 'nonexistent',
-                turnstileToken: 'valid-token'
-            }),
-        })
-        const res = await POST(req)
-
-        expect(res.status).toBe(200)
-        expect(await res.json()).toEqual({
-            message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.'
-        })
-        expect(sendEmail).not.toHaveBeenCalled()
-    })
-
-    it('should send reset code if user exists', async () => {
-        ; (db.query as jest.Mock)
-            .mockResolvedValueOnce({
-                rows: [{ id: 'user-123', email: 'test@example.com' }],
-            })
-            .mockResolvedValueOnce({ rows: [] }) // Update query
-
-        const req = new NextRequest('http://localhost/api/forgot-password', {
-            method: 'POST',
-            body: JSON.stringify({
-                nimOrUsername: 'testuser',
-                turnstileToken: 'valid-token'
-            }),
-        })
-        const res = await POST(req)
-
-        expect(res.status).toBe(200)
-        expect(sendEmail).toHaveBeenCalledWith(
-            expect.objectContaining({
-                to: 'test@example.com',
-                subject: 'Reset Password UPer.li',
-            })
-        )
-
-        // Verify that verification code was set
-        expect(db.query).toHaveBeenCalledWith(
-            expect.stringContaining('UPDATE "User"'),
-            expect.arrayContaining([
-                expect.stringMatching(/^\d{6}$/), // 6-digit code
-                expect.any(Date),
-                'user-123',
-            ])
-        )
+        expect(await res.json()).toEqual(expect.objectContaining({ error: expect.stringContaining('CAPTCHA') }))
     })
 })

@@ -15,218 +15,141 @@ interface Link {
   nimOrUsername: string
 }
 
+export const resetMonthlyLimits = async () => {
+  logger.info('Running monthly limit reset...')
+  try {
+    // Reset monthlyLinksCreated for all users
+    await db.query('UPDATE "User" SET "monthlyLinksCreated" = 0')
+
+    // Log the reset
+    await db.query(
+      'INSERT INTO system_logs (level, message, metadata) VALUES ($1, $2, $3)',
+      ['info', 'Monthly limit reset executed', JSON.stringify({ timestamp: new Date() })]
+    )
+
+    logger.info('Monthly limit reset completed.')
+  } catch (error) {
+    logger.error('Monthly limit reset error:', error)
+  }
+}
+
 export function scheduleMonthlyLimitReset() {
-  cron.schedule('0 0 1 * *', async () => {
-    logger.info('Running monthly limit reset...')
-
-    try {
-      // Reset monthly link counts for all users
-      const result = await db.query(`
-        UPDATE "User"
-        SET "monthlyLinksCreated" = 0, "lastReset" = NOW()
-      `)
-
-      logger.info(`Monthly limit reset completed.`)
-
-      // Log the reset operation
-      await db.query(`
-        INSERT INTO system_logs (action, details, created_at)
-        VALUES ('monthly_reset', $1, NOW())
-      `, [JSON.stringify({})])
-
-    } catch (error) {
-      logger.error('Error during monthly limit reset:', error)
-
-      // Log the error
-      await db.query(`
-        INSERT INTO system_logs (action, details, created_at)
-        VALUES ('monthly_reset_error', $1, NOW())
-      `, [JSON.stringify({ error: error instanceof Error ? error.message : String(error) })])
-    }
-  })
+  cron.schedule('0 0 1 * *', resetMonthlyLimits)
 }
 
-// Link deactivation check - runs daily at 02:00
-export function scheduleLinkDeactivation() {
-  cron.schedule('0 2 * * *', async () => {
-    logger.info('Running link deactivation check...')
+export const deactivateExpiredLinks = async () => {
+  logger.info('Running link deactivation check...')
+  try {
+    const fiveMonthsAgo = new Date()
+    fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 5)
 
-    try {
-      const fiveMonthsAgo = new Date()
-      fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 5)
+    // Find links that haven't been visited in 5 months and are still active
+    const linksToDeactivateResult = await db.query(`
+            SELECT l.*, u.email, u."nimOrUsername"
+            FROM "Link" l
+            JOIN "User" u ON l."userId" = u.id
+            WHERE l.active = true
+            AND (l."lastVisited" IS NULL OR l."lastVisited" < $1)
+            AND l."createdAt" < $1
+        `, [fiveMonthsAgo])
 
-      // Find links that haven't been visited in 5 months and are still active
-      const linksToDeactivateResult = await db.query(`
-        SELECT l.*, u.email, u."nimOrUsername"
-        FROM "Link" l
-        JOIN "User" u ON l."userId" = u.id
-        WHERE l.active = true
-        AND (l."lastVisited" IS NULL OR l."lastVisited" < $1)
-        AND l."createdAt" < $1
-      `, [fiveMonthsAgo])
+    const linksToDeactivate = linksToDeactivateResult.rows
 
-      const linksToDeactivate = linksToDeactivateResult.rows
-
-      if (linksToDeactivate.length > 0) {
-        // Send warning emails 1 month before deactivation
-        const oneMonthAgo = new Date()
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 4) // 4 months since creation = 1 month before 5-month mark
-
-        const linksForWarning = linksToDeactivate.filter((link: Link) => {
-          const createdAt = new Date(link.createdAt)
-          const lastVisited = link.lastVisited ? new Date(link.lastVisited) : null
-
-          return createdAt <= oneMonthAgo &&
-            (!lastVisited || lastVisited <= oneMonthAgo)
-        })
-
-        // Send warning emails
-        for (const link of linksForWarning) {
-          try {
-            await sendEmail({
-              to: link.email,
-              from: 'noreply@uper.li',
-              subject: 'Pemberitahuan: Link Akan Dinonaktifkan - UPer.li',
-              html: `
-                <p>Halo ${link.nimOrUsername},</p>
-                <p>Link Anda berikut akan segera dinonaktifkan karena tidak aktif selama 5 bulan:</p>
-                <p><strong>uper.li/${link.shortUrl}</strong></p>
-                <p><strong>${link.longUrl}</strong></p>
-                <p>Silakan kunjungi link tersebut atau aktifkan kembali di dashboard Anda untuk memperpanjang masa aktif.</p>
-                <p>Jika tidak diaktifkan dalam 1 bulan, link akan dihapus secara permanen.</p>
-                <p>Salam,<br>Tim UPer.li</p>
-              `,
-            })
-          } catch (emailError) {
-            logger.error(`Failed to send warning email for link ${link.shortUrl}:`, emailError)
-          }
-        }
-
-        // Deactivate links that are exactly 5 months old
-        const linksToDeactivateNow = linksToDeactivate.filter((link: Link) => {
-          const createdAt = new Date(link.createdAt)
-          const lastVisited = link.lastVisited ? new Date(link.lastVisited) : null
-
-          return createdAt <= fiveMonthsAgo &&
-            (!lastVisited || lastVisited <= fiveMonthsAgo)
-        })
-
-        if (linksToDeactivateNow.length > 0) {
-          const linkIds = linksToDeactivateNow.map((link: Link) => link.id)
-
-          const result = await db.query(`
-            UPDATE "Link"
-            SET active = false, "deactivatedAt" = NOW()
-            WHERE id = ANY($1)
-          `, [linkIds])
-
-          logger.info(`Deactivated ${result.rowCount} links due to inactivity.`)
-
-          // Log deactivation
-          await db.query(`
-            INSERT INTO system_logs (action, details, created_at)
-            VALUES ('link_deactivation', $1, NOW())
-          `, [JSON.stringify({
-            linksDeactivated: result.rowCount,
-            warningsSent: linksForWarning.length
-          })])
-        }
-      }
-
-    } catch (error) {
-      logger.error('Error during link deactivation check:', error)
-
-      // Log the error
-      try {
-        await db.query(`
-          INSERT INTO system_logs (action, details, created_at)
-          VALUES ('link_deactivation_error', $1, NOW())
-        `, [JSON.stringify({ error: error instanceof Error ? error.message : String(error) })])
-      } catch (logError) {
-        logger.error('Failed to log deactivation error:', logError)
-      }
-    }
-  })
-}
-
-// Permanent link deletion - runs daily at 03:00 (1 month after deactivation)
-export function scheduleLinkDeletion() {
-  cron.schedule('0 3 * * *', async () => {
-    logger.info('Running permanent link deletion check...')
-
-    try {
+    if (linksToDeactivate.length > 0) {
+      // Send warning emails 1 month before deactivation
       const oneMonthAgo = new Date()
-      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 4)
 
-      // Find deactivated links that have been inactive for 1 month
-      const linksToDeleteResult = await db.query(`
-        SELECT id FROM "Link"
-        WHERE active = false AND "deactivatedAt" < $1
-      `, [oneMonthAgo])
+      const linksForWarning = linksToDeactivate.filter((link: Link) => {
+        const createdAt = new Date(link.createdAt)
+        const lastVisited = link.lastVisited ? new Date(link.lastVisited) : null
+        return createdAt <= oneMonthAgo && (!lastVisited || lastVisited <= oneMonthAgo)
+      })
 
-      const linksToDelete = linksToDeleteResult.rows
-
-      if (linksToDelete.length > 0) {
-        const linkIds = linksToDelete.map((link: Link) => link.id)
-
-        // Delete the links (cascade will handle visits)
-        const result = await db.query(`
-          DELETE FROM "Link" WHERE id = ANY($1)
-        `, [linkIds])
-
-        logger.info(`Permanently deleted ${result.rowCount} inactive links.`)
-
-        // Log deletion
-        await db.query(`
-          INSERT INTO system_logs (action, details, created_at)
-          VALUES ('link_deletion', $1, NOW())
-        `, [JSON.stringify({ linksDeleted: result.rowCount })])
+      for (const link of linksForWarning) {
+        try {
+          await sendEmail({
+            to: link.email,
+            from: 'noreply@uper.li',
+            subject: 'Pemberitahuan: Link Akan Dinonaktifkan - UPer.li',
+            html: `
+                            <p>Halo ${link.nimOrUsername},</p>
+                            <p>Link Anda berikut akan segera dinonaktifkan karena tidak aktif selama 5 bulan:</p>
+                            <p><strong>uper.li/${link.shortUrl}</strong></p>
+                            <p>Silakan kunjungi link tersebut atau aktifkan kembali di dashboard Anda.</p>
+                        `,
+          })
+        } catch (emailError) {
+          logger.error(`Failed to send warning email for link ${link.shortUrl}:`, emailError)
+        }
       }
 
-    } catch (error) {
-      logger.error('Error during permanent link deletion:', error)
+      // Deactivate links
+      const linksToDeactivateNow = linksToDeactivate.filter((link: Link) => {
+        const createdAt = new Date(link.createdAt)
+        const lastVisited = link.lastVisited ? new Date(link.lastVisited) : null
+        return createdAt <= fiveMonthsAgo && (!lastVisited || lastVisited <= fiveMonthsAgo)
+      })
 
-      // Log the error
-      try {
-        await db.query(`
-          INSERT INTO system_logs (action, details, created_at)
-          VALUES ('link_deletion_error', $1, NOW())
-        `, [JSON.stringify({ error: error instanceof Error ? error.message : String(error) })])
-      } catch (logError) {
-        logger.error('Failed to log deletion error:', logError)
+      if (linksToDeactivateNow.length > 0) {
+        const linkIds = linksToDeactivateNow.map((link: Link) => link.id)
+        const result = await db.query(`
+                    UPDATE "Link"
+                    SET active = false, "deactivatedAt" = NOW()
+                    WHERE id = ANY($1)
+                `, [linkIds])
+        logger.info(`Deactivated ${result.rowCount} links due to inactivity.`)
       }
     }
-  })
+  } catch (error) {
+    logger.error('Link deactivation error:', error)
+  }
 }
 
-// Initialize all cron jobs
+export function scheduleLinkDeactivation() {
+  cron.schedule('0 2 * * *', deactivateExpiredLinks)
+}
+
+export const deletePermanentLinks = async () => {
+  logger.info('Running permanent link deletion check...')
+  try {
+    const oneMonthAgo = new Date()
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1)
+
+    const linksToDeleteResult = await db.query(`
+            SELECT id FROM "Link"
+            WHERE active = false AND "deactivatedAt" < $1
+        `, [oneMonthAgo])
+
+    const linksToDelete = linksToDeleteResult.rows
+
+    if (linksToDelete.length > 0) {
+      const linkIds = linksToDelete.map((link: Link) => link.id)
+      const result = await db.query('DELETE FROM "Link" WHERE id = ANY($1)', [linkIds])
+      logger.info(`Permanently deleted ${result.rowCount} inactive links.`)
+    }
+  } catch (error) {
+    logger.error('Link deletion error:', error)
+  }
+}
+
+export function scheduleLinkDeletion() {
+  cron.schedule('0 3 * * *', deletePermanentLinks)
+}
+
 export function initializeCronJobs() {
   logger.info('Initializing cron jobs...')
-
   scheduleMonthlyLimitReset()
   scheduleLinkDeactivation()
   scheduleLinkDeletion()
-
   logger.info('All cron jobs initialized successfully')
 }
 
-// Manual execution functions for testing/admin purposes
 export async function manualMonthlyReset() {
   logger.info('Manual monthly limit reset triggered...')
-
   try {
-    // Reset monthly link counts for all users
-    const userResult = await db.query(`
-      UPDATE "User"
-      SET "monthlyLinksCreated" = 0, "lastReset" = NOW()
-    `)
-
-    // Reset custom URL change counts for all links
-    const linkResult = await db.query(`
-      UPDATE "Link"
-      SET "customChanges" = 0
-    `)
-
+    const userResult = await db.query('UPDATE "User" SET "monthlyLinksCreated" = 0, "lastReset" = NOW()')
+    const linkResult = await db.query('UPDATE "Link" SET "customChanges" = 0')
     logger.info(`Manual monthly reset completed: ${userResult.rowCount} users and ${linkResult.rowCount} links updated.`)
     return { success: true, usersUpdated: userResult.rowCount || 0, linksUpdated: linkResult.rowCount || 0 }
   } catch (error) {
@@ -237,19 +160,16 @@ export async function manualMonthlyReset() {
 
 export async function manualLinkCleanup() {
   logger.info('Manual link cleanup triggered...')
-
   try {
     const fiveMonthsAgo = new Date()
     fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 5)
-
     const result = await db.query(`
-      UPDATE "Link"
-      SET active = false, "deactivatedAt" = NOW()
-      WHERE active = true
-      AND ("lastVisited" IS NULL OR "lastVisited" < $1)
-      AND "createdAt" < $1
-    `, [fiveMonthsAgo])
-
+            UPDATE "Link"
+            SET active = false, "deactivatedAt" = NOW()
+            WHERE active = true
+            AND ("lastVisited" IS NULL OR "lastVisited" < $1)
+            AND "createdAt" < $1
+        `, [fiveMonthsAgo])
     logger.info(`Manual cleanup: ${result.rowCount} links deactivated.`)
     return { success: true, linksDeactivated: result.rowCount }
   } catch (error) {
