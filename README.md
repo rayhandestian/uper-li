@@ -20,7 +20,7 @@ UPer.li is an exclusive URL shortener service designed for the Civitas Universit
 - **Email Notifications**: SMTP-based email system for verification and notifications
 - **CAPTCHA Integration**: Cloudflare Turnstile for spam protection
 - **Visit Tracking**: Simple visit amount tracking and last visit date
-- **Custom Domains**: Support for custom short URLs (with limitations)
+- **Custom URLs**: Support for custom short URLs (with limitations)
 - **Monthly Limits**: User-based monthly link creation limits
 
 ## Tech Stack
