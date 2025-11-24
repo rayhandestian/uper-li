@@ -403,7 +403,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Jumlah Link Card */}
+        {/* Link Aktif Card */}
         <div className="group bg-white overflow-hidden shadow-md hover:shadow-xl border border-gray-300 rounded-2xl transition-all duration-200">
           <div className="p-6 sm:p-8">
             <div className="flex items-center">
@@ -416,7 +416,7 @@ export default function DashboardPage() {
               </div>
               <div className="ml-6 flex-1">
                 <dt className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-                  Jumlah Link
+                  Link Aktif
                 </dt>
                 <dd className="text-3xl font-bold text-gray-900 mt-1">
                   {userStats?.totalActiveLinks || 0}
