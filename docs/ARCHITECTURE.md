@@ -496,7 +496,7 @@ sequenceDiagram
 
 ### Subdomain Routing Strategy
 
-The [middleware.ts](file:///c:/uper-link/src/middleware.ts) handles routing based on hostname:
+The [middleware.ts](../src/middleware.ts) handles routing based on hostname:
 
 ```mermaid
 graph TD
@@ -787,7 +787,7 @@ if (!isSafe) {
 
 ### Security Headers
 
-Configured in [next.config.ts](file:///c:/uper-link/next.config.ts):
+Configured in [next.config.ts](../next.config.ts):
 
 | Header | Value | Purpose |
 |--------|-------|---------|
@@ -1486,10 +1486,10 @@ This architecture documentation provides a comprehensive overview of the UPer.li
 - **User Experience**: Fast redirects, analytics, customization options, dark mode support
 
 For additional documentation, see:
-- [README.md](file:///c:/uper-link/README.md) - Project overview and setup
-- [TESTING.md](file:///c:/uper-link/docs/TESTING.md) - Testing guide
-- [COMMIT_CONVENTION.md](file:///c:/uper-link/docs/COMMIT_CONVENTION.md) - Git commit standards
-- [CONTRIBUTING.md](file:///c:/uper-link/CONTRIBUTING.md) - Contribution guidelines
-- [SECURITY.md](file:///c:/uper-link/SECURITY.md) - Security policy
+- [README.md](../README.md) - Project overview and setup
+- [TESTING.md](TESTING.md) - Testing guide
+- [COMMIT_CONVENTION.md](COMMIT_CONVENTION.md) - Git commit standards
+- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines
+- [SECURITY.md](../SECURITY.md) - Security policy
 
 For questions or issues, please create an issue on the GitHub repository.
