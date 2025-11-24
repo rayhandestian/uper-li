@@ -1,10 +1,10 @@
 {
-  "name": "uper-link",
+  "name": "uper-li",
   "version": "0.1.0",
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/rayhandestian/UPer.li.git"
+    "url": "https://github.com/rayhandestian/uper-li.git"
   },
   "scripts": {
     "dev": "next dev",

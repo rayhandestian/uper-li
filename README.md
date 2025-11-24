@@ -1,6 +1,6 @@
 # UPer.li - URL Shortener for Universitas Pertamina
 
-[![Tests](https://github.com/rayhandestian/UPer.li/actions/workflows/test.yml/badge.svg)](https://github.com/rayhandestian/UPer.li/actions/workflows/test.yml)
+[![Tests](https://github.com/rayhandestian/uper-li/actions/workflows/test.yml/badge.svg)](https://github.com/rayhandestian/uper-li/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
 
@@ -45,8 +45,8 @@ UPer.li is an exclusive URL shortener service designed for the Civitas Universit
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd uper-link
+git clone https://github.com/rayhandestian/uper-li.git
+cd uper-li
 ```
 
 2. Install dependencies:

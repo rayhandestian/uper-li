@@ -22,12 +22,12 @@ This project and everyone participating in it is governed by our [Code of Conduc
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/UPer.li.git
-   cd uper-link
+   git clone https://github.com/YOUR_USERNAME/uper-li.git
+   cd uper-li
    ```
 3. **Add the upstream repository**:
    ```bash
-   git remote add upstream https://github.com/rayhandestian/UPer.li.git
+   git remote add upstream https://github.com/rayhandestian/uper-li.git
    ```
 
 ## Development Setup
