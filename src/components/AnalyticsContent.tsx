@@ -64,7 +64,7 @@ export default function AnalyticsContent({ links, totalVisits }: AnalyticsConten
               <div className="ml-4 sm:ml-6 w-0 flex-1">
                 <dl>
                   <dt className="text-sm sm:text-base font-medium text-gray-500 truncate">
-                    Jumlah Link
+                    Link Aktif
                   </dt>
                   <dd className="text-xl sm:text-2xl font-semibold text-gray-900 mt-1">
                     {links.length}
