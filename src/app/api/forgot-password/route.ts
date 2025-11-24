@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { sendEmail } from '@/lib/email'
+import { getResetPasswordEmailHtml } from '@/lib/email-templates'
 import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
 
@@ -56,18 +57,12 @@ async function handleForgotPassword(request: NextRequest) {
             )
 
             // Send email
+            // Send email
             await sendEmail({
                 to: user.email,
                 from: 'noreply@uper.li',
                 subject: 'Reset Password UPer.li',
-                html: `
-          <p>Halo,</p>
-          <p>Kami menerima permintaan untuk mereset password akun Anda.</p>
-          <p>Gunakan kode berikut untuk melanjutkan proses reset password:</p>
-          <p style="font-size: 24px; font-weight: bold; text-align: center; margin: 20px 0;">${verificationCode}</p>
-          <p>Kode ini akan kadaluarsa dalam 10 menit.</p>
-          <p>Jika Anda tidak meminta reset password, abaikan email ini.</p>
-        `,
+                html: getResetPasswordEmailHtml(verificationCode),
             })
         }
 

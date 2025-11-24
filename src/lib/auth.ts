@@ -2,17 +2,9 @@ import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { db } from './db'
 import bcrypt from 'bcryptjs'
-import nodemailer from 'nodemailer'
+import { sendEmail } from '@/lib/email'
+import { get2FALoginEmailHtml } from '@/lib/email-templates'
 import { logger } from '@/lib/logger'
-
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-})
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -61,17 +53,11 @@ export const authOptions: NextAuthOptions = {
 
           // Send 2FA code via email
           try {
-            await transporter.sendMail({
+            await sendEmail({
               to: user.email,
               from: 'noreply@uper.li',
               subject: 'Kode 2FA - UPer.li',
-              html: `
-                <p>Halo ${user.nimOrUsername},</p>
-                <p>Kode verifikasi 2FA Anda: <strong>${verificationCode}</strong></p>
-                <p>Kode ini akan kadaluarsa dalam 10 menit.</p>
-                <p>Jika Anda tidak mencoba masuk, abaikan email ini.</p>
-                <p>Salam,<br>Tim UPer.li</p>
-              `,
+              html: get2FALoginEmailHtml(user.nimOrUsername, verificationCode),
             })
           } catch (error) {
             logger.error('2FA email sending error:', error)

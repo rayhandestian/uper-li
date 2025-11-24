@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import crypto from 'crypto'
 import { sendEmail } from '@/lib/email'
+import { get2FAVerificationEmailHtml } from '@/lib/email-templates'
 import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
 
@@ -48,14 +49,7 @@ async function handle2FASetup() {
       to: user.email,
       from: 'noreply@uper.li',
       subject: 'Verifikasi Aktivasi 2FA - UPer.li',
-      html: `
-        <p>Halo ${user.nimOrUsername},</p>
-        <p>Anda telah meminta untuk mengaktifkan Two-Factor Authentication (2FA) pada akun UPer.li Anda.</p>
-        <p>Kode verifikasi Anda: <strong>${verificationCode}</strong></p>
-        <p>Kode ini akan kadaluarsa dalam 10 menit.</p>
-        <p>Jika Anda tidak meminta aktivasi 2FA, abaikan email ini.</p>
-        <p>Salam,<br>Tim UPer.li</p>
-      `,
+      html: get2FAVerificationEmailHtml(user.nimOrUsername, verificationCode),
     })
 
     return NextResponse.json({ message: 'Kode verifikasi telah dikirim ke email Anda.' })

@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
+import { getPasswordChangedEmailHtml } from '@/lib/email-templates'
 import { logger } from '@/lib/logger'
 
 export async function POST(req: Request) {
@@ -67,15 +68,7 @@ export async function POST(req: Request) {
                 to: user.email,
                 from: 'noreply@uper.li',
                 subject: 'Password Berhasil Diubah - UPer.li',
-                html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2>Password Berhasil Diubah</h2>
-            <p>Halo ${user.name || user.nimOrUsername},</p>
-            <p>Password akun UPer.li Anda baru saja diubah.</p>
-            <p>Jika Anda tidak melakukan perubahan ini, segera hubungi admin atau reset password Anda.</p>
-            <p>Salam,<br>Tim UPer.li</p>
-          </div>
-        `,
+                html: getPasswordChangedEmailHtml(user.name || user.nimOrUsername),
             })
         } catch (error) {
             logger.error('Failed to send password change email:', error)

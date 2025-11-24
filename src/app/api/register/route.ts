@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
+import { getVerificationEmailHtml } from '@/lib/email-templates'
 import { db } from '@/lib/db'
 import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
@@ -76,13 +77,7 @@ async function handleRegistration(request: NextRequest) {
       to: email,
       from: 'noreply@uper.li',
       subject: 'Verifikasi Akun UPer.li',
-      html: `
-        <p>Halo,</p>
-        <p>Terima kasih telah mendaftar di UPer.li. Gunakan kode verifikasi berikut untuk verifikasi akun Anda:</p>
-        <p style="font-size: 24px; font-weight: bold; text-align: center; margin: 20px 0;">${verificationCode}</p>
-        <p>Kode ini akan kadaluarsa dalam 10 menit.</p>
-        <p>Jika Anda tidak mendaftar, abaikan email ini.</p>
-      `,
+      html: getVerificationEmailHtml(verificationCode),
     })
 
     return NextResponse.json({ message: 'Registrasi berhasil. Silakan cek email untuk verifikasi.' })
