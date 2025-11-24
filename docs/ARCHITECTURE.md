@@ -977,7 +977,7 @@ sequenceDiagram
 
 ## Background Jobs (Cron)
 
-The system uses [node-cron](file:///c:/uper-link/src/lib/cron.ts) for scheduled maintenance tasks.
+The system uses [node-cron](../src/lib/cron.ts) for scheduled maintenance tasks.
 
 ### Job Schedule
 
@@ -1125,7 +1125,7 @@ try {
 
 ### Custom Logger
 
-The [logger utility](file:///c:/uper-link/src/lib/logger.ts) provides structured logging:
+The [logger utility](../src/lib/logger.ts) provides structured logging:
 
 **Log Levels**:
 - `debug` - Development-only detailed information
@@ -1198,7 +1198,7 @@ src/
 
 ### Coverage Targets
 
-Configured in [jest.config.js](file:///c:/uper-link/jest.config.js):
+Configured in [jest.config.js](../jest.config.js):
 
 | Metric | Target |
 |--------|--------|
@@ -1216,7 +1216,7 @@ Configured in [jest.config.js](file:///c:/uper-link/jest.config.js):
 
 ### CI/CD Integration
 
-GitHub Actions workflow ([.github/workflows/test.yml](file:///c:/uper-link/.github/workflows/test.yml)):
+GitHub Actions workflow ([.github/workflows/test.yml](../.github/workflows/test.yml)):
 
 1. **Setup**:
    - PostgreSQL 15 service
