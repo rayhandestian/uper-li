@@ -47,15 +47,11 @@ export default async function ShortUrlPage({
 
   const headersList = await headers()
   const host = headersList.get('host')
-  if (!host || (host !== 'uper.li' && host !== 'app.uper.li' && !host.startsWith('localhost'))) {
+  if (!host || (host !== 'uper.li' && !host.startsWith('localhost'))) {
     notFound()
   }
 
   const data = await getLinkData(shortUrl)
-
-  if (data.status === 'not_found') {
-    notFound()
-  }
 
   if (data.status === 'ok' && data.mode === 'DIRECT' && data.longUrl) {
     // Log visit before redirect
