@@ -34,6 +34,7 @@ interface UserStats {
   totalLinks: number
   monthlyLinks: number
   role: 'STUDENT' | 'STAFF'
+  totalActiveLinks: number
 }
 
 export default function DashboardPage() {
@@ -418,7 +419,7 @@ export default function DashboardPage() {
                   Jumlah Link
                 </dt>
                 <dd className="text-3xl font-bold text-gray-900 mt-1">
-                  {analyticsLinks.length}
+                  {userStats?.totalActiveLinks || 0}
                 </dd>
               </div>
             </div>

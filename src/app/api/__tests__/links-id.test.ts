@@ -18,6 +18,7 @@ jest.mock('@/lib/auth', () => ({
 jest.mock('@/lib/db', () => ({
     db: {
         query: jest.fn(),
+        getClient: jest.fn(),
     },
 }))
 
@@ -40,6 +41,7 @@ describe('/api/links/[id]', () => {
         shortUrl: 'abc123',
         longUrl: 'http://example.com',
         customChanges: 0,
+        createdAt: new Date().toISOString(),
     }
 
     beforeEach(() => {
@@ -193,9 +195,21 @@ describe('/api/links/[id]', () => {
         })
 
         it('should delete link successfully', async () => {
-            ; (db.query as jest.Mock)
-                .mockResolvedValueOnce({ rows: [mockLink] }) // GET
-                .mockResolvedValueOnce({ rows: [] }) // DELETE
+            const mockClient = {
+                query: jest.fn(),
+                release: jest.fn(),
+            }
+                ; (db.getClient as jest.Mock).mockResolvedValue(mockClient)
+
+                ; (db.query as jest.Mock)
+                    .mockResolvedValueOnce({ rows: [mockLink] }) // GET
+
+            // Mock client queries
+            mockClient.query
+                .mockResolvedValueOnce({}) // BEGIN
+                .mockResolvedValueOnce({}) // DELETE
+                .mockResolvedValueOnce({}) // UPDATE User
+                .mockResolvedValueOnce({}) // COMMIT
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'DELETE',
@@ -203,10 +217,17 @@ describe('/api/links/[id]', () => {
             const res = await DELETE(req, { params: Promise.resolve({ id: 'link-123' }) })
 
             expect(res.status).toBe(200)
-            expect(db.query).toHaveBeenCalledWith(
+            expect(mockClient.query).toHaveBeenCalledWith('BEGIN')
+            expect(mockClient.query).toHaveBeenCalledWith(
                 'DELETE FROM "Link" WHERE id = $1',
                 ['link-123']
             )
+            expect(mockClient.query).toHaveBeenCalledWith(
+                expect.stringContaining('UPDATE "User"'),
+                expect.any(Array)
+            )
+            expect(mockClient.query).toHaveBeenCalledWith('COMMIT')
+            expect(mockClient.release).toHaveBeenCalled()
             expect(await res.json()).toEqual({ message: 'Link berhasil dihapus.' })
         })
     })

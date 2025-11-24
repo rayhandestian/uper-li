@@ -17,7 +17,8 @@ export async function GET() {
       SELECT 
         "totalLinks",
         "monthlyLinksCreated" as "monthlyLinks",
-        "role"
+        "role",
+        (SELECT COUNT(*)::int FROM "Link" WHERE "userId" = $1 AND active = true) as "totalActiveLinks"
       FROM "User"
       WHERE id = $1
     `, [session.user.id])
@@ -32,6 +33,7 @@ export async function GET() {
             totalLinks: user.totalLinks,
             monthlyLinks: user.monthlyLinks,
             role: user.role,
+            totalActiveLinks: user.totalActiveLinks,
         })
     } catch (error) {
         logger.error('Error fetching user stats:', error)

@@ -134,7 +134,7 @@ export async function PATCH(
     WHERE id = $1 AND "userId" = $2
     RETURNING *
   `
-  
+
   const updatedResult = await db.query(updateQuery, queryParams)
   const updatedLink = updatedResult.rows[0]
 
@@ -163,11 +163,38 @@ export async function DELETE(
     return NextResponse.json({ error: 'Link tidak ditemukan.' }, { status: 404 })
   }
 
-  // Delete link using raw SQL
-  await db.query(
-    'DELETE FROM "Link" WHERE id = $1',
-    [id]
-  )
+  const link = linkResult.rows[0]
+
+  const client = await db.getClient()
+  try {
+    await client.query('BEGIN')
+
+    await client.query(
+      'DELETE FROM "Link" WHERE id = $1',
+      [id]
+    )
+
+    const createdAt = new Date(link.createdAt)
+    const now = new Date()
+    const isCurrentMonth = createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear()
+
+    let updateQuery = 'UPDATE "User" SET "totalLinks" = GREATEST("totalLinks" - 1, 0)'
+
+    if (isCurrentMonth) {
+      updateQuery += ', "monthlyLinksCreated" = GREATEST("monthlyLinksCreated" - 1, 0)'
+    }
+
+    updateQuery += ' WHERE id = $1'
+
+    await client.query(updateQuery, [session.user.id])
+
+    await client.query('COMMIT')
+  } catch (error) {
+    await client.query('ROLLBACK')
+    throw error
+  } finally {
+    client.release()
+  }
 
   return NextResponse.json({ message: 'Link berhasil dihapus.' })
 }
