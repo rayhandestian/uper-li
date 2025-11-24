@@ -2,9 +2,6 @@ import { logger } from '../logger'
 
 // Mock console methods
 const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => { })
-const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => { })
-const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => { })
-const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => { })
 
 describe('Logger', () => {
     const originalEnv = process.env
@@ -31,7 +28,7 @@ describe('Logger', () => {
             expect(logObj.message).toBe('Test info message')
             expect(logObj.context).toEqual({ key: 'value' })
             expect(logObj.timestamp).toBeDefined()
-        } catch (e) {
+        } catch {
             // Fallback if it were to use console.error or pretty print
             expect(logCall).toContain('INFO')
         }
@@ -52,7 +49,7 @@ describe('Logger', () => {
             expect(logObj.error).toBeDefined()
             expect(logObj.error.message).toBe('Test error')
             expect(logObj.error.stack).toBeDefined()
-        } catch (e) {
+        } catch {
             expect(logCall).toContain('ERROR')
         }
     })
@@ -67,7 +64,7 @@ describe('Logger', () => {
             const logObj = JSON.parse(logCall)
             expect(logObj.level).toBe('warn')
             expect(logObj.message).toBe('Test warn message')
-        } catch (e) {
+        } catch {
             expect(logCall).toContain('WARN')
         }
     })
@@ -83,7 +80,7 @@ describe('Logger', () => {
             const logObj = JSON.parse(logCall)
             expect(logObj.context).toBeDefined()
             // Depending on implementation, it might serialize the error or just keep it as is
-        } catch (e) {
+        } catch {
             // ignore
         }
     })
