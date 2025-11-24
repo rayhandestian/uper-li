@@ -9,7 +9,7 @@ export async function checkUrlSafety(url: string): Promise<boolean> {
       key: process.env.GOOGLE_SAFE_BROWSING_API_KEY!,
       requestBody: {
         client: {
-          clientId: 'uper-link',
+          clientId: 'uper-li',
           clientVersion: '1.0.0',
         },
         threatInfo: {
