@@ -37,6 +37,25 @@ interface UserStats {
   totalActiveLinks: number
 }
 
+function CountUp({ end, duration = 2000 }: { end: number, duration?: number }) {
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    let startTime: number | null = null
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp
+      const progress = Math.min((timestamp - startTime) / duration, 1)
+      setCount(Math.floor(progress * end))
+      if (progress < 1) {
+        window.requestAnimationFrame(step)
+      }
+    }
+    window.requestAnimationFrame(step)
+  }, [end, duration])
+
+  return <>{count}</>
+}
+
 export default function DashboardPage() {
   const { data: session } = useSession()
   const [userStats, setUserStats] = useState<UserStats | null>(null)
@@ -314,7 +333,7 @@ export default function DashboardPage() {
                   Total Link
                 </dt>
                 <dd className="text-3xl font-bold text-gray-900 mt-1">
-                  {userStats?.totalLinks || 0}
+                  <CountUp end={userStats?.totalLinks || 0} />
                 </dd>
               </div>
             </div>
@@ -340,7 +359,7 @@ export default function DashboardPage() {
                   Link Bulan Ini
                 </dt>
                 <dd className="text-3xl font-bold text-gray-900 mt-1">
-                  {monthlyLinks} / {maxMonthly}
+                  <CountUp end={monthlyLinks} /> / {maxMonthly}
                 </dd>
               </div>
             </div>
@@ -393,7 +412,7 @@ export default function DashboardPage() {
                   Total Kunjungan
                 </dt>
                 <dd className="text-3xl font-bold text-gray-900 mt-1">
-                  {totalVisits}
+                  <CountUp end={totalVisits} />
                 </dd>
               </div>
             </div>
@@ -419,7 +438,7 @@ export default function DashboardPage() {
                   Link Aktif
                 </dt>
                 <dd className="text-3xl font-bold text-gray-900 mt-1">
-                  {userStats?.totalActiveLinks || 0}
+                  <CountUp end={userStats?.totalActiveLinks || 0} />
                 </dd>
               </div>
             </div>
@@ -595,8 +614,9 @@ export default function DashboardPage() {
               ))}
               {links.length === 0 && (
                 <li>
-                  <div className="px-4 py-4 sm:px-6 text-center text-gray-500">
-                    Belum ada link yang dibuat.
+                  <div className="px-4 py-12 sm:px-6 text-center">
+                    <h3 className="text-lg font-medium text-gray-900">Belum ada link</h3>
+                    <p className="mt-1 text-sm text-gray-500">Mulai buat link pendek pertamamu sekarang!</p>
                   </div>
                 </li>
               )}
