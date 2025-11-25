@@ -23,6 +23,11 @@ jest.mock('@/lib/logger', () => ({
     },
 }))
 
+// Mock rate limit wrapper
+jest.mock('@/lib/rateLimit', () => ({
+    withRateLimit: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
+}))
+
 describe('Reset Password API', () => {
     beforeEach(() => {
         jest.clearAllMocks()
@@ -31,7 +36,8 @@ describe('Reset Password API', () => {
     it('should reset password successfully', async () => {
         const validUser = {
             id: 'user-1',
-            verificationTokenExpires: new Date(Date.now() + 10000) // Future
+            verificationTokenExpires: new Date(Date.now() + 10000), // Future
+            emailVerified: new Date() // Verified user
         }
 
             ; (db.query as jest.Mock)
@@ -109,7 +115,8 @@ describe('Reset Password API', () => {
     it('should handle expired code', async () => {
         const expiredUser = {
             id: 'user-1',
-            verificationTokenExpires: new Date(Date.now() - 10000) // Past
+            verificationTokenExpires: new Date(Date.now() - 10000), // Past
+            emailVerified: new Date() // Verified user
         }
 
             ; (db.query as jest.Mock).mockResolvedValueOnce({ rows: [expiredUser] })
@@ -127,5 +134,38 @@ describe('Reset Password API', () => {
         const res = await POST(req)
         expect(res.status).toBe(400)
         expect(await res.json()).toEqual(expect.objectContaining({ error: expect.stringContaining('kadaluarsa') }))
+    })
+
+    it('should reject password reset for unverified user', async () => {
+        const unverifiedUser = {
+            id: 'user-1',
+            verificationTokenExpires: new Date(Date.now() + 10000), // Future
+            emailVerified: null // Unverified user
+        }
+
+            ; (db.query as jest.Mock).mockResolvedValueOnce({ rows: [unverifiedUser] })
+
+        const req = new NextRequest('http://localhost/api/reset-password', {
+            method: 'POST',
+            body: JSON.stringify({
+                nimOrUsername: 'testuser',
+                code: '123456',
+                newPassword: 'newpassword123',
+                confirmPassword: 'newpassword123'
+            })
+        })
+
+        const res = await POST(req)
+
+        expect(res.status).toBe(400)
+        expect(await res.json()).toEqual({ 
+            error: 'Akun belum diverifikasi. Silakan verifikasi email terlebih dahulu.' 
+        })
+        
+        // Ensure password update was not called
+        expect(db.query).not.toHaveBeenCalledWith(
+            expect.stringContaining('UPDATE "User"'),
+            expect.anything()
+        )
     })
 })

@@ -22,7 +22,7 @@ async function handleResetPassword(request: NextRequest) {
 
         // Find user by nimOrUsername and verificationToken
         const userResult = await db.query(
-            'SELECT id, "verificationTokenExpires" FROM "User" WHERE "nimOrUsername" = $1 AND "verificationToken" = $2',
+            'SELECT id, "verificationTokenExpires", "emailVerified" FROM "User" WHERE "nimOrUsername" = $1 AND "verificationToken" = $2',
             [nimOrUsername, code]
         )
 
@@ -31,6 +31,11 @@ async function handleResetPassword(request: NextRequest) {
         }
 
         const user = userResult.rows[0]
+
+        // Check if user email is verified
+        if (!user.emailVerified) {
+            return NextResponse.json({ error: 'Akun belum diverifikasi. Silakan verifikasi email terlebih dahulu.' }, { status: 400 })
+        }
 
         // Check expiration
         if (new Date() > new Date(user.verificationTokenExpires)) {

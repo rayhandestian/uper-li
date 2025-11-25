@@ -37,7 +37,7 @@ describe('Forgot Password API', () => {
 
     it('should send reset email for valid user', async () => {
         (db.query as jest.Mock)
-            .mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'test@example.com', nimOrUsername: 'testuser' }] }) // Find user
+            .mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'test@example.com', nimOrUsername: 'testuser', emailVerified: new Date() }] }) // Find user (verified)
             .mockResolvedValueOnce({ rowCount: 1 }) // Insert code
 
         const req = new NextRequest('http://localhost/api/forgot-password', {
@@ -82,5 +82,22 @@ describe('Forgot Password API', () => {
 
         expect(res.status).toBe(400)
         expect(await res.json()).toEqual(expect.objectContaining({ error: expect.stringContaining('CAPTCHA') }))
+    })
+
+    it('should return success but not send email for unverified user (security)', async () => {
+        (db.query as jest.Mock)
+            .mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'test@example.com', nimOrUsername: 'testuser', emailVerified: null }] }) // Find user (unverified)
+            // No second mock call because we don't want to update the token for unverified users
+
+        const req = new NextRequest('http://localhost/api/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ nimOrUsername: 'testuser', turnstileToken: 'turnstile-token' })
+        })
+
+        const res = await POST(req)
+
+        expect(res.status).toBe(200)
+        expect(sendEmail).not.toHaveBeenCalled()
+        expect(await res.json()).toEqual({ message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.' })
     })
 })

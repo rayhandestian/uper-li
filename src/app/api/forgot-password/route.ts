@@ -32,13 +32,19 @@ async function handleForgotPassword(request: NextRequest) {
 
         // Find user by nimOrUsername
         const userResult = await db.query(
-            'SELECT id, email FROM "User" WHERE "nimOrUsername" = $1',
+            'SELECT id, email, "emailVerified" FROM "User" WHERE "nimOrUsername" = $1',
             [nimOrUsername]
         )
 
-        // Always return success to prevent enumeration, but only send email if user exists
+        // Always return success to prevent enumeration, but only send email if user exists and is verified
         if (userResult.rows.length > 0) {
             const user = userResult.rows[0]
+
+            // Check if user email is verified
+            if (!user.emailVerified) {
+                // Return success message to prevent enumeration, but don't send email
+                return NextResponse.json({ message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.' })
+            }
 
             // Generate 6-digit verification code
             const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
