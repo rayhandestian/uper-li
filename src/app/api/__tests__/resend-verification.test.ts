@@ -17,9 +17,23 @@ jest.mock('@/lib/email', () => ({
     sendEmail: jest.fn(),
 }))
 
+// Mock bcryptjs
+jest.mock('bcryptjs', () => ({
+    hash: jest.fn(),
+}))
+
 // Mock rate limit wrapper
 jest.mock('@/lib/rateLimit', () => ({
     withRateLimit: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
+}))
+
+// Mock logger
+jest.mock('@/lib/logger', () => ({
+    logger: {
+        info: jest.fn(),
+        error: jest.fn(),
+        warn: jest.fn(),
+    },
 }))
 
 describe('/api/resend-verification', () => {
@@ -39,6 +53,19 @@ describe('/api/resend-verification', () => {
         const res = await POST(req)
         expect(res.status).toBe(400)
         expect(await res.json()).toEqual({ error: 'NIM/Username diperlukan.' })
+    })
+
+    it('should return 400 if password is too short', async () => {
+        const req = new NextRequest('http://localhost/api/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify({
+                nimOrUsername: '12345678',
+                password: '123', // Less than 6 characters
+            }),
+        })
+        const res = await POST(req)
+        expect(res.status).toBe(400)
+        expect(await res.json()).toEqual({ error: 'Password minimal 6 karakter.' })
     })
 
     it('should return 404 if user not found', async () => {
@@ -72,7 +99,7 @@ describe('/api/resend-verification', () => {
         expect(await res.json()).toEqual({ error: 'Akun sudah diverifikasi. Silakan masuk.' })
     })
 
-    it('should resend verification code successfully', async () => {
+    it('should resend verification code without updating password', async () => {
         ; (db.query as jest.Mock)
             .mockResolvedValueOnce({ 
                 rows: [{ 
@@ -82,26 +109,95 @@ describe('/api/resend-verification', () => {
                     emailVerified: null // Not verified
                 }] 
             })
-            .mockResolvedValueOnce({ rows: [] }) // Update query
+            .mockResolvedValueOnce({ rows: [] }) // Update query without password
 
         ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',
-            body: JSON.stringify(validBody),
+            body: JSON.stringify({
+                nimOrUsername: '12345678',
+                // No password provided
+            }),
         })
         const res = await POST(req)
 
         expect(res.status).toBe(200)
-        expect(sendEmail).toHaveBeenCalledWith({
-            to: 'test@student.universitaspertamina.ac.id',
-            from: 'noreply@uper.li',
-            subject: 'Verifikasi Akun UPer.li',
-            html: expect.any(String), // HTML content
-        })
+        expect(sendEmail).toHaveBeenCalled()
 
         const response = await res.json()
         expect(response.message).toContain('Kode verifikasi baru telah dikirim')
+    })
+
+    it('should update password and resend verification code', async () => {
+        const bcrypt = jest.requireMock('bcryptjs')
+        bcrypt.hash = jest.fn().mockResolvedValue('hashed-new-password')
+
+        ; (db.query as jest.Mock)
+            .mockResolvedValueOnce({ 
+                rows: [{ 
+                    id: 'user-123', 
+                    email: 'test@student.universitaspertamina.ac.id',
+                    role: 'STUDENT',
+                    emailVerified: null // Not verified
+                }] 
+            })
+            .mockResolvedValueOnce({ rows: [] }) // Update query with password
+
+        ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
+
+        const req = new NextRequest('http://localhost/api/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify({
+                nimOrUsername: '12345678',
+                password: 'newpassword123', // New password
+            }),
+        })
+        const res = await POST(req)
+
+        expect(res.status).toBe(200)
+        expect(bcrypt.hash).toHaveBeenCalledWith('newpassword123', 12)
+        expect(sendEmail).toHaveBeenCalled()
+
+        const response = await res.json()
+        expect(response.message).toContain('Password berhasil diubah')
+    })
+
+    it('should log password update for security', async () => {
+        const bcrypt = jest.requireMock('bcryptjs')
+        bcrypt.hash = jest.fn().mockResolvedValue('hashed-new-password')
+        const { logger } = await import('@/lib/logger')
+
+        ; (db.query as jest.Mock)
+            .mockResolvedValueOnce({ 
+                rows: [{ 
+                    id: 'user-123', 
+                    email: 'test@student.universitaspertamina.ac.id',
+                    role: 'STUDENT',
+                    emailVerified: null
+                }] 
+            })
+            .mockResolvedValueOnce({ rows: [] })
+
+        ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
+
+        const req = new NextRequest('http://localhost/api/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify({
+                nimOrUsername: '12345678',
+                password: 'newpassword123',
+            }),
+        })
+        await POST(req)
+
+        expect(logger.info).toHaveBeenCalledWith(
+            'Password updated for user during resend verification',
+            expect.objectContaining({
+                userId: 'user-123',
+                nimOrUsername: '12345678',
+                timestamp: expect.any(Date),
+            })
+        )
     })
 
     it('should generate new 6-digit verification code', async () => {

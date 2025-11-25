@@ -36,6 +36,7 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           nimOrUsername,
+          password, // Include password for updating
         }),
       })
 
@@ -49,7 +50,7 @@ export default function RegisterPage() {
       } else {
         setError(data.error || 'Terjadi kesalahan saat mengirim ulang kode verifikasi.')
       }
-    } catch (error) {
+    } catch {
       setError('Terjadi kesalahan saat mengirim ulang kode verifikasi.')
     }
 

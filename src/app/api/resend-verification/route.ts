@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { getVerificationEmailHtml } from '@/lib/email-templates'
 import { db } from '@/lib/db'
@@ -7,10 +8,14 @@ import { logger } from '@/lib/logger'
 
 async function handleResendVerification(request: NextRequest) {
   try {
-    const { nimOrUsername } = await request.json()
+    const { nimOrUsername, password } = await request.json()
 
     if (!nimOrUsername) {
       return NextResponse.json({ error: 'NIM/Username diperlukan.' }, { status: 400 })
+    }
+
+    if (password && password.length < 6) {
+      return NextResponse.json({ error: 'Password minimal 6 karakter.' }, { status: 400 })
     }
 
     // Construct email from username (same logic as register)
@@ -35,13 +40,32 @@ async function handleResendVerification(request: NextRequest) {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
     const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-    // Update user's verification token and expiry
-    await db.query(
-      `UPDATE "User"
-       SET "verificationToken" = $1, "verificationTokenExpires" = $2, "updatedAt" = NOW()
-       WHERE id = $3`,
-      [verificationCode, verificationTokenExpires, user.id]
-    )
+    // Prepare database update query - update password if provided
+    let updateQuery = `UPDATE "User"
+                       SET "verificationToken" = $1, "verificationTokenExpires" = $2, "updatedAt" = NOW()`
+    const queryParams = [verificationCode, verificationTokenExpires]
+
+    if (password) {
+      // Hash password if provided
+      const hashedPassword = await bcrypt.hash(password, 12)
+      updateQuery += `, password = $4`
+      queryParams.push(hashedPassword)
+    }
+
+    updateQuery += ` WHERE id = $3`
+    queryParams.push(user.id)
+
+    // Update user's verification token and expiry (and password if provided)
+    await db.query(updateQuery, queryParams)
+
+    // Log password update for security
+    if (password) {
+      logger.info(`Password updated for user during resend verification`, { 
+        userId: user.id, 
+        nimOrUsername,
+        timestamp: new Date()
+      })
+    }
 
     // Send verification email
     await sendEmail({
@@ -51,7 +75,11 @@ async function handleResendVerification(request: NextRequest) {
       html: getVerificationEmailHtml(verificationCode),
     })
 
-    return NextResponse.json({ message: 'Kode verifikasi baru telah dikirim ke email Anda.' })
+    const message = password 
+      ? 'Password berhasil diubah dan kode verifikasi baru telah dikirim ke email Anda.'
+      : 'Kode verifikasi baru telah dikirim ke email Anda.'
+
+    return NextResponse.json({ message })
   } catch (error) {
     logger.error('Resend verification error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
