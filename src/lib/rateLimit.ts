@@ -33,17 +33,19 @@ export function checkRateLimit(
 }
 
 export function withRateLimit(
-  handler: (req: NextRequest) => Promise<NextResponse> | NextResponse,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handler: (req: NextRequest, ...args: any[]) => Promise<NextResponse> | NextResponse,
   options: { limit?: number; windowMs?: number } = {}
 ) {
   const { limit = 5, windowMs = 15 * 60 * 1000 } = options
 
-  return async (req: NextRequest) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return async (req: NextRequest, ...args: any[]) => {
     // Get client IP
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-               req.headers.get('x-real-ip') ||
-               req.headers.get('cf-connecting-ip') ||
-               'unknown'
+      req.headers.get('x-real-ip') ||
+      req.headers.get('cf-connecting-ip') ||
+      'unknown'
 
     const result = checkRateLimit(ip, limit, windowMs)
 
@@ -66,7 +68,7 @@ export function withRateLimit(
     }
 
     // Add rate limit headers to successful response
-    const response = await handler(req)
+    const response = await handler(req, ...args)
 
     if (response instanceof NextResponse) {
       response.headers.set('X-RateLimit-Remaining', result.remaining!.toString())
