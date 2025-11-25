@@ -18,6 +18,10 @@ jest.mock('@/lib/db', () => ({
     },
 }))
 
+jest.mock('@/lib/rateLimit', () => ({
+    withRateLimit: jest.fn((handler) => handler),
+}))
+
 describe('2FA Full API', () => {
     beforeEach(() => {
         jest.clearAllMocks()

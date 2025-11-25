@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { withRateLimit } from '@/lib/rateLimit'
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-export async function POST(request: NextRequest) {
+async function handleDisable2FA(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
@@ -37,3 +38,5 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ message: '2FA berhasil dinonaktifkan.' })
 }
+
+export const POST = withRateLimit(handleDisable2FA, { limit: 3, windowMs: 60 * 60 * 1000 }) // 3 attempts per hour

@@ -31,7 +31,7 @@ const customJestConfig = {
     '/.next/',
     '/coverage/',
   ],
-  coverageThresholds: {
+  coverageThreshold: {
     global: {
       statements: 50,
       branches: 40,

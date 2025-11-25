@@ -1,6 +1,10 @@
 import NextAuth from 'next-auth'
 import { authOptions } from '@/lib/auth'
 
+import { withRateLimit } from '@/lib/rateLimit'
+
 const handler = NextAuth(authOptions)
 
-export { handler as GET, handler as POST }
+const rateLimitedPost = withRateLimit(handler, { limit: 5, windowMs: 15 * 60 * 1000 }) // 5 attempts per 15 minutes
+
+export { handler as GET, rateLimitedPost as POST }
