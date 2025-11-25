@@ -53,7 +53,7 @@ export function withRateLimit(
       const resetInSeconds = Math.ceil((result.resetTime! - Date.now()) / 1000)
       return NextResponse.json(
         {
-          error: 'Too many requests. Please try again later.',
+          error: 'Terlalu banyak permintaan. Silakan coba lagi nanti.',
           retryAfter: resetInSeconds
         },
         {
