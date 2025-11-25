@@ -15,6 +15,7 @@ export default function RegisterPage() {
   const [turnstileToken, setTurnstileToken] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [resendingVerification, setResendingVerification] = useState(false)
   const router = useRouter()
 
   const emailPreview = role === 'STUDENT'
@@ -22,6 +23,38 @@ export default function RegisterPage() {
     : `${nimOrUsername}@universitaspertamina.ac.id`
 
   const isValidNim = !nimOrUsername || /^[a-zA-Z0-9._-]+$/.test(nimOrUsername)
+
+  const handleResendVerification = async () => {
+    setError('')
+    setResendingVerification(true)
+
+    try {
+      const response = await fetch('/api/resend-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nimOrUsername,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store credentials and redirect to verify page
+        localStorage.setItem('verify_nimOrUsername', nimOrUsername)
+        localStorage.setItem('verify_password', password)
+        router.push('/verify')
+      } else {
+        setError(data.error || 'Terjadi kesalahan saat mengirim ulang kode verifikasi.')
+      }
+    } catch (error) {
+      setError('Terjadi kesalahan saat mengirim ulang kode verifikasi.')
+    }
+
+    setResendingVerification(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,7 +107,12 @@ export default function RegisterPage() {
       localStorage.setItem('verify_password', password)
       router.push('/verify')
     } else {
-      setError(data.error || 'Terjadi kesalahan.')
+      // Check if this is an "email already registered" error
+      if (data.error === 'Email sudah terdaftar.' && nimOrUsername && password) {
+        setError('Email sudah terdaftar. Akun Anda mungkin perlu verifikasi email. Coba kirim ulang kode verifikasi?')
+      } else {
+        setError(data.error || 'Terjadi kesalahan.')
+      }
     }
 
     setLoading(false)
@@ -228,7 +266,19 @@ export default function RegisterPage() {
 
               {error && (
                 <div className="p-3 rounded-lg bg-red-50 border border-red-200">
-                  <p className="text-sm text-red-800">{error}</p>
+                  <div className="flex items-start justify-between">
+                    <p className="text-sm text-red-800">{error}</p>
+                    {error.includes('Email sudah terdaftar') && nimOrUsername && password && (
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        disabled={resendingVerification}
+                        className="ml-3 flex-shrink-0 text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {resendingVerification ? 'Mengirim...' : 'Kirim Ulang'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
