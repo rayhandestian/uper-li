@@ -235,7 +235,7 @@ export default function RegisterPage() {
               <div>
                 <button
                   type="submit"
-                  disabled={loading || !isValidNim}
+                  disabled={loading || !isValidNim || !turnstileToken}
                   className="w-full flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl min-h-[52px]"
                 >
                   {loading ? 'Mendaftarkan...' : 'Daftar'}
