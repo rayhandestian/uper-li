@@ -68,61 +68,72 @@ export default function VerifyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen gradient-bg flex flex-col">
       <main className="flex-grow flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Verifikasi Email
-            </h2>
-            <p className="mt-2 text-center text-sm text-gray-600">
-              Masukkan kode verifikasi yang dikirim ke email Anda
-            </p>
+        <div className="max-w-md w-full">
+          <div className="mb-8">
+            <button 
+              onClick={() => router.push('/register')}
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Kembali ke Pendaftaran
+            </button>
           </div>
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-1">
-                Kode Verifikasi
-              </label>
-              <input
-                id="code"
-                name="code"
-                type="text"
-                required
-                maxLength={6}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm text-center text-2xl tracking-widest"
-                placeholder="000000"
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-              />
+
+          <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Verifikasi Email
+              </h2>
+              <p className="text-base text-gray-600">
+                Masukkan kode verifikasi yang dikirim ke email Anda
+              </p>
             </div>
 
-            {error && (
-              <div className="text-red-600 text-sm text-center">
-                {error}
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div>
+                <label htmlFor="code" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Kode Verifikasi
+                </label>
+                <input
+                  id="code"
+                  name="code"
+                  type="text"
+                  required
+                  maxLength={6}
+                  className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base text-center text-2xl tracking-widest"
+                  placeholder="000000"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                />
               </div>
-            )}
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading || code.length !== 6}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
-                {loading ? 'Memverifikasi...' : 'Verifikasi'}
-              </button>
-            </div>
+              {error && (
+                <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              )}
 
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => router.push('/register')}
-                className="text-blue-600 hover:text-blue-500"
-              >
-                Kembali ke Pendaftaran
-              </button>
-            </div>
-          </form>
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading || code.length !== 6}
+                  className="w-full flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl min-h-[52px]"
+                >
+                  {loading ? 'Memverifikasi...' : 'Verifikasi'}
+                </button>
+              </div>
+
+              <div className="text-center">
+                <a href="https://app.uper.li/login" className="text-blue-600 hover:text-blue-700 font-medium text-sm transition-colors">
+                  Sudah punya akun? Masuk di sini
+                </a>
+              </div>
+            </form>
+          </div>
         </div>
       </main>
       <Footer />
