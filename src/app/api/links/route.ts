@@ -7,6 +7,7 @@ import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import { Prisma } from '@prisma/client'
 import { logger } from '@/lib/logger'
+import { withRateLimit } from '@/lib/rateLimit'
 
 const RESERVED_PATHS = [
   'dashboard',
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
   })
 }
 
-export async function POST(request: NextRequest) {
+async function handleCreateLink(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
   if (!session?.user?.id) {
@@ -228,3 +229,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }
+
+export const POST = withRateLimit(handleCreateLink, { limit: 10, windowMs: 60 * 1000 }) // 10 attempts per minute

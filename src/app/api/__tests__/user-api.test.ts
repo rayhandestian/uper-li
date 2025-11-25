@@ -34,6 +34,10 @@ jest.mock('@/lib/logger', () => ({
     },
 }))
 
+jest.mock('@/lib/rateLimit', () => ({
+    withRateLimit: jest.fn((handler) => handler),
+}))
+
 describe('User API', () => {
     beforeEach(() => {
         jest.clearAllMocks()

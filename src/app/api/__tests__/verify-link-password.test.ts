@@ -17,6 +17,10 @@ jest.mock('bcryptjs', () => ({
     compare: jest.fn(),
 }))
 
+jest.mock('@/lib/rateLimit', () => ({
+    withRateLimit: jest.fn((handler) => handler),
+}))
+
 describe('/api/verify-link-password', () => {
     beforeEach(() => {
         jest.clearAllMocks()

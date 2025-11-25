@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { logger } from '@/lib/logger'
+import { withRateLimit } from '@/lib/rateLimit'
 
-export async function POST(request: NextRequest) {
+async function handleVerifyLinkPassword(request: NextRequest) {
   try {
     const { shortUrl, password } = await request.json()
 
@@ -38,3 +39,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
   }
 }
+
+export const POST = withRateLimit(handleVerifyLinkPassword, { limit: 5, windowMs: 10 * 60 * 1000 }) // 5 attempts per 10 minutes

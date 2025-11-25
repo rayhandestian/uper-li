@@ -7,7 +7,9 @@ import { sendEmail } from '@/lib/email'
 import { getPasswordChangedEmailHtml } from '@/lib/email-templates'
 import { logger } from '@/lib/logger'
 
-export async function POST(req: Request) {
+import { withRateLimit } from '@/lib/rateLimit'
+
+async function handleChangePassword(req: Request) {
     try {
         const session = await getServerSession(authOptions)
 
@@ -84,3 +86,5 @@ export async function POST(req: Request) {
         )
     }
 }
+
+export const POST = withRateLimit(handleChangePassword, { limit: 3, windowMs: 60 * 60 * 1000 }) // 3 attempts per hour

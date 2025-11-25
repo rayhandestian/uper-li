@@ -34,6 +34,10 @@ jest.mock('@/lib/safeBrowsing', () => ({
     checkUrlSafety: jest.fn(),
 }))
 
+jest.mock('@/lib/rateLimit', () => ({
+    withRateLimit: jest.fn((handler) => handler),
+}))
+
 // Import getServerSession after mocking
 import { getServerSession } from 'next-auth'
 
