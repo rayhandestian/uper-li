@@ -45,4 +45,4 @@ async function handleUpdateProfile(request: NextRequest) {
   return NextResponse.json({ message: 'Profil berhasil diperbarui.' })
 }
 
-export const PATCH = withRateLimit(handleUpdateProfile, { limit: 5, windowMs: 60 * 60 * 1000 }) // 5 attempts per hour
+export const PATCH = withRateLimit(handleUpdateProfile, { limit: 6, windowMs: 60 * 60 * 1000 }) // 6 attempts per hour

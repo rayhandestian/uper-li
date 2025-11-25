@@ -21,6 +21,8 @@ export default function RegisterPage() {
     ? `${nimOrUsername}@student.universitaspertamina.ac.id`
     : `${nimOrUsername}@universitaspertamina.ac.id`
 
+  const isValidNim = !nimOrUsername || /^[a-zA-Z0-9._-]+$/.test(nimOrUsername)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -145,12 +147,17 @@ export default function RegisterPage() {
                   name="nimOrUsername"
                   type="text"
                   required
-                  className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+                  className={`appearance-none rounded-xl block w-full px-4 py-3 border ${!isValidNim ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-base`}
                   placeholder={role === 'STUDENT' ? '123456789' : 'john.doe'}
                   value={nimOrUsername}
                   onChange={(e) => setNimOrUsername(e.target.value)}
                 />
-                {nimOrUsername && (
+                {!isValidNim && (
+                  <p className="mt-1 text-sm text-red-600">
+                    Hanya huruf, angka, titik (.), garis bawah (_), dan minus (-) yang diperbolehkan
+                  </p>
+                )}
+                {nimOrUsername && isValidNim && (
                   <p className="mt-2 text-sm text-gray-600">
                     Email: <span className="font-medium">{emailPreview}</span>
                   </p>
@@ -228,7 +235,7 @@ export default function RegisterPage() {
               <div>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !isValidNim}
                   className="w-full flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl min-h-[52px]"
                 >
                   {loading ? 'Mendaftarkan...' : 'Daftar'}

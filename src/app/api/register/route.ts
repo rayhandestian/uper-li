@@ -87,4 +87,4 @@ async function handleRegistration(request: NextRequest) {
   }
 }
 
-export const POST = withRateLimit(handleRegistration, { limit: 3, windowMs: 30 * 60 * 1000 }) // 3 attempts per 30 minutes
+export const POST = withRateLimit(handleRegistration, { limit: 5, windowMs: 30 * 60 * 1000 }) // 5 attempts per 30 minutes

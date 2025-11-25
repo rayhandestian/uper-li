@@ -73,4 +73,4 @@ async function handleForgotPassword(request: NextRequest) {
     }
 }
 
-export const POST = withRateLimit(handleForgotPassword, { limit: 3, windowMs: 15 * 60 * 1000 }) // 3 attempts per 15 minutes
+export const POST = withRateLimit(handleForgotPassword, { limit: 5, windowMs: 15 * 60 * 1000 }) // 5 attempts per 15 minutes
