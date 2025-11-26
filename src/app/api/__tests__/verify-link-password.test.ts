@@ -3,13 +3,15 @@
  */
 import { POST } from '../verify-link-password/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 // Mock dependencies
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        link: {
+            findUnique: jest.fn(),
+        },
     },
 }))
 
@@ -37,7 +39,7 @@ describe('/api/verify-link-password', () => {
     })
 
     it('should return 404 if link not found', async () => {
-        ; (db.query as jest.Mock).mockResolvedValue({ rows: [] })
+        ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null)
 
         const req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
@@ -50,8 +52,8 @@ describe('/api/verify-link-password', () => {
     })
 
     it('should return 400 if link has no password', async () => {
-        ; (db.query as jest.Mock).mockResolvedValue({
-            rows: [{ shortUrl: 'test', password: null }]
+        ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
+            shortUrl: 'test', password: null
         })
 
         const req = new NextRequest('http://localhost/api/verify-link-password', {
@@ -65,8 +67,8 @@ describe('/api/verify-link-password', () => {
     })
 
     it('should return 401 if password is incorrect', async () => {
-        ; (db.query as jest.Mock).mockResolvedValue({
-            rows: [{ shortUrl: 'test', password: 'hashed_password' }]
+        ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
+            shortUrl: 'test', password: 'hashed_password'
         })
             ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
@@ -81,8 +83,8 @@ describe('/api/verify-link-password', () => {
     })
 
     it('should return success if password is correct', async () => {
-        ; (db.query as jest.Mock).mockResolvedValue({
-            rows: [{ shortUrl: 'test', password: 'hashed_password' }]
+        ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
+            shortUrl: 'test', password: 'hashed_password'
         })
             ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
 

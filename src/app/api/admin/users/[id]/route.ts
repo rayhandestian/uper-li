@@ -37,23 +37,31 @@ export async function PATCH(
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
   }
 
-  // Update user using Prisma
-  const user = await prisma.user.update({
-    where: { id },
-    data: updateData,
-    select: {
-      id: true,
-      email: true,
-      nimOrUsername: true,
-      role: true,
-      emailVerified: true,
-      twoFactorEnabled: true,
-      monthlyLinksCreated: true,
-      totalLinks: true,
-      createdAt: true,
-      active: true
-    }
-  })
+  try {
+    // Update user using Prisma
+    const user = await prisma.user.update({
+      where: { id },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        nimOrUsername: true,
+        role: true,
+        emailVerified: true,
+        twoFactorEnabled: true,
+        monthlyLinksCreated: true,
+        totalLinks: true,
+        createdAt: true,
+        active: true
+      }
+    })
 
-  return NextResponse.json(user)
+    return NextResponse.json(user)
+  } catch (error) {
+    // Prisma error code for record not found
+    if ((error as { code?: string }).code === 'P2025') {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+    throw error
+  }
 }

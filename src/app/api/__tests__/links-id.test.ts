@@ -3,8 +3,9 @@
  */
 import { PATCH, DELETE } from '../links/[id]/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { getServerSession } from 'next-auth'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -15,18 +16,23 @@ jest.mock('@/lib/auth', () => ({
     authOptions: {},
 }))
 
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
-        getClient: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        link: {
+            findFirst: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+        },
+        user: {
+            update: jest.fn(),
+        },
+        $transaction: jest.fn((callback) => callback(prisma)),
     },
 }))
 
 jest.mock('bcryptjs', () => ({
     hash: jest.fn(),
 }))
-
-import { getServerSession } from 'next-auth'
 
 describe('/api/links/[id]', () => {
     const mockSession = {
@@ -41,7 +47,7 @@ describe('/api/links/[id]', () => {
         shortUrl: 'abc123',
         longUrl: 'http://example.com',
         customChanges: 0,
-        createdAt: new Date().toISOString(),
+        createdAt: new Date(),
     }
 
     beforeEach(() => {
@@ -62,7 +68,7 @@ describe('/api/links/[id]', () => {
         })
 
         it('should return 404 if link not found', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue({ rows: [] })
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(null)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
@@ -73,9 +79,8 @@ describe('/api/links/[id]', () => {
         })
 
         it('should update link active status', async () => {
-            ; (db.query as jest.Mock)
-                .mockResolvedValueOnce({ rows: [mockLink] }) // GET
-                .mockResolvedValueOnce({ rows: [{ ...mockLink, active: false }] }) // UPDATE
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
+                ; (prisma.link.update as jest.Mock).mockResolvedValue({ ...mockLink, active: false })
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
@@ -84,17 +89,16 @@ describe('/api/links/[id]', () => {
             const res = await PATCH(req, { params: Promise.resolve({ id: 'link-123' }) })
 
             expect(res.status).toBe(200)
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('UPDATE "Link"'),
-                expect.any(Array)
-            )
+            expect(prisma.link.update).toHaveBeenCalledWith({
+                where: { id: 'link-123' },
+                data: expect.objectContaining({ active: false })
+            })
         })
 
         it('should update link password', async () => {
-            ; (db.query as jest.Mock)
-                .mockResolvedValueOnce({ rows: [mockLink] })
-                .mockResolvedValueOnce({ rows: [mockLink] })
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
                 ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
+                ; (prisma.link.update as jest.Mock).mockResolvedValue(mockLink)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
@@ -107,9 +111,8 @@ describe('/api/links/[id]', () => {
         })
 
         it('should remove link password when empty string', async () => {
-            ; (db.query as jest.Mock)
-                .mockResolvedValueOnce({ rows: [mockLink] })
-                .mockResolvedValueOnce({ rows: [mockLink] })
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
+                ; (prisma.link.update as jest.Mock).mockResolvedValue(mockLink)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
@@ -118,10 +121,14 @@ describe('/api/links/[id]', () => {
             const res = await PATCH(req, { params: Promise.resolve({ id: 'link-123' }) })
 
             expect(res.status).toBe(200)
+            expect(prisma.link.update).toHaveBeenCalledWith({
+                where: { id: 'link-123' },
+                data: expect.objectContaining({ password: null })
+            })
         })
 
         it('should return 400 if password too short', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue({ rows: [mockLink] })
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
@@ -134,7 +141,7 @@ describe('/api/links/[id]', () => {
         })
 
         it('should validate custom URL', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue({ rows: [mockLink] })
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
@@ -147,7 +154,7 @@ describe('/api/links/[id]', () => {
         })
 
         it('should check for reserved paths', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue({ rows: [mockLink] })
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
@@ -160,7 +167,7 @@ describe('/api/links/[id]', () => {
         })
 
         it('should return 400 if no updates provided', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue({ rows: [mockLink] })
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
@@ -185,7 +192,7 @@ describe('/api/links/[id]', () => {
         })
 
         it('should return 404 if link not found', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue({ rows: [] })
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(null)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'DELETE',
@@ -195,21 +202,9 @@ describe('/api/links/[id]', () => {
         })
 
         it('should delete link successfully', async () => {
-            const mockClient = {
-                query: jest.fn(),
-                release: jest.fn(),
-            }
-                ; (db.getClient as jest.Mock).mockResolvedValue(mockClient)
-
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce({ rows: [mockLink] }) // GET
-
-            // Mock client queries
-            mockClient.query
-                .mockResolvedValueOnce({}) // BEGIN
-                .mockResolvedValueOnce({}) // DELETE
-                .mockResolvedValueOnce({}) // UPDATE User
-                .mockResolvedValueOnce({}) // COMMIT
+            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
+                ; (prisma.link.delete as jest.Mock).mockResolvedValue(mockLink)
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'DELETE',
@@ -217,17 +212,13 @@ describe('/api/links/[id]', () => {
             const res = await DELETE(req, { params: Promise.resolve({ id: 'link-123' }) })
 
             expect(res.status).toBe(200)
-            expect(mockClient.query).toHaveBeenCalledWith('BEGIN')
-            expect(mockClient.query).toHaveBeenCalledWith(
-                'DELETE FROM "Link" WHERE id = $1',
-                ['link-123']
-            )
-            expect(mockClient.query).toHaveBeenCalledWith(
-                expect.stringContaining('UPDATE "User"'),
-                expect.any(Array)
-            )
-            expect(mockClient.query).toHaveBeenCalledWith('COMMIT')
-            expect(mockClient.release).toHaveBeenCalled()
+            expect(prisma.link.delete).toHaveBeenCalledWith({
+                where: { id: 'link-123' }
+            })
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { id: 'user-123' },
+                data: expect.any(Object)
+            })
             expect(await res.json()).toEqual({ message: 'Link berhasil dihapus.' })
         })
     })

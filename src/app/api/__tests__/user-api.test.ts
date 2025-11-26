@@ -4,7 +4,7 @@
 import { GET as GET_PROFILE, PATCH as PATCH_PROFILE } from '../user/profile/route'
 import { POST as CHANGE_PASSWORD } from '../user/change-password/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'
 
@@ -13,9 +13,12 @@ jest.mock('next-auth', () => ({
     getServerSession: jest.fn(),
 }))
 
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            findUnique: jest.fn(),
+            update: jest.fn(),
+        },
     },
 }))
 
@@ -46,8 +49,8 @@ describe('User API', () => {
     describe('GET /api/user/profile', () => {
         it('should return user profile', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
-                ; (db.query as jest.Mock).mockResolvedValue({
-                    rows: [{ id: 'user-1', email: 'test@example.com' }]
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                    id: 'user-1', email: 'test@example.com'
                 })
 
             const req = new NextRequest('http://localhost/api/user/profile')
@@ -68,7 +71,7 @@ describe('User API', () => {
 
         it('should return 404 if user not found', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
-                ; (db.query as jest.Mock).mockResolvedValue({ rows: [] })
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
 
             const req = new NextRequest('http://localhost/api/user/profile')
             const res = await GET_PROFILE(req)
@@ -80,7 +83,7 @@ describe('User API', () => {
     describe('PATCH /api/user/profile', () => {
         it('should update user profile', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
-                ; (db.query as jest.Mock).mockResolvedValue({ rowCount: 1 })
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
 
             const req = new NextRequest('http://localhost/api/user/profile', {
                 method: 'PATCH',
@@ -89,21 +92,24 @@ describe('User API', () => {
             const res = await PATCH_PROFILE(req)
 
             expect(res.status).toBe(200)
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('UPDATE "User"'),
-                ['New Name', 'user-1']
-            )
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { id: 'user-1' },
+                data: expect.objectContaining({
+                    name: 'New Name',
+                    updatedAt: expect.any(Date)
+                })
+            })
         })
     })
 
     describe('POST /api/user/change-password', () => {
         it('should change password successfully', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { email: 'test@example.com' } })
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'test@example.com', password: 'hashed-old' }] }) // Get user
-                    .mockResolvedValueOnce({ rowCount: 1 }); // Update password
+                ; (prisma.user.findUnique as jest.Mock)
+                    .mockResolvedValue({ id: 'user-1', email: 'test@example.com', password: 'hashed-old' })
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
 
-            (bcrypt.compare as jest.Mock).mockResolvedValue(true)
+                ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
                 ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-new')
 
             const req = new NextRequest('http://localhost/api/user/change-password', {
@@ -113,15 +119,18 @@ describe('User API', () => {
             const res = await CHANGE_PASSWORD(req)
 
             expect(res.status).toBe(200)
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('UPDATE "User"'),
-                ['hashed-new', 'user-1']
-            )
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { id: 'user-1' },
+                data: expect.objectContaining({
+                    password: 'hashed-new',
+                    updatedAt: expect.any(Date)
+                })
+            })
         })
 
         it('should reject incorrect current password', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { email: 'test@example.com' } })
-                ; (db.query as jest.Mock).mockResolvedValue({ rows: [{ id: 'user-1', password: 'hashed-old' }] });
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-1', password: 'hashed-old' });
             (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = new NextRequest('http://localhost/api/user/change-password', {

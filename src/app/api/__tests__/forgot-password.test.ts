@@ -3,13 +3,16 @@
  */
 import { POST } from '../forgot-password/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 
 // Mock dependencies
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            findUnique: jest.fn(),
+            update: jest.fn(),
+        },
     },
 }))
 
@@ -23,8 +26,6 @@ jest.mock('@/lib/logger', () => ({
     },
 }))
 
-
-
 global.fetch = jest.fn()
 
 describe('Forgot Password API', () => {
@@ -36,9 +37,13 @@ describe('Forgot Password API', () => {
     })
 
     it('should send reset email for valid user', async () => {
-        (db.query as jest.Mock)
-            .mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'test@example.com', nimOrUsername: 'testuser', emailVerified: new Date() }] }) // Find user (verified)
-            .mockResolvedValueOnce({ rowCount: 1 }) // Insert code
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            id: 'user-1',
+            email: 'test@example.com',
+            nimOrUsername: 'testuser',
+            emailVerified: new Date()
+        })
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
 
         const req = new NextRequest('http://localhost/api/forgot-password', {
             method: 'POST',
@@ -55,7 +60,7 @@ describe('Forgot Password API', () => {
     })
 
     it('should return 200 even if user not found (security)', async () => {
-        (db.query as jest.Mock).mockResolvedValueOnce({ rows: [] }) // User not found
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
 
         const req = new NextRequest('http://localhost/api/forgot-password', {
             method: 'POST',
@@ -85,9 +90,12 @@ describe('Forgot Password API', () => {
     })
 
     it('should return success but not send email for unverified user (security)', async () => {
-        (db.query as jest.Mock)
-            .mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'test@example.com', nimOrUsername: 'testuser', emailVerified: null }] }) // Find user (unverified)
-            // No second mock call because we don't want to update the token for unverified users
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            id: 'user-1',
+            email: 'test@example.com',
+            nimOrUsername: 'testuser',
+            emailVerified: null
+        })
 
         const req = new NextRequest('http://localhost/api/forgot-password', {
             method: 'POST',

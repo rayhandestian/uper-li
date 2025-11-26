@@ -5,13 +5,11 @@ import { GET as usersGET } from '../admin/users/route'
 import { PATCH as usersPATCH } from '../admin/users/[id]/route'
 import { GET as linksGET } from '../admin/links/route'
 import { POST as verifyPasswordPOST } from '../verify-link-password/route'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import {
     createMockRequest,
     createMockParams,
-    mockDbSuccess,
-    mockDbEmpty,
 } from '@/__tests__/test-utils'
 
 // Mock dependencies
@@ -19,9 +17,18 @@ jest.mock('next/headers', () => ({
     cookies: jest.fn(),
 }))
 
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            count: jest.fn(),
+            findMany: jest.fn(),
+            update: jest.fn(),
+        },
+        link: {
+            count: jest.fn(),
+            findMany: jest.fn(),
+            findUnique: jest.fn(),
+        },
     },
 }))
 
@@ -71,24 +78,21 @@ describe('Admin & Additional Endpoints', () => {
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             })
                 ; (verifyAdminToken as jest.Mock).mockReturnValue(true)
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce(mockDbSuccess([{ total: '50' }])) // COUNT
-                    .mockResolvedValueOnce(
-                        mockDbSuccess([
-                            {
-                                id: 'user-1',
-                                email: 'user1@example.com',
-                                nimOrUsername: 'user1',
-                                role: 'USER',
-                            },
-                            {
-                                id: 'user-2',
-                                email: 'user2@example.com',
-                                nimOrUsername: 'user2',
-                                role: 'USER',
-                            },
-                        ])
-                    )
+                ; (prisma.user.count as jest.Mock).mockResolvedValue(50)
+                ; (prisma.user.findMany as jest.Mock).mockResolvedValue([
+                    {
+                        id: 'user-1',
+                        email: 'user1@example.com',
+                        nimOrUsername: 'user1',
+                        role: 'USER',
+                    },
+                    {
+                        id: 'user-2',
+                        email: 'user2@example.com',
+                        nimOrUsername: 'user2',
+                        role: 'USER',
+                    },
+                ])
 
             const req = createMockRequest('http://localhost/api/admin/users')
             const res = await usersGET(req)
@@ -105,16 +109,20 @@ describe('Admin & Additional Endpoints', () => {
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             })
                 ; (verifyAdminToken as jest.Mock).mockReturnValue(true)
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce(mockDbSuccess([{ total: '1' }]))
-                    .mockResolvedValueOnce(mockDbSuccess([{ id: 'user-1', nimOrUsername: 'testuser' }]))
+                ; (prisma.user.count as jest.Mock).mockResolvedValue(1)
+                ; (prisma.user.findMany as jest.Mock).mockResolvedValue([{ id: 'user-1', nimOrUsername: 'testuser' }])
 
             const req = createMockRequest('http://localhost/api/admin/users?search=testuser')
             await usersGET(req)
 
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('ILIKE'),
-                expect.arrayContaining(['%testuser%'])
+            expect(prisma.user.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        OR: expect.arrayContaining([
+                            expect.objectContaining({ nimOrUsername: expect.objectContaining({ contains: 'testuser' }) })
+                        ])
+                    })
+                })
             )
         })
 
@@ -123,16 +131,18 @@ describe('Admin & Additional Endpoints', () => {
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             })
                 ; (verifyAdminToken as jest.Mock).mockReturnValue(true)
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce(mockDbSuccess([{ total: '5' }]))
-                    .mockResolvedValueOnce(mockDbSuccess([]))
+                ; (prisma.user.count as jest.Mock).mockResolvedValue(5)
+                ; (prisma.user.findMany as jest.Mock).mockResolvedValue([])
 
             const req = createMockRequest('http://localhost/api/admin/users?role=ADMIN')
             await usersGET(req)
 
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('role ='),
-                expect.arrayContaining(['ADMIN'])
+            expect(prisma.user.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        role: 'ADMIN'
+                    })
+                })
             )
         })
     })
@@ -173,7 +183,7 @@ describe('Admin & Additional Endpoints', () => {
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             })
                 ; (verifyAdminToken as jest.Mock).mockReturnValue(true)
-                ; (db.query as jest.Mock).mockResolvedValue(mockDbEmpty())
+                ; (prisma.user.update as jest.Mock).mockRejectedValue({ code: 'P2025' }) // Prisma error for record not found
 
             const req = createMockRequest('http://localhost/api/admin/users/user-123', {
                 method: 'PATCH',
@@ -189,9 +199,7 @@ describe('Admin & Additional Endpoints', () => {
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             })
                 ; (verifyAdminToken as jest.Mock).mockReturnValue(true)
-                ; (db.query as jest.Mock).mockResolvedValue(
-                    mockDbSuccess([{ id: 'user-123', active: false }])
-                )
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123', active: false })
 
             const req = createMockRequest('http://localhost/api/admin/users/user-123', {
                 method: 'PATCH',
@@ -200,10 +208,14 @@ describe('Admin & Additional Endpoints', () => {
             const res = await usersPATCH(req, { params: createMockParams({ id: 'user-123' }) })
 
             expect(res.status).toBe(200)
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('UPDATE'),
-                expect.arrayContaining([false, 'user-123'])
-            )
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { id: 'user-123' },
+                data: expect.objectContaining({
+                    active: false,
+                    updatedAt: expect.any(Date)
+                }),
+                select: expect.any(Object)
+            })
         })
 
         it('should update user role', async () => {
@@ -211,9 +223,7 @@ describe('Admin & Additional Endpoints', () => {
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             })
                 ; (verifyAdminToken as jest.Mock).mockReturnValue(true)
-                ; (db.query as jest.Mock).mockResolvedValue(
-                    mockDbSuccess([{ id: 'user-123', role: 'ADMIN' }])
-                )
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123', role: 'ADMIN' })
 
             const req = createMockRequest('http://localhost/api/admin/users/user-123', {
                 method: 'PATCH',
@@ -242,19 +252,18 @@ describe('Admin & Additional Endpoints', () => {
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             })
                 ; (verifyAdminToken as jest.Mock).mockReturnValue(true)
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce(mockDbSuccess([{ total: '100' }]))
-                    .mockResolvedValueOnce(
-                        mockDbSuccess([
-                            {
-                                id: 'link-1',
-                                shortUrl: 'abc123',
-                                longUrl: 'http://example.com',
-                                nimOrUsername: 'user1',
-                                email: 'user1@example.com',
-                            },
-                        ])
-                    )
+                ; (prisma.link.count as jest.Mock).mockResolvedValue(100)
+                ; (prisma.link.findMany as jest.Mock).mockResolvedValue([
+                    {
+                        id: 'link-1',
+                        shortUrl: 'abc123',
+                        longUrl: 'http://example.com',
+                        user: {
+                            nimOrUsername: 'user1',
+                            email: 'user1@example.com',
+                        }
+                    },
+                ])
 
             const req = createMockRequest('http://localhost/api/admin/links')
             const res = await linksGET(req)
@@ -271,16 +280,18 @@ describe('Admin & Additional Endpoints', () => {
                 get: jest.fn().mockReturnValue({ value: 'valid-token' }),
             })
                 ; (verifyAdminToken as jest.Mock).mockReturnValue(true)
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce(mockDbSuccess([{ total: '10' }]))
-                    .mockResolvedValueOnce(mockDbSuccess([]))
+                ; (prisma.link.count as jest.Mock).mockResolvedValue(10)
+                ; (prisma.link.findMany as jest.Mock).mockResolvedValue([])
 
             const req = createMockRequest('http://localhost/api/admin/links?active=true')
             await linksGET(req)
 
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('l.active ='),
-                expect.arrayContaining([true])
+            expect(prisma.link.findMany).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    where: expect.objectContaining({
+                        active: true
+                    })
+                })
             )
         })
     })
@@ -297,7 +308,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should return 404 if link not found', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue(mockDbEmpty())
+            ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
                 method: 'POST',
@@ -309,9 +320,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should return 400 if link has no password', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue(
-                mockDbSuccess([{ shortUrl: 'abc123', password: null }])
-            )
+            ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({ shortUrl: 'abc123', password: null })
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
                 method: 'POST',
@@ -324,9 +333,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should return 401 if password incorrect', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue(
-                mockDbSuccess([{ shortUrl: 'abc123', password: 'hashed-password' }])
-            )
+            ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({ shortUrl: 'abc123', password: 'hashed-password' })
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
@@ -339,9 +346,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should return success if password correct', async () => {
-            ; (db.query as jest.Mock).mockResolvedValue(
-                mockDbSuccess([{ shortUrl: 'abc123', password: 'hashed-password' }])
-            )
+            ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({ shortUrl: 'abc123', password: 'hashed-password' })
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {

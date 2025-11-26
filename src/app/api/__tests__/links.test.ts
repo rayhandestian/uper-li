@@ -17,16 +17,17 @@ jest.mock('@/lib/auth', () => ({
 
 jest.mock('@/lib/prisma', () => ({
     prisma: {
-        $queryRawUnsafe: jest.fn(),
-        $transaction: jest.fn((callback) => callback(prisma)),
+        link: {
+            count: jest.fn(),
+            findMany: jest.fn(),
+            findUnique: jest.fn(),
+            create: jest.fn(),
+        },
         user: {
             findUnique: jest.fn(),
             update: jest.fn(),
         },
-        link: {
-            findUnique: jest.fn(),
-            create: jest.fn(),
-        },
+        $transaction: jest.fn((callback) => callback(prisma)),
     },
 }))
 
@@ -64,11 +65,9 @@ describe('/api/links', () => {
 
         it('should fetch links with pagination', async () => {
             const mockLinks = [{ id: 'link-1', shortUrl: 'abc', longUrl: 'http://example.com' }]
-            const mockCount = [{ total: 10n }] // BigInt for count
 
-                ; (prisma.$queryRawUnsafe as jest.Mock)
-                    .mockResolvedValueOnce(mockCount) // First call for count
-                    .mockResolvedValueOnce(mockLinks) // Second call for data
+                ; (prisma.link.count as jest.Mock).mockResolvedValue(10)
+                ; (prisma.link.findMany as jest.Mock).mockResolvedValue(mockLinks)
 
             const req = new NextRequest('http://localhost/api/links?page=1&limit=10')
             const res = await GET(req)
@@ -77,6 +76,11 @@ describe('/api/links', () => {
             expect(res.status).toBe(200)
             expect(data.links).toEqual(mockLinks)
             expect(data.pagination.total).toBe(10)
+            expect(prisma.link.findMany).toHaveBeenCalledWith(expect.objectContaining({
+                take: 10,
+                skip: 0,
+                orderBy: { createdAt: 'desc' }
+            }))
         })
     })
 
@@ -131,6 +135,7 @@ describe('/api/links', () => {
                     ...validBody,
                     shortUrl: 'random',
                 })
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
             const req = new NextRequest('http://localhost/api/links', {
                 method: 'POST',
@@ -219,6 +224,7 @@ describe('/api/links', () => {
                     shortUrl: 'custom123',
                     longUrl: 'http://example.com',
                 })
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
             const req = new NextRequest('http://localhost/api/links', {
                 method: 'POST',
@@ -316,6 +322,7 @@ describe('/api/links', () => {
                     shortUrl: 'abc123',
                     longUrl: 'http://example.com',
                 })
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
             const req = new NextRequest('http://localhost/api/links', {
                 method: 'POST',

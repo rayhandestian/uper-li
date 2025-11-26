@@ -3,13 +3,16 @@
  */
 import { POST } from '../resend-verification/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 
 // Mock dependencies
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            findUnique: jest.fn(),
+            update: jest.fn(),
+        },
     },
 }))
 
@@ -69,7 +72,7 @@ describe('/api/resend-verification', () => {
     })
 
     it('should return 404 if user not found', async () => {
-        ; (db.query as jest.Mock).mockResolvedValue({ rows: [] })
+        ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',
@@ -81,13 +84,11 @@ describe('/api/resend-verification', () => {
     })
 
     it('should return 400 if user already verified', async () => {
-        ; (db.query as jest.Mock).mockResolvedValueOnce({ 
-            rows: [{ 
-                id: 'user-123', 
-                email: 'test@student.universitaspertamina.ac.id',
-                role: 'STUDENT',
-                emailVerified: new Date() // Already verified
-            }] 
+        ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            id: 'user-123',
+            email: 'test@student.universitaspertamina.ac.id',
+            role: 'STUDENT',
+            emailVerified: new Date() // Already verified
         })
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
@@ -100,18 +101,15 @@ describe('/api/resend-verification', () => {
     })
 
     it('should resend verification code without updating password', async () => {
-        ; (db.query as jest.Mock)
-            .mockResolvedValueOnce({ 
-                rows: [{ 
-                    id: 'user-123', 
-                    email: 'test@student.universitaspertamina.ac.id',
-                    role: 'STUDENT',
-                    emailVerified: null // Not verified
-                }] 
-            })
-            .mockResolvedValueOnce({ rows: [] }) // Update query without password
+        ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            id: 'user-123',
+            email: 'test@student.universitaspertamina.ac.id',
+            role: 'STUDENT',
+            emailVerified: null // Not verified
+        })
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
-        ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
+            ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',
@@ -133,18 +131,15 @@ describe('/api/resend-verification', () => {
         const bcrypt = jest.requireMock('bcryptjs')
         bcrypt.hash = jest.fn().mockResolvedValue('hashed-new-password')
 
-        ; (db.query as jest.Mock)
-            .mockResolvedValueOnce({ 
-                rows: [{ 
-                    id: 'user-123', 
-                    email: 'test@student.universitaspertamina.ac.id',
-                    role: 'STUDENT',
-                    emailVerified: null // Not verified
-                }] 
+            ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                id: 'user-123',
+                email: 'test@student.universitaspertamina.ac.id',
+                role: 'STUDENT',
+                emailVerified: null // Not verified
             })
-            .mockResolvedValueOnce({ rows: [] }) // Update query with password
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
-        ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
+            ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',
@@ -168,18 +163,15 @@ describe('/api/resend-verification', () => {
         bcrypt.hash = jest.fn().mockResolvedValue('hashed-new-password')
         const { logger } = await import('@/lib/logger')
 
-        ; (db.query as jest.Mock)
-            .mockResolvedValueOnce({ 
-                rows: [{ 
-                    id: 'user-123', 
-                    email: 'test@student.universitaspertamina.ac.id',
-                    role: 'STUDENT',
-                    emailVerified: null
-                }] 
+            ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                id: 'user-123',
+                email: 'test@student.universitaspertamina.ac.id',
+                role: 'STUDENT',
+                emailVerified: null
             })
-            .mockResolvedValueOnce({ rows: [] })
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
-        ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
+            ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',
@@ -201,18 +193,15 @@ describe('/api/resend-verification', () => {
     })
 
     it('should generate new 6-digit verification code', async () => {
-        ; (db.query as jest.Mock)
-            .mockResolvedValueOnce({ 
-                rows: [{ 
-                    id: 'user-123', 
-                    email: 'test@student.universitaspertamina.ac.id',
-                    role: 'STUDENT',
-                    emailVerified: null
-                }] 
-            })
-            .mockResolvedValueOnce({ rows: [] })
+        ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            id: 'user-123',
+            email: 'test@student.universitaspertamina.ac.id',
+            role: 'STUDENT',
+            emailVerified: null
+        })
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
-        ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
+            ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',
@@ -220,31 +209,26 @@ describe('/api/resend-verification', () => {
         })
         await POST(req)
 
-        // Check that UPDATE query includes new verification code (6 digits)
-        const updateCall = (db.query as jest.Mock).mock.calls.find(
-            call => call[0].includes('UPDATE "User"')
-        )
+        // Check that update was called with verification code (6 digits)
+        const updateCall = (prisma.user.update as jest.Mock).mock.calls[0]
         expect(updateCall).toBeDefined()
-        const verificationCode = updateCall[1][0] // 1st parameter
-        expect(verificationCode).toMatch(/^\d{6}$/)
+        const verificationToken = updateCall[0].data.verificationToken
+        expect(verificationToken).toMatch(/^\d{6}$/)
     })
 
     it('should update verification token with 10-minute expiry', async () => {
         const now = Date.now()
         jest.spyOn(Date, 'now').mockReturnValue(now)
 
-        ; (db.query as jest.Mock)
-            .mockResolvedValueOnce({ 
-                rows: [{ 
-                    id: 'user-123', 
-                    email: 'test@student.universitaspertamina.ac.id',
-                    role: 'STUDENT',
-                    emailVerified: null
-                }] 
+            ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+                id: 'user-123',
+                email: 'test@student.universitaspertamina.ac.id',
+                role: 'STUDENT',
+                emailVerified: null
             })
-            .mockResolvedValueOnce({ rows: [] })
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
-        ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
+            ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',
@@ -252,19 +236,17 @@ describe('/api/resend-verification', () => {
         })
         await POST(req)
 
-        // Check that UPDATE query includes correct expiry time (10 minutes from now)
-        const updateCall = (db.query as jest.Mock).mock.calls.find(
-            call => call[0].includes('UPDATE "User"')
-        )
+        // Check that update includes correct expiry time (10 minutes from now)
+        const updateCall = (prisma.user.update as jest.Mock).mock.calls[0]
         expect(updateCall).toBeDefined()
-        const expiryTime = updateCall[1][1] // 2nd parameter
+        const expiryTime = updateCall[0].data.verificationTokenExpires
         expect(expiryTime).toEqual(new Date(now + 10 * 60 * 1000))
-        
+
         jest.restoreAllMocks()
     })
 
     it('should handle server errors gracefully', async () => {
-        ; (db.query as jest.Mock).mockRejectedValue(new Error('Database error'))
+        ; (prisma.user.findUnique as jest.Mock).mockRejectedValue(new Error('Database error'))
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',

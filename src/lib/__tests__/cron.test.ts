@@ -10,7 +10,7 @@ import {
     initializeCronJobs
 } from '../cron'
 import cron from 'node-cron'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 
@@ -19,9 +19,16 @@ jest.mock('node-cron', () => ({
     schedule: jest.fn(),
 }))
 
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            updateMany: jest.fn(),
+        },
+        link: {
+            updateMany: jest.fn(),
+            deleteMany: jest.fn(),
+            findMany: jest.fn(),
+        },
     },
 }))
 
@@ -51,18 +58,20 @@ describe('cron', () => {
 
     describe('manualMonthlyReset', () => {
         it('should reset limits successfully', async () => {
-            (db.query as jest.Mock).mockResolvedValue({ rowCount: 5 })
+            (prisma.user.updateMany as jest.Mock).mockResolvedValue({ count: 5 })
+                ; (prisma.link.updateMany as jest.Mock).mockResolvedValue({ count: 3 })
 
             const result = await manualMonthlyReset()
 
             expect(result.success).toBe(true)
             expect(result.usersUpdated).toBe(5)
-            expect(db.query).toHaveBeenCalled()
+            expect(prisma.user.updateMany).toHaveBeenCalled()
+            expect(prisma.link.updateMany).toHaveBeenCalled()
         })
 
         it('should handle errors', async () => {
             const error = new Error('DB Error')
-                ; (db.query as jest.Mock).mockRejectedValue(error)
+                ; (prisma.user.updateMany as jest.Mock).mockRejectedValue(error)
 
             const result = await manualMonthlyReset()
 
@@ -74,18 +83,18 @@ describe('cron', () => {
 
     describe('manualLinkCleanup', () => {
         it('should deactivate old links', async () => {
-            (db.query as jest.Mock).mockResolvedValue({ rowCount: 10 })
+            (prisma.link.updateMany as jest.Mock).mockResolvedValue({ count: 10 })
 
             const result = await manualLinkCleanup()
 
             expect(result.success).toBe(true)
             expect(result.linksDeactivated).toBe(10)
-            expect(db.query).toHaveBeenCalled()
+            expect(prisma.link.updateMany).toHaveBeenCalled()
         })
 
         it('should handle errors', async () => {
             const error = new Error('DB Error')
-                ; (db.query as jest.Mock).mockRejectedValue(error)
+                ; (prisma.link.updateMany as jest.Mock).mockRejectedValue(error)
 
             const result = await manualLinkCleanup()
 
@@ -97,17 +106,17 @@ describe('cron', () => {
     describe('Scheduled Jobs Logic', () => {
         describe('resetMonthlyLimits', () => {
             it('should execute reset logic', async () => {
-                (db.query as jest.Mock).mockResolvedValue({})
+                (prisma.user.updateMany as jest.Mock).mockResolvedValue({ count: 5 })
 
                 await resetMonthlyLimits()
 
-                expect(db.query).toHaveBeenCalled()
+                expect(prisma.user.updateMany).toHaveBeenCalled()
                 expect(logger.info).toHaveBeenCalledWith('Monthly limit reset completed.')
             })
 
             it('should handle errors', async () => {
                 const error = new Error('DB Error')
-                    ; (db.query as jest.Mock).mockRejectedValue(error)
+                    ; (prisma.user.updateMany as jest.Mock).mockRejectedValue(error)
 
                 await resetMonthlyLimits()
 
@@ -120,25 +129,25 @@ describe('cron', () => {
                 const mockLinks = [
                     {
                         id: 'link-1',
-                        email: 'user@example.com',
+                        user: {
+                            email: 'user@example.com',
+                            nimOrUsername: 'user1'
+                        },
                         shortUrl: 'abc',
                         longUrl: 'http://example.com',
                         createdAt: new Date('2023-01-01'), // Old
                         lastVisited: null,
-                        nimOrUsername: 'user1'
                     }
                 ]
 
                     // Mock finding links
-                    ; (db.query as jest.Mock)
-                        .mockResolvedValueOnce({ rows: mockLinks }) // Select links
-                        .mockResolvedValueOnce({ rowCount: 1 }) // Update links
-                        .mockResolvedValueOnce({}) // Log
+                    ; (prisma.link.findMany as jest.Mock).mockResolvedValue(mockLinks)
+                    ; (prisma.link.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
                 await deactivateExpiredLinks()
 
                 expect(sendEmail).toHaveBeenCalled()
-                expect(db.query).toHaveBeenCalled()
+                expect(prisma.link.updateMany).toHaveBeenCalled()
             })
         })
 
@@ -146,15 +155,12 @@ describe('cron', () => {
             it('should delete permanently inactive links', async () => {
                 const mockLinks = [{ id: 'link-old' }]
 
-                    ; (db.query as jest.Mock)
-                        .mockResolvedValueOnce({ rows: mockLinks }) // Select
-                        .mockResolvedValueOnce({ rowCount: 1 }) // Delete
-                        .mockResolvedValueOnce({}) // Log
+                    ; (prisma.link.findMany as jest.Mock).mockResolvedValue(mockLinks)
+                    ; (prisma.link.deleteMany as jest.Mock).mockResolvedValue({ count: 1 })
 
                 await deletePermanentLinks()
 
-                expect(db.query).toHaveBeenCalled()
-                expect(db.query).toHaveBeenCalled()
+                expect(prisma.link.deleteMany).toHaveBeenCalled()
                 // expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Permanently deleted'))
             })
         })

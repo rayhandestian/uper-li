@@ -3,12 +3,14 @@
  */
 import { POST } from '../links/log-visit/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 
 // Mock dependencies
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        link: {
+            update: jest.fn(),
+        },
     },
 }))
 
@@ -28,7 +30,7 @@ describe('/api/links/log-visit', () => {
     })
 
     it('should log visit successfully', async () => {
-        (db.query as jest.Mock).mockResolvedValue({})
+        (prisma.link.update as jest.Mock).mockResolvedValue({ id: 'link-123' })
 
         const req = new NextRequest('http://localhost/api/links/log-visit', {
             method: 'POST',
@@ -37,10 +39,13 @@ describe('/api/links/log-visit', () => {
         const res = await POST(req)
 
         expect(res.status).toBe(200)
-        expect(db.query).toHaveBeenCalledWith(
-            expect.stringContaining('UPDATE "Link"'),
-            ['link-123']
-        )
+        expect(prisma.link.update).toHaveBeenCalledWith({
+            where: { id: 'link-123' },
+            data: {
+                visitCount: { increment: 1 },
+                lastVisited: expect.any(Date)
+            }
+        })
         expect(await res.json()).toEqual({ success: true })
     })
 })

@@ -1,10 +1,12 @@
 import { authOptions } from '../auth'
-import { db } from '../db'
+import { prisma } from '../prisma'
 
 // Mock dependencies
-jest.mock('../db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('../prisma', () => ({
+    prisma: {
+        user: {
+            findUnique: jest.fn(),
+        },
     },
 }))
 
@@ -52,7 +54,7 @@ describe('authOptions callbacks', () => {
 
     describe('session callback', () => {
         it('should add token properties to session', async () => {
-            (db.query as jest.Mock).mockResolvedValue({ rows: [{ twoFactorSecret: null }] })
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ twoFactorSecret: null })
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const session = { user: {} } as any

@@ -4,7 +4,7 @@
 import { POST as VERIFY_2FA } from '../2fa/verify/route'
 import { POST as DISABLE_2FA } from '../2fa/disable/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 
 // Mock dependencies
@@ -12,9 +12,12 @@ jest.mock('next-auth', () => ({
     getServerSession: jest.fn(),
 }))
 
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            findUnique: jest.fn(),
+            update: jest.fn(),
+        },
     },
 }))
 
@@ -38,9 +41,8 @@ describe('2FA Full API', () => {
                 verificationTokenExpires: new Date(Date.now() + 10000)
             }
 
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce({ rows: [validUser] }) // Get user
-                    .mockResolvedValueOnce({ rowCount: 1 }) // Update user
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(validUser)
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
 
             const req = new NextRequest('http://localhost/api/2fa/verify', {
                 method: 'POST',
@@ -49,7 +51,14 @@ describe('2FA Full API', () => {
             const res = await VERIFY_2FA(req)
 
             expect(res.status).toBe(200)
-            expect(db.query).toHaveBeenCalledTimes(2)
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { id: 'user-1' },
+                data: expect.objectContaining({
+                    twoFactorEnabled: true,
+                    twoFactorSecret: null,
+                    verificationTokenExpires: null
+                })
+            })
         })
 
         it('should return 400 if code is invalid', async () => {
@@ -62,7 +71,7 @@ describe('2FA Full API', () => {
                 verificationTokenExpires: new Date(Date.now() + 10000)
             }
 
-                ; (db.query as jest.Mock).mockResolvedValueOnce({ rows: [validUser] })
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(validUser)
 
             const req = new NextRequest('http://localhost/api/2fa/verify', {
                 method: 'POST',
@@ -84,7 +93,7 @@ describe('2FA Full API', () => {
                 verificationTokenExpires: new Date(Date.now() - 10000)
             }
 
-                ; (db.query as jest.Mock).mockResolvedValueOnce({ rows: [expiredUser] })
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(expiredUser)
 
             const req = new NextRequest('http://localhost/api/2fa/verify', {
                 method: 'POST',
@@ -103,15 +112,21 @@ describe('2FA Full API', () => {
 
             const user = { id: 'user-1', twoFactorEnabled: true }
 
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce({ rows: [user] }) // Get user
-                    .mockResolvedValueOnce({ rowCount: 1 }) // Update user
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(user)
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
 
             const req = new NextRequest('http://localhost/api/2fa/disable', { method: 'POST' })
             const res = await DISABLE_2FA(req)
 
             expect(res.status).toBe(200)
-            expect(db.query).toHaveBeenCalledTimes(2)
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { id: 'user-1' },
+                data: expect.objectContaining({
+                    twoFactorEnabled: false,
+                    twoFactorSecret: null,
+                    updatedAt: expect.any(Date)
+                })
+            })
         })
 
         it('should return 400 if 2FA not enabled', async () => {
@@ -119,7 +134,7 @@ describe('2FA Full API', () => {
 
             const user = { id: 'user-1', twoFactorEnabled: false }
 
-                ; (db.query as jest.Mock).mockResolvedValueOnce({ rows: [user] })
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(user)
 
             const req = new NextRequest('http://localhost/api/2fa/disable', { method: 'POST' })
             const res = await DISABLE_2FA(req)

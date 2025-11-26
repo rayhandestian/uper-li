@@ -3,7 +3,7 @@
  */
 import { POST as SETUP_2FA } from '../2fa/setup/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { sendEmail } from '@/lib/email'
 
@@ -12,9 +12,12 @@ jest.mock('next-auth', () => ({
     getServerSession: jest.fn(),
 }))
 
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            findUnique: jest.fn(),
+            update: jest.fn(),
+        },
     },
 }))
 
@@ -36,24 +39,27 @@ describe('2FA API', () => {
     describe('POST /api/2fa/setup', () => {
         it('should initiate 2FA setup', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
-                ; (db.query as jest.Mock)
-                    .mockResolvedValueOnce({ rows: [{ id: 'user-1', email: 'test@example.com', twoFactorEnabled: false }] }) // Get user
-                    .mockResolvedValueOnce({ rowCount: 1 }) // Update user with secret
+                ; (prisma.user.findUnique as jest.Mock)
+                    .mockResolvedValue({ id: 'user-1', email: 'test@example.com', twoFactorEnabled: false })
+                ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
 
             const req = new NextRequest('http://localhost/api/2fa/setup', { method: 'POST' })
             const res = await SETUP_2FA(req)
 
             expect(res.status).toBe(200)
             expect(sendEmail).toHaveBeenCalled()
-            expect(db.query).toHaveBeenCalledWith(
-                expect.stringContaining('UPDATE "User"'),
-                expect.arrayContaining(['user-1'])
-            )
+            expect(prisma.user.update).toHaveBeenCalledWith({
+                where: { id: 'user-1' },
+                data: expect.objectContaining({
+                    twoFactorSecret: expect.any(String),
+                    verificationTokenExpires: expect.any(Date)
+                })
+            })
         })
 
         it('should return 400 if 2FA already enabled', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
-                ; (db.query as jest.Mock).mockResolvedValueOnce({ rows: [{ id: 'user-1', twoFactorEnabled: true }] })
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-1', twoFactorEnabled: true })
 
             const req = new NextRequest('http://localhost/api/2fa/setup', { method: 'POST' })
             const res = await SETUP_2FA(req)

@@ -3,13 +3,16 @@
  */
 import { POST } from '../reset-password/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 // Mock dependencies
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            findFirst: jest.fn(),
+            update: jest.fn(),
+        },
     },
 }))
 
@@ -40,11 +43,9 @@ describe('Reset Password API', () => {
             emailVerified: new Date() // Verified user
         }
 
-            ; (db.query as jest.Mock)
-                .mockResolvedValueOnce({ rows: [validUser] }) // Find user
-                .mockResolvedValueOnce({ rowCount: 1 }); // Update password
-
-        (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-new-password')
+            ; (prisma.user.findFirst as jest.Mock).mockResolvedValue(validUser)
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
+            ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-new-password')
 
         const req = new NextRequest('http://localhost/api/reset-password', {
             method: 'POST',
@@ -59,10 +60,12 @@ describe('Reset Password API', () => {
         const res = await POST(req)
 
         expect(res.status).toBe(200)
-        expect(db.query).toHaveBeenCalledWith(
-            expect.stringContaining('UPDATE "User"'),
-            expect.arrayContaining(['hashed-new-password', 'user-1'])
-        )
+        expect(prisma.user.update).toHaveBeenCalledWith({
+            where: { id: 'user-1' },
+            data: expect.objectContaining({
+                password: 'hashed-new-password'
+            })
+        })
     })
 
     it('should validate missing fields', async () => {
@@ -96,7 +99,7 @@ describe('Reset Password API', () => {
     })
 
     it('should handle invalid code or user not found', async () => {
-        (db.query as jest.Mock).mockResolvedValueOnce({ rows: [] })
+        (prisma.user.findFirst as jest.Mock).mockResolvedValue(null)
 
         const req = new NextRequest('http://localhost/api/reset-password', {
             method: 'POST',
@@ -119,7 +122,7 @@ describe('Reset Password API', () => {
             emailVerified: new Date() // Verified user
         }
 
-            ; (db.query as jest.Mock).mockResolvedValueOnce({ rows: [expiredUser] })
+            ; (prisma.user.findFirst as jest.Mock).mockResolvedValue(expiredUser)
 
         const req = new NextRequest('http://localhost/api/reset-password', {
             method: 'POST',
@@ -143,7 +146,7 @@ describe('Reset Password API', () => {
             emailVerified: null // Unverified user
         }
 
-            ; (db.query as jest.Mock).mockResolvedValueOnce({ rows: [unverifiedUser] })
+            ; (prisma.user.findFirst as jest.Mock).mockResolvedValue(unverifiedUser)
 
         const req = new NextRequest('http://localhost/api/reset-password', {
             method: 'POST',
@@ -158,14 +161,11 @@ describe('Reset Password API', () => {
         const res = await POST(req)
 
         expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ 
-            error: 'Akun belum diverifikasi. Silakan verifikasi email terlebih dahulu.' 
+        expect(await res.json()).toEqual({
+            error: 'Akun belum diverifikasi. Silakan verifikasi email terlebih dahulu.'
         })
-        
+
         // Ensure password update was not called
-        expect(db.query).not.toHaveBeenCalledWith(
-            expect.stringContaining('UPDATE "User"'),
-            expect.anything()
-        )
+        expect(prisma.user.update).not.toHaveBeenCalled()
     })
 })

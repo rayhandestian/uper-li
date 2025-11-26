@@ -9,12 +9,12 @@ function getClientIP(request: NextRequest): string {
   if (forwarded) {
     return forwarded.split(',')[0].trim()
   }
-  
+
   const realIP = request.headers.get('x-real-ip')
   if (realIP) {
     return realIP
   }
-  
+
   return request.headers.get('x-client-ip') || 'unknown'
 }
 
@@ -31,16 +31,16 @@ const CODE_WINDOW_MS = 10 * 60 * 1000 // 10 minutes
 function checkIPRateLimit(ip: string): boolean {
   const now = Date.now()
   const ipData = ipAttempts.get(ip)
-  
+
   if (!ipData || now > ipData.resetTime) {
     ipAttempts.set(ip, { count: 1, resetTime: now + IP_WINDOW_MS })
     return true
   }
-  
+
   if (ipData.count >= IP_RATE_LIMIT) {
     return false
   }
-  
+
   ipData.count++
   return true
 }
@@ -48,16 +48,16 @@ function checkIPRateLimit(ip: string): boolean {
 function checkCodeRateLimit(code: string): boolean {
   const now = Date.now()
   const codeData = codeAttempts.get(code)
-  
+
   if (!codeData || now > codeData.resetTime) {
     codeAttempts.set(code, { count: 1, resetTime: now + CODE_WINDOW_MS })
     return true
   }
-  
+
   if (codeData.count >= CODE_RATE_LIMIT) {
     return false
   }
-  
+
   codeData.count++
   return true
 }
@@ -92,7 +92,7 @@ async function handleVerification(request: NextRequest) {
       return NextResponse.json({ error: 'Kode verifikasi tidak valid.' }, { status: 400 })
     }
 
-    
+
 
     // Check if code has expired
     if (user.verificationTokenExpires && user.verificationTokenExpires < new Date()) {
@@ -113,28 +113,31 @@ async function handleVerification(request: NextRequest) {
     const maxTokenAge = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
 
     if (tokenAge > maxTokenAge) {
-      logger.warn(`Old verification code attempt from IP: ${clientIP}`, { 
-        userId: user.id, 
+      logger.warn(`Old verification code attempt from IP: ${clientIP}`, {
+        userId: user.id,
         tokenAge: Math.round(tokenAge / (1000 * 60 * 60)) + ' hours',
-        code: code.substring(0, 2) + '****' 
+        code: code.substring(0, 2) + '****'
       })
       return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa. Silakan daftar ulang.' }, { status: 400 })
     }
 
     // Log successful verification attempt
-    logger.info(`Successful verification from IP: ${clientIP}`, { 
-      userId: user.id, 
+    logger.info(`Successful verification from IP: ${clientIP}`, {
+      userId: user.id,
       nimOrUsername: user.nimOrUsername,
-      role: user.role 
+      role: user.role
     })
 
-    // Verify email using raw SQL
-    await db.query(
-      `UPDATE "User"
-       SET "emailVerified" = NOW(), "verificationToken" = null, "verificationTokenExpires" = null, "updatedAt" = NOW()
-       WHERE id = $1`,
-      [user.id]
-    )
+    // Verify email using Prisma
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerified: new Date(),
+        verificationToken: null,
+        verificationTokenExpires: null,
+        updatedAt: new Date()
+      }
+    })
 
     // Clear rate limiting data for this code on successful verification
     codeAttempts.delete(code)

@@ -3,12 +3,15 @@
  */
 import { POST } from '../verify-code/route'
 import { NextRequest } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 
 // Mock dependencies
-jest.mock('@/lib/db', () => ({
-    db: {
-        query: jest.fn(),
+jest.mock('@/lib/prisma', () => ({
+    prisma: {
+        user: {
+            findFirst: jest.fn(),
+            update: jest.fn(),
+        },
     },
 }))
 
@@ -43,7 +46,7 @@ describe('/api/verify-code', () => {
     })
 
     it('should return 400 if code is invalid', async () => {
-        ; (db.query as jest.Mock).mockResolvedValue({ rows: [] })
+        ; (prisma.user.findFirst as jest.Mock).mockResolvedValue(null)
 
         const req = new NextRequest('http://localhost/api/verify-code', {
             method: 'POST',
@@ -56,12 +59,10 @@ describe('/api/verify-code', () => {
 
     it('should return 400 if code has expired', async () => {
         const expiredDate = new Date(Date.now() - 1000) // 1 second ago
-            ; (db.query as jest.Mock).mockResolvedValue({
-                rows: [{
-                    id: 'user-123',
-                    verificationTokenExpires: expiredDate,
-                    emailVerified: null,
-                }],
+            ; (prisma.user.findFirst as jest.Mock).mockResolvedValue({
+                id: 'user-123',
+                verificationTokenExpires: expiredDate,
+                emailVerified: null,
             })
 
         const req = new NextRequest('http://localhost/api/verify-code', {
@@ -74,12 +75,10 @@ describe('/api/verify-code', () => {
     })
 
     it('should return 400 if account already verified', async () => {
-        ; (db.query as jest.Mock).mockResolvedValue({
-            rows: [{
-                id: 'user-123',
-                verificationTokenExpires: new Date(Date.now() + 10000),
-                emailVerified: new Date(),
-            }],
+        ; (prisma.user.findFirst as jest.Mock).mockResolvedValue({
+            id: 'user-123',
+            verificationTokenExpires: new Date(Date.now() + 10000),
+            emailVerified: new Date(),
         })
 
         const req = new NextRequest('http://localhost/api/verify-code', {
@@ -93,15 +92,13 @@ describe('/api/verify-code', () => {
 
     it('should verify account successfully', async () => {
         const futureDate = new Date(Date.now() + 10000)
-            ; (db.query as jest.Mock)
-                .mockResolvedValueOnce({
-                    rows: [{
-                        id: 'user-123',
-                        verificationTokenExpires: futureDate,
-                        emailVerified: null,
-                    }],
-                })
-                .mockResolvedValueOnce({ rows: [] }) // Update query
+            ; (prisma.user.findFirst as jest.Mock).mockResolvedValue({
+                id: 'user-123',
+                verificationTokenExpires: futureDate,
+                emailVerified: null,
+                updatedAt: new Date(),
+            })
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
         const req = new NextRequest('http://localhost/api/verify-code', {
             method: 'POST',
@@ -112,10 +109,14 @@ describe('/api/verify-code', () => {
         expect(res.status).toBe(200)
         expect(await res.json()).toEqual({ message: 'Verifikasi berhasil.' })
 
-        // Verify update query was called
-        expect(db.query).toHaveBeenCalledWith(
-            expect.stringContaining('UPDATE "User"'),
-            ['user-123']
-        )
+        // Verify update was called
+        expect(prisma.user.update).toHaveBeenCalledWith({
+            where: { id: 'user-123' },
+            data: expect.objectContaining({
+                emailVerified: expect.any(Date),
+                verificationToken: null,
+                verificationTokenExpires: null
+            })
+        })
     })
 })
