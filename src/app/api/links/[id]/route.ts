@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 const RESERVED_PATHS = [
@@ -28,47 +28,45 @@ export async function PATCH(
   const { active, shortUrl, mode, password } = await request.json()
   const { id } = await params
 
-  // Get link using raw SQL
-  const linkResult = await db.query(
-    'SELECT * FROM "Link" WHERE id = $1 AND "userId" = $2',
-    [id, session.user.id]
-  )
+  // Get link using Prisma
+  const link = await prisma.link.findFirst({
+    where: {
+      id,
+      userId: session.user.id
+    }
+  })
 
-  if (linkResult.rows.length === 0) {
+  if (!link) {
     return NextResponse.json({ error: 'Link tidak ditemukan.' }, { status: 404 })
   }
 
-  const link = linkResult.rows[0]
-
-  // Build dynamic update query
-  const updateFields = []
-  const queryParams: unknown[] = [id, session.user.id]
-  let paramIndex = 3
+  // Build dynamic update data
+  const updateData: {
+    active?: boolean
+    mode?: string
+    password?: string | null
+    shortUrl?: string
+    custom?: boolean
+    customChanges?: number
+    customChangedAt?: Date
+    updatedAt: Date
+  } = {
+    updatedAt: new Date()
+  }
 
   if (active !== undefined) {
-    updateFields.push(`active = $${paramIndex}`)
-    queryParams.push(active)
-    paramIndex++
+    updateData.active = active
   }
 
   if (mode !== undefined) {
-    updateFields.push(`mode = $${paramIndex}`)
-    queryParams.push(mode)
-    paramIndex++
+    updateData.mode = mode
   }
 
   if (password !== undefined) {
     if (password === '') {
-      // Remove password
-      updateFields.push(`password = $${paramIndex}`)
-      queryParams.push(null)
-      paramIndex++
+      updateData.password = null
     } else if (password.length >= 4) {
-      // Set new password
-      const hashedPassword = await bcrypt.hash(password, 12)
-      updateFields.push(`password = $${paramIndex}`)
-      queryParams.push(hashedPassword)
-      paramIndex++
+      updateData.password = await bcrypt.hash(password, 12)
     } else {
       return NextResponse.json({ error: 'Password minimal 4 karakter.' }, { status: 400 })
     }
@@ -79,16 +77,14 @@ export async function PATCH(
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
-    if (link.customChangedAt && new Date(link.customChangedAt) >= startOfMonth) {
-      if (link.customChanges >= 2) {
+    if (link.customChangedAt && link.customChangedAt >= startOfMonth) {
+      if ((link.customChanges || 0) >= 2) {
         return NextResponse.json({ error: 'Batas perubahan custom URL per bulan tercapai (maksimal 2x).' }, { status: 400 })
       }
     } else {
       // Reset counter for new month
-      updateFields.push(`customChanges = 1`)
-      updateFields.push(`"customChangedAt" = $${paramIndex}`)
-      queryParams.push(now)
-      paramIndex++
+      updateData.customChanges = 1
+      updateData.customChangedAt = now
     }
 
     // Validate new short URL
@@ -102,41 +98,29 @@ export async function PATCH(
     }
 
     // Check if new short URL is taken
-    const existingResult = await db.query(
-      'SELECT id FROM "Link" WHERE "shortUrl" = $1',
-      [shortUrl]
-    )
+    const existing = await prisma.link.findUnique({
+      where: { shortUrl },
+      select: { id: true }
+    })
 
-    if (existingResult.rows.length > 0 && existingResult.rows[0].id !== id) {
+    if (existing && existing.id !== id) {
       return NextResponse.json({ error: 'Short URL kustom sudah digunakan.' }, { status: 400 })
     }
 
-    updateFields.push(`"shortUrl" = $${paramIndex}`)
-    queryParams.push(shortUrl)
-    paramIndex++
-
-    updateFields.push(`custom = true`)
-    updateFields.push(`"customChanges" = $${paramIndex}`)
-    queryParams.push(link.customChanges + 1)
-    paramIndex++
+    updateData.shortUrl = shortUrl
+    updateData.custom = true
+    updateData.customChanges = (link.customChanges || 0) + 1
   }
 
-  if (updateFields.length === 0) {
+  if (Object.keys(updateData).length === 1) { // Only updatedAt
     return NextResponse.json({ error: 'Tidak ada data untuk diperbarui.' }, { status: 400 })
   }
 
-  updateFields.push(`"updatedAt" = NOW()`)
-
-  // Update link using raw SQL
-  const updateQuery = `
-    UPDATE "Link" 
-    SET ${updateFields.join(', ')}
-    WHERE id = $1 AND "userId" = $2
-    RETURNING *
-  `
-
-  const updatedResult = await db.query(updateQuery, queryParams)
-  const updatedLink = updatedResult.rows[0]
+  // Update link using Prisma
+  const updatedLink = await prisma.link.update({
+    where: { id },
+    data: updateData
+  })
 
   return NextResponse.json(updatedLink)
 }
@@ -153,48 +137,48 @@ export async function DELETE(
 
   const { id } = await params
 
-  // Get link using raw SQL
-  const linkResult = await db.query(
-    'SELECT * FROM "Link" WHERE id = $1 AND "userId" = $2',
-    [id, session.user.id]
-  )
+  // Get link using Prisma
+  const link = await prisma.link.findFirst({
+    where: {
+      id,
+      userId: session.user.id
+    }
+  })
 
-  if (linkResult.rows.length === 0) {
+  if (!link) {
     return NextResponse.json({ error: 'Link tidak ditemukan.' }, { status: 404 })
   }
 
-  const link = linkResult.rows[0]
+  // Use Prisma transaction for atomic delete
+  await prisma.$transaction(async (tx) => {
+    // Delete link
+    await tx.link.delete({
+      where: { id }
+    })
 
-  const client = await db.getClient()
-  try {
-    await client.query('BEGIN')
-
-    await client.query(
-      'DELETE FROM "Link" WHERE id = $1',
-      [id]
-    )
-
-    const createdAt = new Date(link.createdAt)
+    // Update user counters
+    const createdAt = link.createdAt
     const now = new Date()
-    const isCurrentMonth = createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear()
+    const isCurrentMonth = createdAt &&
+      createdAt.getMonth() === now.getMonth() &&
+      createdAt.getFullYear() === now.getFullYear()
 
-    let updateQuery = 'UPDATE "User" SET "totalLinks" = GREATEST("totalLinks" - 1, 0)'
-
-    if (isCurrentMonth) {
-      updateQuery += ', "monthlyLinksCreated" = GREATEST("monthlyLinksCreated" - 1, 0)'
+    const updateData: {
+      totalLinks: { decrement: number }
+      monthlyLinksCreated?: { decrement: number }
+    } = {
+      totalLinks: { decrement: 1 }
     }
 
-    updateQuery += ' WHERE id = $1'
+    if (isCurrentMonth) {
+      updateData.monthlyLinksCreated = { decrement: 1 }
+    }
 
-    await client.query(updateQuery, [session.user.id])
-
-    await client.query('COMMIT')
-  } catch (error) {
-    await client.query('ROLLBACK')
-    throw error
-  } finally {
-    client.release()
-  }
+    await tx.user.update({
+      where: { id: session.user.id },
+      data: updateData
+    })
+  })
 
   return NextResponse.json({ message: 'Link berhasil dihapus.' })
 }

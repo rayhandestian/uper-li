@@ -1,26 +1,23 @@
 import { redirect, notFound } from 'next/navigation'
 import { headers } from 'next/headers'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import ShortUrlClient from './ShortUrlClient'
 
 interface LinkData {
   status: 'not_found' | 'inactive' | 'locked' | 'ok'
   longUrl?: string
   mode?: string
-  id?: number
+  id?: string
 }
 
 async function getLinkData(shortUrl: string): Promise<LinkData> {
-  const linkResult = await db.query(
-    'SELECT * FROM "Link" WHERE "shortUrl" = $1',
-    [shortUrl]
-  )
+  const link = await prisma.link.findUnique({
+    where: { shortUrl }
+  })
 
-  if (linkResult.rows.length === 0) {
+  if (!link) {
     return { status: 'not_found' }
   }
-
-  const link = linkResult.rows[0]
 
   if (!link.active) {
     return { status: 'inactive' }
@@ -33,7 +30,7 @@ async function getLinkData(shortUrl: string): Promise<LinkData> {
   return {
     status: 'ok',
     longUrl: link.longUrl,
-    mode: link.mode,
+    mode: link.mode || undefined,
     id: link.id
   }
 }
@@ -56,10 +53,13 @@ export default async function ShortUrlPage({
   if (data.status === 'ok' && data.mode === 'DIRECT' && data.longUrl) {
     // Log visit before redirect
     if (data.id) {
-      await db.query(
-        'UPDATE "Link" SET "visitCount" = "visitCount" + 1, "lastVisited" = NOW() WHERE id = $1',
-        [data.id]
-      )
+      await prisma.link.update({
+        where: { id: data.id },
+        data: {
+          visitCount: { increment: 1 },
+          lastVisited: new Date()
+        }
+      })
     }
     redirect(data.longUrl)
   }

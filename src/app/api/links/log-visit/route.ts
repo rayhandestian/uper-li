@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   const { linkId } = await request.json()
@@ -8,11 +8,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Link ID required' }, { status: 400 })
   }
 
-  // Update visit count using raw SQL
-  await db.query(
-    'UPDATE "Link" SET "visitCount" = "visitCount" + 1, "lastVisited" = NOW() WHERE id = $1',
-    [linkId]
-  )
+  // Update visit count using Prisma
+  await prisma.link.update({
+    where: { id: linkId },
+    data: {
+      visitCount: { increment: 1 },
+      lastVisited: new Date()
+    }
+  })
 
   return NextResponse.json({ success: true })
 }

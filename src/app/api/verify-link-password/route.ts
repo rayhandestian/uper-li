@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { logger } from '@/lib/logger'
 import { withRateLimit } from '@/lib/rateLimit'
@@ -12,16 +12,18 @@ async function handleVerifyLinkPassword(request: NextRequest) {
       return NextResponse.json({ error: 'Short URL dan password diperlukan.' }, { status: 400 })
     }
 
-    const linkResult = await db.query(
-      'SELECT * FROM "Link" WHERE "shortUrl" = $1',
-      [shortUrl]
-    )
+    // Get link using Prisma
+    const link = await prisma.link.findUnique({
+      where: { shortUrl },
+      select: {
+        id: true,
+        password: true
+      }
+    })
 
-    if (linkResult.rows.length === 0) {
+    if (!link) {
       return NextResponse.json({ error: 'Link tidak ditemukan.' }, { status: 404 })
     }
-
-    const link = linkResult.rows[0]
 
     if (!link.password) {
       return NextResponse.json({ error: 'Link ini tidak memerlukan password.' }, { status: 400 })

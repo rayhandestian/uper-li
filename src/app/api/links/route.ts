@@ -37,44 +37,42 @@ export async function GET(request: NextRequest) {
 
   const skip = (page - 1) * limit
 
-  // Build WHERE clause
-  const whereConditions = ['"userId" = $1']
-  const params: unknown[] = [session.user.id]
-  let paramIndex = 2
+  // Build WHERE clause for Prisma
+  const where: Prisma.LinkWhereInput = {
+    userId: session.user.id
+  }
 
   if (search) {
-    whereConditions.push(`("shortUrl" ILIKE $${paramIndex} OR "longUrl" ILIKE $${paramIndex})`)
-    params.push(`%${search}%`)
-    paramIndex++
+    where.OR = [
+      { shortUrl: { contains: search, mode: 'insensitive' } },
+      { longUrl: { contains: search, mode: 'insensitive' } }
+    ]
   }
 
   if (active !== null && active !== undefined) {
-    whereConditions.push(`active = $${paramIndex}`)
-    params.push(active === 'true')
-    paramIndex++
+    where.active = active === 'true'
   }
 
-  const whereClause = `WHERE ${whereConditions.join(' AND ')}`
+  // Validate sort field
+  const validSortFields = ['createdAt', 'updatedAt', 'shortUrl', 'visitCount', 'lastVisited'] as const
+  type ValidSort = typeof validSortFields[number]
+  const sortField: ValidSort = validSortFields.includes(sort as ValidSort) ? sort as ValidSort : 'createdAt'
+  const orderDirection = order.toLowerCase() === 'asc' ? 'asc' : 'desc'
 
-  // Build ORDER BY
-  const validSortFields = ['createdAt', 'updatedAt', 'shortUrl', 'visitCount', 'lastVisited']
-  const sortField = validSortFields.includes(sort) ? sort : 'createdAt'
-  const orderDirection = order.toLowerCase() === 'asc' ? 'ASC' : 'DESC'
-
-  // Get total count
-  const countQuery = `SELECT COUNT(*) as total FROM "Link" ${whereClause}`
-  const countResult = await prisma.$queryRawUnsafe(countQuery, ...params) as { total: bigint }[]
-
-  const total = parseInt(countResult[0].total.toString())
+  // Get total count using Prisma
+  const total = await prisma.link.count({ where })
   const totalPages = Math.ceil(total / limit)
 
-  const query = `SELECT * FROM "Link" ${whereClause} ORDER BY "${sortField}" ${orderDirection} LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
-  params.push(limit, skip)
-
-  const linksResult = await prisma.$queryRawUnsafe(query, ...params)
+  // Get paginated links using Prisma
+  const links = await prisma.link.findMany({
+    where,
+    orderBy: { [sortField]: orderDirection },
+    take: limit,
+    skip
+  })
 
   return NextResponse.json({
-    links: linksResult,
+    links,
     pagination: {
       page,
       limit,

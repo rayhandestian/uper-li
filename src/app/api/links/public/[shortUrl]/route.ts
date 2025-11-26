@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 
 export async function GET(
@@ -8,20 +8,17 @@ export async function GET(
 ) {
   const { shortUrl } = await params
 
-  // Get link using raw SQL
-  const linkResult = await db.query(
-    'SELECT * FROM "Link" WHERE "shortUrl" = $1',
-    [shortUrl]
-  )
+  // Get link using Prisma
+  const link = await prisma.link.findUnique({
+    where: { shortUrl }
+  })
 
-  logger.info('Query result:', { count: linkResult.rows.length })
+  logger.info('Query result:', { found: !!link })
 
-  if (linkResult.rows.length === 0) {
+  if (!link) {
     logger.info('No link found for shortUrl:', { shortUrl })
     return NextResponse.json({ status: 'not_found' })
   }
-
-  const link = linkResult.rows[0]
 
   if (!link.active) {
     return NextResponse.json({ status: 'inactive' })
