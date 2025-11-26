@@ -37,7 +37,7 @@ describe('2FA Full API', () => {
             const validUser = {
                 id: 'user-1',
                 twoFactorEnabled: false,
-                twoFactorSecret: '123456',
+                twoFactorSetupCode: '123456',
                 verificationTokenExpires: new Date(Date.now() + 10000)
             }
 
@@ -55,7 +55,7 @@ describe('2FA Full API', () => {
                 where: { id: 'user-1' },
                 data: expect.objectContaining({
                     twoFactorEnabled: true,
-                    twoFactorSecret: null,
+                    twoFactorSetupCode: null,
                     verificationTokenExpires: null
                 })
             })
@@ -67,7 +67,7 @@ describe('2FA Full API', () => {
             const validUser = {
                 id: 'user-1',
                 twoFactorEnabled: false,
-                twoFactorSecret: '123456',
+                twoFactorSetupCode: '123456',
                 verificationTokenExpires: new Date(Date.now() + 10000)
             }
 
@@ -89,7 +89,7 @@ describe('2FA Full API', () => {
             const expiredUser = {
                 id: 'user-1',
                 twoFactorEnabled: false,
-                twoFactorSecret: '123456',
+                twoFactorSetupCode: '123456',
                 verificationTokenExpires: new Date(Date.now() - 10000)
             }
 
@@ -124,6 +124,8 @@ describe('2FA Full API', () => {
                 data: expect.objectContaining({
                     twoFactorEnabled: false,
                     twoFactorSecret: null,
+                    twoFactorLoginCode: null,
+                    twoFactorSetupCode: null,
                     updatedAt: expect.any(Date)
                 })
             })

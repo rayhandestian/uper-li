@@ -55,6 +55,8 @@ export const mockPrismaUser = (overrides = {}) => ({
     emailVerified: new Date(),
     twoFactorEnabled: false,
     twoFactorSecret: null,
+    twoFactorLoginCode: null,
+    twoFactorSetupCode: null,
     verificationToken: null,
     verificationTokenExpires: null,
     monthlyLinksCreated: 0,

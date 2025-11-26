@@ -16,6 +16,8 @@ export interface MockUser {
     emailVerified: Date | null
     twoFactorEnabled?: boolean
     twoFactorSecret?: string | null
+    twoFactorLoginCode?: string | null
+    twoFactorSetupCode?: string | null
     verificationTokenExpires?: Date | null
     password?: string
 }

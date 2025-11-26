@@ -23,7 +23,7 @@ async function handle2FAVerify(request: NextRequest) {
     select: {
       id: true,
       twoFactorEnabled: true,
-      twoFactorSecret: true,
+      twoFactorSetupCode: true,
       verificationTokenExpires: true
     }
   })
@@ -36,7 +36,7 @@ async function handle2FAVerify(request: NextRequest) {
     return NextResponse.json({ error: '2FA sudah diaktifkan.' }, { status: 400 })
   }
 
-  if (!user.twoFactorSecret || !user.verificationTokenExpires) {
+  if (!user.twoFactorSetupCode || !user.verificationTokenExpires) {
     return NextResponse.json({ error: 'Kode verifikasi belum diminta.' }, { status: 400 })
   }
 
@@ -44,7 +44,7 @@ async function handle2FAVerify(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa.' }, { status: 400 })
   }
 
-  if (user.twoFactorSecret !== code) {
+  if (user.twoFactorSetupCode !== code) {
     return NextResponse.json({ error: 'Kode verifikasi salah.' }, { status: 400 })
   }
 
@@ -53,7 +53,7 @@ async function handle2FAVerify(request: NextRequest) {
     where: { id: session.user.id },
     data: {
       twoFactorEnabled: true,
-      twoFactorSecret: null,
+      twoFactorSetupCode: null,
       verificationTokenExpires: null,
       updatedAt: new Date()
     }

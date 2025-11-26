@@ -35,6 +35,8 @@ async function handleDisable2FA(request: NextRequest) {
     data: {
       twoFactorEnabled: false,
       twoFactorSecret: null,
+      twoFactorLoginCode: null,
+      twoFactorSetupCode: null,
       updatedAt: new Date()
     }
   })

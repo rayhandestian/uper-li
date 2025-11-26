@@ -23,7 +23,7 @@ async function handle2FAVerification(request: NextRequest) {
     select: {
       id: true,
       twoFactorEnabled: true,
-      twoFactorSecret: true,
+      twoFactorLoginCode: true,
       verificationTokenExpires: true
     }
   })
@@ -36,7 +36,7 @@ async function handle2FAVerification(request: NextRequest) {
     return NextResponse.json({ error: '2FA tidak diaktifkan.' }, { status: 400 })
   }
 
-  if (!user.twoFactorSecret || !user.verificationTokenExpires) {
+  if (!user.twoFactorLoginCode || !user.verificationTokenExpires) {
     return NextResponse.json({ error: 'Kode verifikasi tidak ditemukan.' }, { status: 400 })
   }
 
@@ -44,7 +44,7 @@ async function handle2FAVerification(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa.' }, { status: 400 })
   }
 
-  if (user.twoFactorSecret !== code) {
+  if (user.twoFactorLoginCode !== code) {
     return NextResponse.json({ error: 'Kode verifikasi salah.' }, { status: 400 })
   }
 
@@ -52,7 +52,7 @@ async function handle2FAVerification(request: NextRequest) {
   await prisma.user.update({
     where: { id: session.user.id },
     data: {
-      twoFactorSecret: null,
+      twoFactorLoginCode: null,
       verificationTokenExpires: null,
       updatedAt: new Date()
     }

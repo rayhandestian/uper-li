@@ -42,7 +42,7 @@ async function handle2FASetup() {
   await prisma.user.update({
     where: { id: session.user.id },
     data: {
-      twoFactorSecret: verificationCode,
+      twoFactorSetupCode: verificationCode,
       verificationTokenExpires: verificationCodeExpires,
       updatedAt: new Date()
     }

@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
           await prisma.user.update({
             where: { id: user.id },
             data: {
-              twoFactorSecret: verificationCode,
+              twoFactorLoginCode: verificationCode,
               verificationTokenExpires: verificationCodeExpires,
               updatedAt: new Date()
             }
@@ -104,10 +104,10 @@ export const authOptions: NextAuthOptions = {
           // Check if 2FA verification code has been cleared (meaning verified) using Prisma
           const user = await prisma.user.findUnique({
             where: { id: token.sub! },
-            select: { twoFactorSecret: true }
+            select: { twoFactorLoginCode: true }
           })
 
-          if (user && !user.twoFactorSecret) {
+          if (user && !user.twoFactorLoginCode) {
             session.user.requires2FA = false
           } else {
             session.user.requires2FA = true

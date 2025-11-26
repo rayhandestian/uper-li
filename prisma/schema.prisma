@@ -51,6 +51,8 @@ model User {
   lastReset                DateTime? @default(now()) @db.Timestamp(6)
   twoFactorEnabled         Boolean?  @default(false)
   twoFactorSecret          String?
+  twoFactorLoginCode       String?
+  twoFactorSetupCode       String?
   active                   Boolean?  @default(true)
   Link                     Link[]
 

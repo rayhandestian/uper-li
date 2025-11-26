@@ -51,7 +51,7 @@ describe('2FA API', () => {
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { id: 'user-1' },
                 data: expect.objectContaining({
-                    twoFactorSecret: expect.any(String),
+                    twoFactorSetupCode: expect.any(String),
                     verificationTokenExpires: expect.any(Date)
                 })
             })

@@ -54,7 +54,7 @@ describe('authOptions callbacks', () => {
 
     describe('session callback', () => {
         it('should add token properties to session', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ twoFactorSecret: null })
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ twoFactorLoginCode: null })
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const session = { user: {} } as any
