@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { verifyAdminToken } from '@/lib/admin-auth'
 
 export async function PATCH(
@@ -17,44 +17,43 @@ export async function PATCH(
   const { active, role } = await request.json()
   const { id } = await params
 
-  const updateFields: string[] = []
-  const updateValues: unknown[] = []
-  let paramCount = 0
+  const updateData: {
+    active?: boolean
+    role?: string
+    updatedAt: Date
+  } = {
+    updatedAt: new Date()
+  }
 
   if (active !== undefined) {
-    paramCount++
-    updateFields.push(`active = $${paramCount}`)
-    updateValues.push(active)
+    updateData.active = active
   }
 
   if (role !== undefined) {
-    paramCount++
-    updateFields.push(`role = $${paramCount}`)
-    updateValues.push(role)
+    updateData.role = role
   }
 
-  if (updateFields.length === 0) {
+  if (Object.keys(updateData).length === 1) { // Only updatedAt
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
   }
 
-  paramCount++
-  updateFields.push(`"updatedAt" = NOW()`)
-  updateValues.push(id)
+  // Update user using Prisma
+  const user = await prisma.user.update({
+    where: { id },
+    data: updateData,
+    select: {
+      id: true,
+      email: true,
+      nimOrUsername: true,
+      role: true,
+      emailVerified: true,
+      twoFactorEnabled: true,
+      monthlyLinksCreated: true,
+      totalLinks: true,
+      createdAt: true,
+      active: true
+    }
+  })
 
-  const query = `
-    UPDATE "User"
-    SET ${updateFields.join(', ')}
-    WHERE id = $${paramCount}
-    RETURNING id, email, "nimOrUsername", role, "emailVerified",
-              "twoFactorEnabled", "monthlyLinksCreated", "totalLinks",
-              "createdAt", active
-  `
-
-  const result = await db.query(query, updateValues)
-
-  if (result.rows.length === 0) {
-    return NextResponse.json({ error: 'User not found' }, { status: 404 })
-  }
-
-  return NextResponse.json(result.rows[0])
+  return NextResponse.json(user)
 }

@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 
 export default async function AdminReportsPage() {
   const cookieStore = await cookies()
@@ -9,34 +9,43 @@ export default async function AdminReportsPage() {
     return null
   }
 
-  // Get detailed statistics using raw SQL
-  const statsResult = await db.query(`
-    SELECT
-      (SELECT COUNT(*) FROM "User") as totalUsers,
-      (SELECT COUNT(*) FROM "User" WHERE active = true) as activeUsers,
-      (SELECT COUNT(*) FROM "User" WHERE "twoFactorEnabled" = true) as usersWith2FA,
-      (SELECT COUNT(*) FROM "Link") as totalLinks,
-      (SELECT COUNT(*) FROM "Link" WHERE active = true) as activeLinks,
-      (SELECT COUNT(*) FROM "Link" WHERE password IS NOT NULL) as passwordProtectedLinks,
-      (SELECT SUM("visitCount") FROM "Link") as totalVisits
-  `)
+  // Get detailed statistics using Prisma
+  const [
+    totalUsers,
+    activeUsers,
+    usersWith2FA,
+    totalLinks,
+    activeLinks,
+    passwordProtectedLinks,
+    totalVisitsResult
+  ] = await Promise.all([
+    prisma.user.count(),
+    prisma.user.count({ where: { active: true } }),
+    prisma.user.count({ where: { twoFactorEnabled: true } }),
+    prisma.link.count(),
+    prisma.link.count({ where: { active: true } }),
+    prisma.link.count({ where: { password: { not: null } } }),
+    prisma.link.aggregate({ _sum: { visitCount: true } })
+  ])
 
-  const stats = statsResult.rows[0]
+  const stats = {
+    totalUsers,
+    activeUsers,
+    usersWith2FA,
+    totalLinks,
+    activeLinks,
+    passwordProtectedLinks,
+    totalVisits: totalVisitsResult._sum.visitCount || 0
+  }
 
-  // Get user role distribution using raw SQL
-  const userRolesResult = await db.query(`
-    SELECT role, COUNT(*) as count
-    FROM "User"
-    GROUP BY role
-    ORDER BY count DESC
-  `)
+  // Get user role distribution using Prisma
+  const userRoles = await prisma.user.groupBy({
+    by: ['role'],
+    _count: { role: true },
+    orderBy: { _count: { role: 'desc' } }
+  })
 
-  const userRoles = userRolesResult.rows.map(row => ({
-    role: row.role,
-    _count: { role: parseInt(row.count) }
-  }))
-
-  // Get monthly activity (last 12 months) using raw SQL
+  // Get monthly activity (last 12 months)
   const now = new Date()
   const monthlyStats = []
 
@@ -44,32 +53,45 @@ export default async function AdminReportsPage() {
     const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
 
-    const monthStatsResult = await db.query(`
-      SELECT
-        (SELECT COUNT(*) FROM "User" WHERE "createdAt" >= $1 AND "createdAt" < $2) as usersCreated,
-        (SELECT COUNT(*) FROM "Link" WHERE "createdAt" >= $1 AND "createdAt" < $2) as linksCreated,
-        (SELECT COALESCE(SUM("visitCount"), 0) FROM "Link" WHERE "createdAt" >= $1 AND "createdAt" < $2) as visits
-    `, [monthStart, monthEnd])
-
-    const monthStats = monthStatsResult.rows[0]
+    const [usersCreated, linksCreated, visitsResult] = await Promise.all([
+      prisma.user.count({
+        where: {
+          createdAt: { gte: monthStart, lt: monthEnd }
+        }
+      }),
+      prisma.link.count({
+        where: {
+          createdAt: { gte: monthStart, lt: monthEnd }
+        }
+      }),
+      prisma.link.aggregate({
+        where: {
+          createdAt: { gte: monthStart, lt: monthEnd }
+        },
+        _sum: { visitCount: true }
+      })
+    ])
 
     monthlyStats.push({
       month: monthStart.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }),
-      users: parseInt(monthStats.usersCreated),
-      links: parseInt(monthStats.linksCreated),
-      visits: parseInt(monthStats.visits),
+      users: usersCreated,
+      links: linksCreated,
+      visits: visitsResult._sum.visitCount || 0,
     })
   }
 
-  // Get top users by link count using raw SQL
-  const topUsersResult = await db.query(`
-    SELECT "nimOrUsername", email, "totalLinks", "monthlyLinksCreated", role
-    FROM "User"
-    ORDER BY "totalLinks" DESC
-    LIMIT 10
-  `)
-
-  const topUsers = topUsersResult.rows
+  // Get top users by link count using Prisma
+  const topUsers = await prisma.user.findMany({
+    select: {
+      nimOrUsername: true,
+      email: true,
+      totalLinks: true,
+      monthlyLinksCreated: true,
+      role: true
+    },
+    orderBy: { totalLinks: 'desc' },
+    take: 10
+  })
 
   return (
     <div className="space-y-6">
@@ -190,7 +212,7 @@ export default async function AdminReportsPage() {
             Distribusi Peran User
           </h3>
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-            {userRoles.map((role: { role: string; _count: { role: number } }) => (
+            {userRoles.map((role) => (
               <div key={role.role} className="text-center">
                 <div className="text-2xl font-bold text-gray-900">{role._count.role}</div>
                 <div className="text-sm text-gray-500">
@@ -274,7 +296,7 @@ export default async function AdminReportsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {topUsers.map((user: { nimOrUsername: string; email: string; totalLinks: number; monthlyLinksCreated: number; role: string }, index: number) => (
+                {topUsers.map((user, index) => (
                   <tr key={index}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { verifyAdminToken } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
@@ -19,47 +19,47 @@ export async function GET(request: NextRequest) {
 
   const skip = (page - 1) * limit
 
-  // Build WHERE clause
-  const whereConditions = []
-  const params: unknown[] = []
-  let paramIndex = 1
+  // Build WHERE clause for Prisma
+  const where: any = {}
 
   if (search) {
-    whereConditions.push(`("nimOrUsername" ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`)
-    params.push(`%${search}%`)
-    paramIndex++
+    where.OR = [
+      { nimOrUsername: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } }
+    ]
   }
 
   if (role && role !== 'all') {
-    whereConditions.push(`role = $${paramIndex}`)
-    params.push(role)
-    paramIndex++
+    where.role = role
   }
 
-  const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
-
   // Get total count
-  const countQuery = `SELECT COUNT(*) as total FROM "User" ${whereClause}`
-  const countResult = await db.query(countQuery, params)
-  const total = parseInt(countResult.rows[0].total)
+  const total = await prisma.user.count({ where })
 
   // Get paginated users
-  const usersQuery = `
-    SELECT id, email, "nimOrUsername", role, "emailVerified", "twoFactorEnabled", 
-           "monthlyLinksCreated", "totalLinks", "createdAt", active
-    FROM "User" 
-    ${whereClause}
-    ORDER BY "createdAt" DESC 
-    LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-  `
-
-  params.push(limit, skip)
-  const usersResult = await db.query(usersQuery, params)
+  const users = await prisma.user.findMany({
+    where,
+    select: {
+      id: true,
+      email: true,
+      nimOrUsername: true,
+      role: true,
+      emailVerified: true,
+      twoFactorEnabled: true,
+      monthlyLinksCreated: true,
+      totalLinks: true,
+      createdAt: true,
+      active: true
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    skip
+  })
 
   const totalPages = Math.ceil(total / limit)
 
   return NextResponse.json({
-    users: usersResult.rows,
+    users,
     pagination: {
       page,
       limit,

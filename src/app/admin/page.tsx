@@ -1,50 +1,50 @@
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import ManualCronJobs from '@/components/ManualCronJobs'
 import Link from 'next/link'
 
 export default async function AdminDashboard() {
 
-  // Get system statistics using raw SQL
-  const statsResult = await db.query(`
-    SELECT
-      (SELECT COUNT(*) FROM "User") as totalUsers,
-      (SELECT COUNT(*) FROM "Link") as totalLinks,
-      (SELECT COUNT(*) FROM "Link" WHERE active = true) as activeLinks,
-      (SELECT SUM("visitCount") FROM "Link") as totalVisits
-  `)
+  // Get system statistics using Prisma
+  const [totalUsers, totalLinks, activeLinks, totalVisitsResult] = await Promise.all([
+    prisma.user.count(),
+    prisma.link.count(),
+    prisma.link.count({ where: { active: true } }),
+    prisma.link.aggregate({ _sum: { visitCount: true } })
+  ])
 
-  const stats = statsResult.rows[0]
+  const stats = {
+    totalUsers,
+    totalLinks,
+    activeLinks,
+    totalVisits: totalVisitsResult._sum.visitCount || 0
+  }
 
-  // Get recent users using raw SQL
-  const recentUsersResult = await db.query(`
-    SELECT id, email, "nimOrUsername", role, "createdAt", "twoFactorEnabled"
-    FROM "User"
-    ORDER BY "createdAt" DESC
-    LIMIT 5
-  `)
+  // Get recent users using Prisma
+  const recentUsers = await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      nimOrUsername: true,
+      role: true,
+      createdAt: true,
+      twoFactorEnabled: true
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5
+  })
 
-  const recentUsers = recentUsersResult.rows
-
-  // Get recent links using raw SQL with join
-  const recentLinksResult = await db.query(`
-    SELECT l.*, u."nimOrUsername", u.email
-    FROM "Link" l
-    JOIN "User" u ON l."userId" = u.id
-    ORDER BY l."createdAt" DESC
-    LIMIT 5
-  `)
-
-  const recentLinks = recentLinksResult.rows.map(link => {
-    const formattedLink = {
-      ...link,
+  // Get recent links using Prisma with user relation
+  const recentLinks = await prisma.link.findMany({
+    include: {
       user: {
-        nimOrUsername: link.nimOrUsername,
-        email: link.email
+        select: {
+          nimOrUsername: true,
+          email: true
+        }
       }
-    }
-    delete formattedLink.nimOrUsername
-    delete formattedLink.email
-    return formattedLink
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 5
   })
 
   return (
@@ -236,7 +236,7 @@ export default async function AdminDashboard() {
               Recent Users
             </h3>
             <ul className="divide-y divide-gray-200">
-              {recentUsers.map((user: typeof recentUsers[0]) => (
+              {recentUsers.map((user) => (
                 <li key={user.id} className="py-3">
                   <div className="flex items-center space-x-4">
                     <div className="flex-1 min-w-0">
@@ -248,11 +248,10 @@ export default async function AdminDashboard() {
                       </p>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
-                        user.role === 'STAFF' ? 'bg-blue-100 text-blue-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
+                          user.role === 'STAFF' ? 'bg-blue-100 text-blue-800' :
+                            'bg-green-100 text-green-800'
+                        }`}>
                         {user.role === 'STUDENT' ? 'Mahasiswa' : user.role === 'STAFF' ? 'Dosen/Staff' : 'Admin'}
                       </span>
                       {user.twoFactorEnabled && (
@@ -274,7 +273,7 @@ export default async function AdminDashboard() {
               Recent Links
             </h3>
             <ul className="divide-y divide-gray-200">
-              {recentLinks.map((link: typeof recentLinks[0]) => (
+              {recentLinks.map((link) => (
                 <li key={link.id} className="py-3">
                   <div className="flex items-center space-x-4">
                     <div className="flex-1 min-w-0">
@@ -289,9 +288,8 @@ export default async function AdminDashboard() {
                       </p>
                     </div>
                     <div className="flex items-center">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        link.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${link.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
                         {link.active ? 'Active' : 'Inactive'}
                       </span>
                     </div>

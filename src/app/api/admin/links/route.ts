@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { verifyAdminToken } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
@@ -19,67 +19,39 @@ export async function GET(request: NextRequest) {
 
   const offset = (page - 1) * limit
 
-  // Build WHERE clause
-  const whereConditions = []
-  const queryParams: unknown[] = []
-  let paramCount = 0
+  // Build WHERE clause for Prisma
+  const where: any = {}
 
   if (search) {
-    paramCount++
-    whereConditions.push(`(
-      l."shortUrl" ILIKE $${paramCount} OR
-      l."longUrl" ILIKE $${paramCount} OR
-      u."nimOrUsername" ILIKE $${paramCount} OR
-      u.email ILIKE $${paramCount}
-    )`)
-    queryParams.push(`%${search}%`)
+    where.OR = [
+      { shortUrl: { contains: search, mode: 'insensitive' } },
+      { longUrl: { contains: search, mode: 'insensitive' } },
+      { user: { nimOrUsername: { contains: search, mode: 'insensitive' } } },
+      { user: { email: { contains: search, mode: 'insensitive' } } }
+    ]
   }
 
   if (active !== null && active !== undefined) {
-    paramCount++
-    whereConditions.push(`l.active = $${paramCount}`)
-    queryParams.push(active === 'true')
+    where.active = active === 'true'
   }
 
-  const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
-
   // Get total count
-  const countQuery = `
-    SELECT COUNT(*) as total
-    FROM "Link" l
-    JOIN "User" u ON l."userId" = u.id
-    ${whereClause}
-  `
+  const total = await prisma.link.count({ where })
 
-  const countResult = await db.query(countQuery, queryParams)
-  const total = parseInt(countResult.rows[0].total)
-
-  // Get paginated links
-  const linksQuery = `
-    SELECT l.*, u."nimOrUsername", u.email
-    FROM "Link" l
-    JOIN "User" u ON l."userId" = u.id
-    ${whereClause}
-    ORDER BY l."createdAt" DESC
-    LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}
-  `
-
-  queryParams.push(limit, offset)
-  const linksResult = await db.query(linksQuery, queryParams)
-
-  // Format links to match expected structure with nested user object
-  const links = linksResult.rows.map(link => {
-    const formattedLink = {
-      ...link,
+  // Get paginated links with user info
+  const links = await prisma.link.findMany({
+    where,
+    include: {
       user: {
-        nimOrUsername: link.nimOrUsername,
-        email: link.email
+        select: {
+          nimOrUsername: true,
+          email: true
+        }
       }
-    }
-    // Remove the flat user fields
-    delete formattedLink.nimOrUsername
-    delete formattedLink.email
-    return formattedLink
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    skip: offset
   })
 
   const totalPages = Math.ceil(total / limit)
