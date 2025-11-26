@@ -36,7 +36,7 @@ export default async function AdminDashboard() {
   // Get recent links using Prisma with user relation
   const recentLinks = await prisma.link.findMany({
     include: {
-      user: {
+      User: {
         select: {
           nimOrUsername: true,
           email: true
@@ -249,8 +249,8 @@ export default async function AdminDashboard() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
-                          user.role === 'STAFF' ? 'bg-blue-100 text-blue-800' :
-                            'bg-green-100 text-green-800'
+                        user.role === 'STAFF' ? 'bg-blue-100 text-blue-800' :
+                          'bg-green-100 text-green-800'
                         }`}>
                         {user.role === 'STUDENT' ? 'Mahasiswa' : user.role === 'STAFF' ? 'Dosen/Staff' : 'Admin'}
                       </span>
@@ -284,7 +284,7 @@ export default async function AdminDashboard() {
                         {link.longUrl}
                       </p>
                       <p className="text-xs text-gray-400">
-                        by {link.user.nimOrUsername}
+                        by {link.User.nimOrUsername}
                       </p>
                     </div>
                     <div className="flex items-center">

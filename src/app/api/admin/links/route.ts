@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
     where.OR = [
       { shortUrl: { contains: search, mode: 'insensitive' } },
       { longUrl: { contains: search, mode: 'insensitive' } },
-      { user: { nimOrUsername: { contains: search, mode: 'insensitive' } } },
-      { user: { email: { contains: search, mode: 'insensitive' } } }
+      { User: { nimOrUsername: { contains: search, mode: 'insensitive' } } },
+      { User: { email: { contains: search, mode: 'insensitive' } } }
     ]
   }
 
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   const links = await prisma.link.findMany({
     where,
     include: {
-      user: {
+      User: {
         select: {
           nimOrUsername: true,
           email: true

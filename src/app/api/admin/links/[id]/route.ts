@@ -29,7 +29,7 @@ export async function PATCH(
       updatedAt: new Date()
     },
     include: {
-      user: {
+      User: {
         select: {
           nimOrUsername: true,
           email: true

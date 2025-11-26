@@ -8,7 +8,7 @@ interface LinkData {
   status: 'not_found' | 'inactive' | 'locked' | 'ok'
   longUrl?: string
   mode?: string
-  id?: number
+  id?: string
 }
 
 interface Props {
