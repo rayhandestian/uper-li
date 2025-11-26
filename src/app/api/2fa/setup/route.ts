@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import crypto from 'crypto'
 import { sendEmail } from '@/lib/email'
 import { get2FAVerificationEmailHtml } from '@/lib/email-templates'
 import { withRateLimit } from '@/lib/rateLimit'
+import { generateSecureCode } from '@/lib/generateSecureCode'
 import { logger } from '@/lib/logger'
 
 async function handle2FASetup() {
@@ -34,8 +34,8 @@ async function handle2FASetup() {
     return NextResponse.json({ error: '2FA sudah diaktifkan.' }, { status: 400 })
   }
 
-  // Generate verification code
-  const verificationCode = crypto.randomInt(100000, 999999).toString()
+  // Generate secure alphanumeric verification code
+  const verificationCode = generateSecureCode()
   const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
   // Update user with verification code using Prisma

@@ -158,7 +158,7 @@ describe('/api/register', () => {
         expect(response.message).toContain('Registrasi berhasil')
     })
 
-    it('should generate 6-digit verification code', async () => {
+    it('should generate 6-character alphanumeric verification code', async () => {
         ; (prisma.user.findUnique as jest.Mock)
             .mockResolvedValueOnce(null)
             .mockResolvedValueOnce(null)
@@ -172,10 +172,10 @@ describe('/api/register', () => {
         })
         await POST(req)
 
-        // Check that create was called with verification code (6 digits)
+        // Check that create was called with verification code (6 alphanumeric characters)
         const createCall = (prisma.user.create as jest.Mock).mock.calls[0]
         expect(createCall).toBeDefined()
         const verificationCode = createCall[0].data.verificationToken
-        expect(verificationCode).toMatch(/^\d{6}$/)
+        expect(verificationCode).toMatch(/^[a-z0-9]{6}$/)
     })
 })

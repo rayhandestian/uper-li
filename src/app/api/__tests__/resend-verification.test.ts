@@ -108,7 +108,7 @@ describe('/api/resend-verification', () => {
         expect(response.message).toBe('Kode verifikasi baru telah dikirim ke email Anda.')
     })
 
-    it('should generate new 6-digit verification code', async () => {
+    it('should generate new 6-character alphanumeric verification code', async () => {
         ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
             id: 'user-123',
             email: 'test@student.universitaspertamina.ac.id',
@@ -125,11 +125,11 @@ describe('/api/resend-verification', () => {
         })
         await POST(req)
 
-        // Check that update was called with verification code (6 digits)
+        // Check that update was called with verification code (6 alphanumeric characters)
         const updateCall = (prisma.user.update as jest.Mock).mock.calls[0]
         expect(updateCall).toBeDefined()
         const verificationToken = updateCall[0].data.verificationToken
-        expect(verificationToken).toMatch(/^\d{6}$/)
+        expect(verificationToken).toMatch(/^[a-z0-9]{6}$/)
 
         // Verify password was NOT included in update
         expect(updateCall[0].data.password).toBeUndefined()

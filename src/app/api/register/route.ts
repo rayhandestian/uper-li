@@ -4,6 +4,7 @@ import { sendEmail } from '@/lib/email'
 import { getVerificationEmailHtml } from '@/lib/email-templates'
 import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
+import { generateSecureCode } from '@/lib/generateSecureCode'
 import { logger } from '@/lib/logger'
 
 async function handleRegistration(request: NextRequest) {
@@ -59,8 +60,8 @@ async function handleRegistration(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Generate 6-digit verification code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    // Generate secure alphanumeric verification code
+    const verificationCode = generateSecureCode()
     const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
     // Create user using Prisma

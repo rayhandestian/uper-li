@@ -3,6 +3,7 @@ import { sendEmail } from '@/lib/email'
 import { getVerificationEmailHtml } from '@/lib/email-templates'
 import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
+import { generateSecureCode } from '@/lib/generateSecureCode'
 import { logger } from '@/lib/logger'
 
 async function handleResendVerification(request: NextRequest) {
@@ -28,8 +29,8 @@ async function handleResendVerification(request: NextRequest) {
       return NextResponse.json({ error: 'Akun sudah diverifikasi. Silakan masuk.' }, { status: 400 })
     }
 
-    // Generate new 6-digit verification code
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+    // Generate secure alphanumeric verification code
+    const verificationCode = generateSecureCode()
     const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
     // Update user's verification token and expiry using Prisma

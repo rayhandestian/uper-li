@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import { getResetPasswordEmailHtml } from '@/lib/email-templates'
 import { withRateLimit } from '@/lib/rateLimit'
+import { generateSecureCode } from '@/lib/generateSecureCode'
 import { logger } from '@/lib/logger'
 
 async function handleForgotPassword(request: NextRequest) {
@@ -44,8 +45,8 @@ async function handleForgotPassword(request: NextRequest) {
                 return NextResponse.json({ message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.' })
             }
 
-            // Generate 6-digit verification code
-            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+            // Generate secure alphanumeric verification code
+            const verificationCode = generateSecureCode()
 
             // Set expiration to 10 minutes from now
             const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000)
