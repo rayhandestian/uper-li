@@ -3,18 +3,6 @@ import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import { logger } from '@/lib/logger'
 
-interface Link {
-  id: string
-  shortUrl: string
-  longUrl: string
-  userId: string
-  active: boolean
-  createdAt: Date | null
-  lastVisited: Date | null
-  email: string
-  nimOrUsername: string
-}
-
 export const resetMonthlyLimits = async () => {
   logger.info('Running monthly limit reset...')
   try {
@@ -49,7 +37,7 @@ export const deactivateExpiredLinks = async () => {
         ]
       },
       include: {
-        user: {
+        User: {
           select: {
             email: true,
             nimOrUsername: true
@@ -72,11 +60,11 @@ export const deactivateExpiredLinks = async () => {
       for (const link of linksForWarning) {
         try {
           await sendEmail({
-            to: link.user.email,
+            to: link.User.email,
             from: 'noreply@uper.li',
             subject: 'Pemberitahuan: Link Akan Dinonaktifkan - UPer.li',
             html: `
-                            <p>Halo ${link.user.nimOrUsername},</p>
+                            <p>Halo ${link.User.nimOrUsername},</p>
                             <p>Link Anda berikut akan segera dinonaktifkan karena tidak aktif selama 5 bulan:</p>
                             <p><strong>uper.li/${link.shortUrl}</strong></p>
                             <p>Silakan kunjungi link tersebut atau aktifkan kembali di dashboard Anda.</p>

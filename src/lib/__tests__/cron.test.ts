@@ -129,7 +129,7 @@ describe('cron', () => {
                 const mockLinks = [
                     {
                         id: 'link-1',
-                        user: {
+                        User: {
                             email: 'user@example.com',
                             nimOrUsername: 'user1'
                         },

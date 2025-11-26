@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminToken } from '@/lib/admin-auth'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies()
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
   const offset = (page - 1) * limit
 
   // Build WHERE clause for Prisma
-  const where: any = {}
+  const where = {} as Prisma.LinkWhereInput
 
   if (search) {
     where.OR = [

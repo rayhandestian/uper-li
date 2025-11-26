@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
 
 // Helper function to extract client IP

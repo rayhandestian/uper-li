@@ -81,7 +81,6 @@ export default function DashboardPage() {
   const [currentPage, setCurrentPage] = useState(1)
 
   // Analytics tab state
-  const [analyticsLinks, setAnalyticsLinks] = useState<Link[]>([])
   const [totalVisits, setTotalVisits] = useState(0)
   const [timeZone, setTimeZone] = useState('Asia/Jakarta')
 
@@ -148,7 +147,6 @@ export default function DashboardPage() {
     const response = await fetch('/api/links?sort=visitCount&order=desc')
     if (response.ok) {
       const data = await response.json()
-      setAnalyticsLinks(data.links)
       const total = data.links.reduce((sum: number, link: Link) => sum + (link.visitCount || 0), 0)
       setTotalVisits(total)
     }
