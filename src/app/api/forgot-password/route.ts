@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
 import { getResetPasswordEmailHtml } from '@/lib/email-templates'
 import { withRateLimit } from '@/lib/rateLimit'
@@ -30,16 +30,14 @@ async function handleForgotPassword(request: NextRequest) {
             return NextResponse.json({ error: 'Verifikasi CAPTCHA gagal.' }, { status: 400 })
         }
 
-        // Find user by nimOrUsername
-        const userResult = await db.query(
-            'SELECT id, email, "emailVerified" FROM "User" WHERE "nimOrUsername" = $1',
-            [nimOrUsername]
-        )
+        // Find user by nimOrUsername using Prisma
+        const user = await prisma.user.findUnique({
+            where: { nimOrUsername },
+            select: { id: true, email: true, emailVerified: true }
+        })
 
         // Always return success to prevent enumeration, but only send email if user exists and is verified
-        if (userResult.rows.length > 0) {
-            const user = userResult.rows[0]
-
+        if (user) {
             // Check if user email is verified
             if (!user.emailVerified) {
                 // Return success message to prevent enumeration, but don't send email
@@ -50,19 +48,18 @@ async function handleForgotPassword(request: NextRequest) {
             const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
 
             // Set expiration to 10 minutes from now
-            // Using raw SQL interval for reliability or JS Date object
-            // Let's use JS Date object as in register route
             const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000)
 
-            // Update user with verification token
-            await db.query(
-                `UPDATE "User" 
-         SET "verificationToken" = $1, "verificationTokenExpires" = $2, "updatedAt" = NOW()
-         WHERE id = $3`,
-                [verificationCode, verificationTokenExpires, user.id]
-            )
+            // Update user with verification token using Prisma
+            await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    verificationToken: verificationCode,
+                    verificationTokenExpires,
+                    updatedAt: new Date()
+                }
+            })
 
-            // Send email
             // Send email
             await sendEmail({
                 to: user.email,

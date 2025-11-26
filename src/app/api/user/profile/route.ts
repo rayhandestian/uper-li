@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
@@ -12,17 +12,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Get user using raw SQL
-  const userResult = await db.query(
-    'SELECT id, email, "nimOrUsername", role, "emailVerified", "twoFactorEnabled", "monthlyLinksCreated", "totalLinks", "createdAt" FROM "User" WHERE id = $1',
-    [session.user.id]
-  )
+  // Get user using Prisma
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      nimOrUsername: true,
+      role: true,
+      emailVerified: true,
+      twoFactorEnabled: true,
+      monthlyLinksCreated: true,
+      totalLinks: true,
+      createdAt: true
+    }
+  })
 
-  if (userResult.rows.length === 0) {
+  if (!user) {
     return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 })
   }
 
-  return NextResponse.json(userResult.rows[0])
+  return NextResponse.json(user)
 }
 
 async function handleUpdateProfile(request: NextRequest) {
@@ -34,13 +44,14 @@ async function handleUpdateProfile(request: NextRequest) {
 
   const { name } = await request.json()
 
-  // Update user using raw SQL
-  await db.query(
-    `UPDATE "User" 
-     SET name = $1, "updatedAt" = NOW()
-     WHERE id = $2`,
-    [name, session.user.id]
-  )
+  // Update user using Prisma
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      name,
+      updatedAt: new Date()
+    }
+  })
 
   return NextResponse.json({ message: 'Profil berhasil diperbarui.' })
 }

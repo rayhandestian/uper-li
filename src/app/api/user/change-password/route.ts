@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { getPasswordChangedEmailHtml } from '@/lib/email-templates'
@@ -33,20 +33,24 @@ async function handleChangePassword(req: Request) {
             )
         }
 
-        // Get user from database
-        const userResult = await db.query(
-            'SELECT * FROM "User" WHERE email = $1',
-            [session.user.email]
-        )
+        // Get user from database using Prisma
+        const user = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: {
+                id: true,
+                email: true,
+                password: true,
+                name: true,
+                nimOrUsername: true
+            }
+        })
 
-        if (userResult.rows.length === 0) {
+        if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
         }
 
-        const user = userResult.rows[0]
-
         // Verify current password
-        const isValid = await bcrypt.compare(currentPassword, user.password)
+        const isValid = await bcrypt.compare(currentPassword, user.password || '')
 
         if (!isValid) {
             return NextResponse.json(
@@ -58,11 +62,14 @@ async function handleChangePassword(req: Request) {
         // Hash new password
         const hashedPassword = await bcrypt.hash(newPassword, 10)
 
-        // Update password in database
-        await db.query(
-            'UPDATE "User" SET password = $1, "updatedAt" = NOW() WHERE id = $2',
-            [hashedPassword, user.id]
-        )
+        // Update password in database using Prisma
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                updatedAt: new Date()
+            }
+        })
 
         // Send email notification
         try {

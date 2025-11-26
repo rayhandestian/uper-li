@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { getVerificationEmailHtml } from '@/lib/email-templates'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
 
@@ -18,18 +18,15 @@ async function handleResendVerification(request: NextRequest) {
       return NextResponse.json({ error: 'Password minimal 6 karakter.' }, { status: 400 })
     }
 
-    // Construct email from username (same logic as register)
-    // We need to determine role from user record to construct proper email
-    const userResult = await db.query(
-      'SELECT id, email, role, "emailVerified" FROM "User" WHERE "nimOrUsername" = $1',
-      [nimOrUsername]
-    )
+    // Find user by nimOrUsername using Prisma
+    const user = await prisma.user.findUnique({
+      where: { nimOrUsername },
+      select: { id: true, email: true, role: true, emailVerified: true }
+    })
 
-    if (userResult.rows.length === 0) {
+    if (!user) {
       return NextResponse.json({ error: 'Akun tidak ditemukan.' }, { status: 404 })
     }
-
-    const user = userResult.rows[0]
 
     // Check if user is already verified
     if (user.emailVerified) {
@@ -40,32 +37,36 @@ async function handleResendVerification(request: NextRequest) {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
     const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-    // Prepare database update query - update password if provided
-    let updateQuery = `UPDATE "User"
-                       SET "verificationToken" = $1, "verificationTokenExpires" = $2, "updatedAt" = NOW()`
-    const queryParams = [verificationCode, verificationTokenExpires]
+    // Prepare update data
+    const updateData: {
+      verificationToken: string
+      verificationTokenExpires: Date
+      updatedAt: Date
+      password?: string
+    } = {
+      verificationToken: verificationCode,
+      verificationTokenExpires,
+      updatedAt: new Date()
+    }
 
     if (password) {
       // Hash password if provided
       const hashedPassword = await bcrypt.hash(password, 12)
-      updateQuery += `, password = $4`
-      queryParams.push(hashedPassword)
-    }
+      updateData.password = hashedPassword
 
-    updateQuery += ` WHERE id = $3`
-    queryParams.push(user.id)
-
-    // Update user's verification token and expiry (and password if provided)
-    await db.query(updateQuery, queryParams)
-
-    // Log password update for security
-    if (password) {
-      logger.info(`Password updated for user during resend verification`, { 
-        userId: user.id, 
+      // Log password update for security
+      logger.info(`Password updated for user during resend verification`, {
+        userId: user.id,
         nimOrUsername,
         timestamp: new Date()
       })
     }
+
+    // Update user's verification token and expiry (and password if provided) using Prisma
+    await prisma.user.update({
+      where: { id: user.id },
+      data: updateData
+    })
 
     // Send verification email
     await sendEmail({
@@ -75,7 +76,7 @@ async function handleResendVerification(request: NextRequest) {
       html: getVerificationEmailHtml(verificationCode),
     })
 
-    const message = password 
+    const message = password
       ? 'Password berhasil diubah dan kode verifikasi baru telah dikirim ke email Anda.'
       : 'Kode verifikasi baru telah dikirim ke email Anda.'
 

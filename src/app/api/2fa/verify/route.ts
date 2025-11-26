@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
 
 async function handle2FAVerify(request: NextRequest) {
@@ -17,17 +17,20 @@ async function handle2FAVerify(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi diperlukan.' }, { status: 400 })
   }
 
-  // Get user using raw SQL
-  const userResult = await db.query(
-    'SELECT * FROM "User" WHERE id = $1',
-    [session.user.id]
-  )
+  // Get user using Prisma
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      twoFactorEnabled: true,
+      twoFactorSecret: true,
+      verificationTokenExpires: true
+    }
+  })
 
-  if (userResult.rows.length === 0) {
+  if (!user) {
     return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 })
   }
-
-  const user = userResult.rows[0]
 
   if (user.twoFactorEnabled) {
     return NextResponse.json({ error: '2FA sudah diaktifkan.' }, { status: 400 })
@@ -45,13 +48,16 @@ async function handle2FAVerify(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi salah.' }, { status: 400 })
   }
 
-  // Enable 2FA using raw SQL
-  await db.query(
-    `UPDATE "User" 
-     SET "twoFactorEnabled" = true, "twoFactorSecret" = null, "verificationTokenExpires" = null, "updatedAt" = NOW()
-     WHERE id = $1`,
-    [session.user.id]
-  )
+  // Enable 2FA using Prisma
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      twoFactorEnabled: true,
+      twoFactorSecret: null,
+      verificationTokenExpires: null,
+      updatedAt: new Date()
+    }
+  })
 
   return NextResponse.json({ message: '2FA berhasil diaktifkan.' })
 }

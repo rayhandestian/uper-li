@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
 
@@ -85,20 +85,17 @@ async function handleVerification(request: NextRequest) {
     }
 
     // Find user by verification code using raw SQL
-    const userResult = await db.query(
-      'SELECT * FROM "User" WHERE "verificationToken" = $1',
-      [code]
-    )
+    const user = await prisma.user.findFirst({ where: { verificationToken: code } })
 
-    if (userResult.rows.length === 0) {
+    if (!user) {
       logger.info(`Invalid verification code attempt from IP: ${clientIP}`, { code: code.substring(0, 2) + '****' })
       return NextResponse.json({ error: 'Kode verifikasi tidak valid.' }, { status: 400 })
     }
 
-    const user = userResult.rows[0]
+    
 
     // Check if code has expired
-    if (user.verificationTokenExpires && new Date(user.verificationTokenExpires) < new Date()) {
+    if (user.verificationTokenExpires && user.verificationTokenExpires < new Date()) {
       logger.warn(`Expired verification code attempt from IP: ${clientIP}`, { userId: user.id, code: code.substring(0, 2) + '****' })
       return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa.' }, { status: 400 })
     }
@@ -112,7 +109,7 @@ async function handleVerification(request: NextRequest) {
     // Additional security: Check if verification code was generated recently (within 24 hours)
     const verificationTokenGenerated = user.updatedAt // This gets updated when token is set
     const now = new Date()
-    const tokenAge = now.getTime() - new Date(verificationTokenGenerated).getTime()
+    const tokenAge = now.getTime() - (verificationTokenGenerated?.getTime() || 0)
     const maxTokenAge = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
 
     if (tokenAge > maxTokenAge) {
@@ -150,3 +147,8 @@ async function handleVerification(request: NextRequest) {
 }
 
 export const POST = handleVerification
+
+
+
+
+

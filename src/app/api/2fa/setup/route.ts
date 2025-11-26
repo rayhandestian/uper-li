@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import crypto from 'crypto'
 import { sendEmail } from '@/lib/email'
 import { get2FAVerificationEmailHtml } from '@/lib/email-templates'
@@ -15,17 +15,20 @@ async function handle2FASetup() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Get user using raw SQL
-  const userResult = await db.query(
-    'SELECT * FROM "User" WHERE id = $1',
-    [session.user.id]
-  )
+  // Get user using Prisma
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      nimOrUsername: true,
+      twoFactorEnabled: true
+    }
+  })
 
-  if (userResult.rows.length === 0) {
+  if (!user) {
     return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 })
   }
-
-  const user = userResult.rows[0]
 
   if (user.twoFactorEnabled) {
     return NextResponse.json({ error: '2FA sudah diaktifkan.' }, { status: 400 })
@@ -35,13 +38,15 @@ async function handle2FASetup() {
   const verificationCode = crypto.randomInt(100000, 999999).toString()
   const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-  // Update user with verification code using raw SQL
-  await db.query(
-    `UPDATE "User" 
-     SET "twoFactorSecret" = $1, "verificationTokenExpires" = $2, "updatedAt" = NOW()
-     WHERE id = $3`,
-    [verificationCode, verificationCodeExpires, session.user.id]
-  )
+  // Update user with verification code using Prisma
+  await prisma.user.update({
+    where: { id: session.user.id },
+    data: {
+      twoFactorSecret: verificationCode,
+      verificationTokenExpires: verificationCodeExpires,
+      updatedAt: new Date()
+    }
+  })
 
   // Send verification email
   try {

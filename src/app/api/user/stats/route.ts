@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 
 export async function GET() {
@@ -12,28 +12,32 @@ export async function GET() {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        // Get user data using raw SQL
-        const userResult = await db.query(`
-      SELECT 
-        "totalLinks",
-        "monthlyLinksCreated" as "monthlyLinks",
-        "role",
-        (SELECT COUNT(*)::int FROM "Link" WHERE "userId" = $1 AND active = true) as "totalActiveLinks"
-      FROM "User"
-      WHERE id = $1
-    `, [session.user.id])
+        // Get user data using Prisma with active links count
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: {
+                totalLinks: true,
+                monthlyLinksCreated: true,
+                role: true,
+                _count: {
+                    select: {
+                        Link: {
+                            where: { active: true }
+                        }
+                    }
+                }
+            }
+        })
 
-        if (userResult.rows.length === 0) {
+        if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
         }
 
-        const user = userResult.rows[0]
-
         return NextResponse.json({
             totalLinks: user.totalLinks,
-            monthlyLinks: user.monthlyLinks,
+            monthlyLinks: user.monthlyLinksCreated,
             role: user.role,
-            totalActiveLinks: user.totalActiveLinks,
+            totalActiveLinks: user._count.Link,
         })
     } catch (error) {
         logger.error('Error fetching user stats:', error)

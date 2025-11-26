@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { getVerificationEmailHtml } from '@/lib/email-templates'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
 
@@ -36,23 +36,23 @@ async function handleRegistration(request: NextRequest) {
       ? `${nimOrUsername}@student.universitaspertamina.ac.id`
       : `${nimOrUsername}@universitaspertamina.ac.id`
 
-    // Check if user exists by email using raw SQL
-    const existingUserResult = await db.query(
-      'SELECT id FROM "User" WHERE email = $1',
-      [email]
-    )
+    // Check if user exists by email using Prisma
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true }
+    })
 
-    if (existingUserResult.rows.length > 0) {
+    if (existingUser) {
       return NextResponse.json({ error: 'Email sudah terdaftar.' }, { status: 400 })
     }
 
-    // Check if nimOrUsername is unique using raw SQL
-    const existingUsernameResult = await db.query(
-      'SELECT id FROM "User" WHERE "nimOrUsername" = $1',
-      [nimOrUsername]
-    )
+    // Check if nimOrUsername is unique using Prisma
+    const existingUsername = await prisma.user.findUnique({
+      where: { nimOrUsername },
+      select: { id: true }
+    })
 
-    if (existingUsernameResult.rows.length > 0) {
+    if (existingUsername) {
       return NextResponse.json({ error: 'NIM/Username sudah digunakan.' }, { status: 400 })
     }
 
@@ -63,14 +63,17 @@ async function handleRegistration(request: NextRequest) {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
     const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-    // Create user using raw SQL with RETURNING clause
-    await db.query(
-      `INSERT INTO "User" (
-        id, email, role, "nimOrUsername", password,
-        "verificationToken", "verificationTokenExpires", "createdAt", "updatedAt"
-      ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, NOW(), NOW())`,
-      [email, role, nimOrUsername, hashedPassword, verificationCode, verificationTokenExpires]
-    )
+    // Create user using Prisma
+    await prisma.user.create({
+      data: {
+        email,
+        role,
+        nimOrUsername,
+        password: hashedPassword,
+        verificationToken: verificationCode,
+        verificationTokenExpires,
+      }
+    })
 
     // Send verification email
     await sendEmail({

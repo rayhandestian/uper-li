@@ -1,6 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { db } from './db'
+import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { get2FALoginEmailHtml } from '@/lib/email-templates'
@@ -17,17 +17,12 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.nimOrUsername || !credentials?.password) return null
 
-        // Get user using raw SQL
-        const userResult = await db.query(
-          'SELECT * FROM "User" WHERE "nimOrUsername" = $1',
-          [credentials.nimOrUsername]
-        )
+        // Get user using Prisma
+        const user = await prisma.user.findUnique({
+          where: { nimOrUsername: credentials.nimOrUsername }
+        })
 
-        if (userResult.rows.length === 0) return null
-
-        const user = userResult.rows[0]
-
-        if (!user.password) return null
+        if (!user || !user.password) return null
 
         const isValid = await bcrypt.compare(credentials.password, user.password)
         if (!isValid) return null
@@ -43,13 +38,15 @@ export const authOptions: NextAuthOptions = {
           const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
           const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-          // Update user with 2FA code using raw SQL
-          await db.query(
-            `UPDATE "User" 
-             SET "twoFactorSecret" = $1, "verificationTokenExpires" = $2, "updatedAt" = NOW()
-             WHERE id = $3`,
-            [verificationCode, verificationCodeExpires, user.id]
-          )
+          // Update user with 2FA code using Prisma
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              twoFactorSecret: verificationCode,
+              verificationTokenExpires: verificationCodeExpires,
+              updatedAt: new Date()
+            }
+          })
 
           // Send 2FA code via email
           try {
@@ -104,9 +101,13 @@ export const authOptions: NextAuthOptions = {
         session.user.role = token.role as string
         session.user.nimOrUsername = token.nimOrUsername as string
         if (token.requires2FA) {
-          // Check if 2FA verification code has been cleared (meaning verified)
-          const userResult = await db.query('SELECT "twoFactorSecret" FROM "User" WHERE id = $1', [token.sub])
-          if (userResult.rows.length > 0 && !userResult.rows[0].twoFactorSecret) {
+          // Check if 2FA verification code has been cleared (meaning verified) using Prisma
+          const user = await prisma.user.findUnique({
+            where: { id: token.sub! },
+            select: { twoFactorSecret: true }
+          })
+
+          if (user && !user.twoFactorSecret) {
             session.user.requires2FA = false
           } else {
             session.user.requires2FA = true

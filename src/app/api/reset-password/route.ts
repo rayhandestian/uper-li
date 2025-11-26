@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
@@ -20,17 +20,22 @@ async function handleResetPassword(request: NextRequest) {
             return NextResponse.json({ error: 'Password minimal 6 karakter.' }, { status: 400 })
         }
 
-        // Find user by nimOrUsername and verificationToken
-        const userResult = await db.query(
-            'SELECT id, "verificationTokenExpires", "emailVerified" FROM "User" WHERE "nimOrUsername" = $1 AND "verificationToken" = $2',
-            [nimOrUsername, code]
-        )
+        // Find user by nimOrUsername and verificationToken using Prisma
+        const user = await prisma.user.findFirst({
+            where: {
+                nimOrUsername,
+                verificationToken: code
+            },
+            select: {
+                id: true,
+                verificationTokenExpires: true,
+                emailVerified: true
+            }
+        })
 
-        if (userResult.rows.length === 0) {
-            return NextResponse.json({ error: 'Kode verifikasi salah atau user tidak ditemukan.' }, { status: 400 })
+        if (!user) {
+            return NextResponse.json({ error: 'Kode verifikasi salah at au user tidak ditemukan.' }, { status: 400 })
         }
-
-        const user = userResult.rows[0]
 
         // Check if user email is verified
         if (!user.emailVerified) {
@@ -38,20 +43,23 @@ async function handleResetPassword(request: NextRequest) {
         }
 
         // Check expiration
-        if (new Date() > new Date(user.verificationTokenExpires)) {
+        if (user.verificationTokenExpires && new Date() > new Date(user.verificationTokenExpires)) {
             return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa.' }, { status: 400 })
         }
 
         // Hash new password
         const hashedPassword = await bcrypt.hash(newPassword, 12)
 
-        // Update password and clear verification token
-        await db.query(
-            `UPDATE "User" 
-       SET password = $1, "verificationToken" = null, "verificationTokenExpires" = null, "updatedAt" = NOW()
-       WHERE id = $2`,
-            [hashedPassword, user.id]
-        )
+        // Update password and clear verification token using Prisma
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                verificationToken: null,
+                verificationTokenExpires: null,
+                updatedAt: new Date()
+            }
+        })
 
         return NextResponse.json({ message: 'Password berhasil diubah. Silakan login dengan password baru.' })
     } catch (error) {
