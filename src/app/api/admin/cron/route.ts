@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { manualMonthlyReset, manualLinkCleanup } from '@/lib/cron'
+import { cleanupExpiredRateLimits } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
@@ -22,6 +23,14 @@ export async function POST(request: NextRequest) {
       case 'link_cleanup':
         const cleanupResult = await manualLinkCleanup()
         return NextResponse.json(cleanupResult)
+
+      case 'rate_limit_cleanup':
+        const deletedCount = await cleanupExpiredRateLimits()
+        return NextResponse.json({
+          success: true,
+          deletedCount,
+          message: `Cleaned up ${deletedCount} expired rate limit entries`
+        })
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })

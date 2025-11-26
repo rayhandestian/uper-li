@@ -59,3 +59,17 @@ model User {
   @@index([email], map: "idx_user_email")
   @@index([nimOrUsername], map: "idx_user_nimorusername")
 }
+
+model RateLimit {
+  id         String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  identifier String
+  endpoint   String
+  count      Int      @default(1)
+  resetTime  DateTime @db.Timestamp(6)
+  createdAt  DateTime @default(now()) @db.Timestamp(6)
+  updatedAt  DateTime @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@unique([identifier, endpoint])
+  @@index([resetTime], map: "idx_ratelimit_resettime")
+  @@index([identifier], map: "idx_ratelimit_identifier")
+}
