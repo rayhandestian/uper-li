@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { getVerificationEmailHtml } from '@/lib/email-templates'
 import { prisma } from '@/lib/prisma'
@@ -8,14 +7,10 @@ import { logger } from '@/lib/logger'
 
 async function handleResendVerification(request: NextRequest) {
   try {
-    const { nimOrUsername, password } = await request.json()
+    const { nimOrUsername } = await request.json()
 
     if (!nimOrUsername) {
       return NextResponse.json({ error: 'NIM/Username diperlukan.' }, { status: 400 })
-    }
-
-    if (password && password.length < 6) {
-      return NextResponse.json({ error: 'Password minimal 6 karakter.' }, { status: 400 })
     }
 
     // Find user by nimOrUsername using Prisma
@@ -37,35 +32,14 @@ async function handleResendVerification(request: NextRequest) {
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
     const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
-    // Prepare update data
-    const updateData: {
-      verificationToken: string
-      verificationTokenExpires: Date
-      updatedAt: Date
-      password?: string
-    } = {
-      verificationToken: verificationCode,
-      verificationTokenExpires,
-      updatedAt: new Date()
-    }
-
-    if (password) {
-      // Hash password if provided
-      const hashedPassword = await bcrypt.hash(password, 12)
-      updateData.password = hashedPassword
-
-      // Log password update for security
-      logger.info(`Password updated for user during resend verification`, {
-        userId: user.id,
-        nimOrUsername,
-        timestamp: new Date()
-      })
-    }
-
-    // Update user's verification token and expiry (and password if provided) using Prisma
+    // Update user's verification token and expiry using Prisma
     await prisma.user.update({
       where: { id: user.id },
-      data: updateData
+      data: {
+        verificationToken: verificationCode,
+        verificationTokenExpires,
+        updatedAt: new Date()
+      }
     })
 
     // Send verification email
@@ -76,11 +50,13 @@ async function handleResendVerification(request: NextRequest) {
       html: getVerificationEmailHtml(verificationCode),
     })
 
-    const message = password
-      ? 'Password berhasil diubah dan kode verifikasi baru telah dikirim ke email Anda.'
-      : 'Kode verifikasi baru telah dikirim ke email Anda.'
+    logger.info(`Verification code resent for user`, {
+      userId: user.id,
+      nimOrUsername,
+      timestamp: new Date()
+    })
 
-    return NextResponse.json({ message })
+    return NextResponse.json({ message: 'Kode verifikasi baru telah dikirim ke email Anda.' })
   } catch (error) {
     logger.error('Resend verification error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })

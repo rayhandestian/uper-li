@@ -36,7 +36,7 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           nimOrUsername,
-          password, // Include password for updating
+          
         }),
       })
 

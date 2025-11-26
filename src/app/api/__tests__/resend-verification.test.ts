@@ -20,11 +20,6 @@ jest.mock('@/lib/email', () => ({
     sendEmail: jest.fn(),
 }))
 
-// Mock bcryptjs
-jest.mock('bcryptjs', () => ({
-    hash: jest.fn(),
-}))
-
 // Mock rate limit wrapper
 jest.mock('@/lib/rateLimit', () => ({
     withRateLimit: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
@@ -58,19 +53,6 @@ describe('/api/resend-verification', () => {
         expect(await res.json()).toEqual({ error: 'NIM/Username diperlukan.' })
     })
 
-    it('should return 400 if password is too short', async () => {
-        const req = new NextRequest('http://localhost/api/resend-verification', {
-            method: 'POST',
-            body: JSON.stringify({
-                nimOrUsername: '12345678',
-                password: '123', // Less than 6 characters
-            }),
-        })
-        const res = await POST(req)
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Password minimal 6 karakter.' })
-    })
-
     it('should return 404 if user not found', async () => {
         ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
 
@@ -100,7 +82,7 @@ describe('/api/resend-verification', () => {
         expect(await res.json()).toEqual({ error: 'Akun sudah diverifikasi. Silakan masuk.' })
     })
 
-    it('should resend verification code without updating password', async () => {
+    it('should resend verification code successfully', async () => {
         ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
             id: 'user-123',
             email: 'test@student.universitaspertamina.ac.id',
@@ -115,7 +97,6 @@ describe('/api/resend-verification', () => {
             method: 'POST',
             body: JSON.stringify({
                 nimOrUsername: '12345678',
-                // No password provided
             }),
         })
         const res = await POST(req)
@@ -124,72 +105,7 @@ describe('/api/resend-verification', () => {
         expect(sendEmail).toHaveBeenCalled()
 
         const response = await res.json()
-        expect(response.message).toContain('Kode verifikasi baru telah dikirim')
-    })
-
-    it('should update password and resend verification code', async () => {
-        const bcrypt = jest.requireMock('bcryptjs')
-        bcrypt.hash = jest.fn().mockResolvedValue('hashed-new-password')
-
-            ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-                id: 'user-123',
-                email: 'test@student.universitaspertamina.ac.id',
-                role: 'STUDENT',
-                emailVerified: null // Not verified
-            })
-            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
-
-            ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
-
-        const req = new NextRequest('http://localhost/api/resend-verification', {
-            method: 'POST',
-            body: JSON.stringify({
-                nimOrUsername: '12345678',
-                password: 'newpassword123', // New password
-            }),
-        })
-        const res = await POST(req)
-
-        expect(res.status).toBe(200)
-        expect(bcrypt.hash).toHaveBeenCalledWith('newpassword123', 12)
-        expect(sendEmail).toHaveBeenCalled()
-
-        const response = await res.json()
-        expect(response.message).toContain('Password berhasil diubah')
-    })
-
-    it('should log password update for security', async () => {
-        const bcrypt = jest.requireMock('bcryptjs')
-        bcrypt.hash = jest.fn().mockResolvedValue('hashed-new-password')
-        const { logger } = await import('@/lib/logger')
-
-            ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-                id: 'user-123',
-                email: 'test@student.universitaspertamina.ac.id',
-                role: 'STUDENT',
-                emailVerified: null
-            })
-            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
-
-            ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
-
-        const req = new NextRequest('http://localhost/api/resend-verification', {
-            method: 'POST',
-            body: JSON.stringify({
-                nimOrUsername: '12345678',
-                password: 'newpassword123',
-            }),
-        })
-        await POST(req)
-
-        expect(logger.info).toHaveBeenCalledWith(
-            'Password updated for user during resend verification',
-            expect.objectContaining({
-                userId: 'user-123',
-                nimOrUsername: '12345678',
-                timestamp: expect.any(Date),
-            })
-        )
+        expect(response.message).toBe('Kode verifikasi baru telah dikirim ke email Anda.')
     })
 
     it('should generate new 6-digit verification code', async () => {
@@ -214,6 +130,9 @@ describe('/api/resend-verification', () => {
         expect(updateCall).toBeDefined()
         const verificationToken = updateCall[0].data.verificationToken
         expect(verificationToken).toMatch(/^\d{6}$/)
+
+        // Verify password was NOT included in update
+        expect(updateCall[0].data.password).toBeUndefined()
     })
 
     it('should update verification token with 10-minute expiry', async () => {
@@ -255,5 +174,30 @@ describe('/api/resend-verification', () => {
         const res = await POST(req)
         expect(res.status).toBe(500)
         expect(await res.json()).toEqual({ error: 'Terjadi kesalahan server.' })
+    })
+
+    it('should not accept password parameter', async () => {
+        ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+            id: 'user-123',
+            email: 'test@student.universitaspertamina.ac.id',
+            role: 'STUDENT',
+            emailVerified: null
+        })
+            ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
+
+            ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
+
+        const req = new NextRequest('http://localhost/api/resend-verification', {
+            method: 'POST',
+            body: JSON.stringify({
+                nimOrUsername: '12345678',
+                password: 'ignored-password' // Should be ignored
+            }),
+        })
+        await POST(req)
+
+        // Verify password was NOT included in database update
+        const updateCall = (prisma.user.update as jest.Mock).mock.calls[0]
+        expect(updateCall[0].data.password).toBeUndefined()
     })
 })
