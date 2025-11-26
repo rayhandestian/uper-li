@@ -5,6 +5,7 @@ import { getVerificationEmailHtml } from '@/lib/email-templates'
 import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
 import { generateSecureCode } from '@/lib/generateSecureCode'
+import { addConstantDelay } from '@/lib/timing'
 import { logger } from '@/lib/logger'
 
 async function handleRegistration(request: NextRequest) {
@@ -43,18 +44,16 @@ async function handleRegistration(request: NextRequest) {
       select: { id: true }
     })
 
-    if (existingUser) {
-      return NextResponse.json({ error: 'Email sudah terdaftar.' }, { status: 400 })
-    }
-
     // Check if nimOrUsername is unique using Prisma
     const existingUsername = await prisma.user.findUnique({
       where: { nimOrUsername },
       select: { id: true }
     })
 
-    if (existingUsername) {
-      return NextResponse.json({ error: 'NIM/Username sudah digunakan.' }, { status: 400 })
+    // If either exists, return generic error to prevent enumeration
+    if (existingUser || existingUsername) {
+      await addConstantDelay(50, 100)
+      return NextResponse.json({ error: 'Registrasi gagal. Silakan periksa data Anda.' }, { status: 400 })
     }
 
     // Hash password

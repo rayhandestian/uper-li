@@ -109,7 +109,7 @@ describe('/api/register', () => {
         })
     })
 
-    it('should return 400 if email already exists', async () => {
+    it('should return 400 with generic error if email already exists', async () => {
         ; (prisma.user.findUnique as jest.Mock)
             .mockResolvedValueOnce({ id: 'existing-user' }) // Email check
 
@@ -119,10 +119,10 @@ describe('/api/register', () => {
         })
         const res = await POST(req)
         expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Email sudah terdaftar.' })
+        expect(await res.json()).toEqual({ error: 'Registrasi gagal. Silakan periksa data Anda.' })
     })
 
-    it('should return 400 if nimOrUsername already exists', async () => {
+    it('should return 400 with generic error if nimOrUsername already exists', async () => {
         ; (prisma.user.findUnique as jest.Mock)
             .mockResolvedValueOnce(null) // Email check passes
             .mockResolvedValueOnce({ id: 'existing-user' }) // Username check fails
@@ -133,7 +133,7 @@ describe('/api/register', () => {
         })
         const res = await POST(req)
         expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'NIM/Username sudah digunakan.' })
+        expect(await res.json()).toEqual({ error: 'Registrasi gagal. Silakan periksa data Anda.' })
     })
 
     it('should register user successfully', async () => {

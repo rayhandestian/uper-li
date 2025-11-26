@@ -53,7 +53,7 @@ describe('/api/resend-verification', () => {
         expect(await res.json()).toEqual({ error: 'NIM/Username diperlukan.' })
     })
 
-    it('should return 404 if user not found', async () => {
+    it('should return success message even if user not found', async () => {
         ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
@@ -61,11 +61,11 @@ describe('/api/resend-verification', () => {
             body: JSON.stringify(validBody),
         })
         const res = await POST(req)
-        expect(res.status).toBe(404)
-        expect(await res.json()).toEqual({ error: 'Akun tidak ditemukan.' })
+        expect(res.status).toBe(200)
+        expect(await res.json()).toEqual({ message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.' })
     })
 
-    it('should return 400 if user already verified', async () => {
+    it('should return success message even if user already verified', async () => {
         ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
             id: 'user-123',
             email: 'test@student.universitaspertamina.ac.id',
@@ -78,8 +78,8 @@ describe('/api/resend-verification', () => {
             body: JSON.stringify(validBody),
         })
         const res = await POST(req)
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Akun sudah diverifikasi. Silakan masuk.' })
+        expect(res.status).toBe(200)
+        expect(await res.json()).toEqual({ message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.' })
     })
 
     it('should resend verification code successfully', async () => {
@@ -105,7 +105,7 @@ describe('/api/resend-verification', () => {
         expect(sendEmail).toHaveBeenCalled()
 
         const response = await res.json()
-        expect(response.message).toBe('Kode verifikasi baru telah dikirim ke email Anda.')
+        expect(response.message).toBe('Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.')
     })
 
     it('should generate new 6-character alphanumeric verification code', async () => {

@@ -4,6 +4,7 @@ import { sendEmail } from '@/lib/email'
 import { getResetPasswordEmailHtml } from '@/lib/email-templates'
 import { withRateLimit } from '@/lib/rateLimit'
 import { generateSecureCode } from '@/lib/generateSecureCode'
+import { addConstantDelay } from '@/lib/timing'
 import { logger } from '@/lib/logger'
 
 async function handleForgotPassword(request: NextRequest) {
@@ -37,14 +38,8 @@ async function handleForgotPassword(request: NextRequest) {
             select: { id: true, email: true, emailVerified: true }
         })
 
-        // Always return success to prevent enumeration, but only send email if user exists and is verified
-        if (user) {
-            // Check if user email is verified
-            if (!user.emailVerified) {
-                // Return success message to prevent enumeration, but don't send email
-                return NextResponse.json({ message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.' })
-            }
-
+        // Always perform necessary operations to prevent timing attacks
+        if (user && user.emailVerified) {
             // Generate secure alphanumeric verification code
             const verificationCode = generateSecureCode()
 
@@ -68,8 +63,12 @@ async function handleForgotPassword(request: NextRequest) {
                 subject: 'Reset Password UPer.li',
                 html: getResetPasswordEmailHtml(verificationCode),
             })
+        } else {
+            // Add constant delay to prevent timing attacks
+            await addConstantDelay(50, 100)
         }
 
+        // Always return success to prevent enumeration
         return NextResponse.json({ message: 'Jika akun ditemukan, kode verifikasi telah dikirim ke email Anda.' })
     } catch (error) {
         logger.error('Forgot password error:', error)

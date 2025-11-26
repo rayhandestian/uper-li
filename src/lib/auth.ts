@@ -4,6 +4,8 @@ import { prisma } from './prisma'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { get2FALoginEmailHtml } from '@/lib/email-templates'
+import { generateSecureCode } from './generateSecureCode'
+import { addConstantDelay, performDummyHash } from './timing'
 import { logger } from '@/lib/logger'
 
 export const authOptions: NextAuthOptions = {
@@ -15,27 +17,33 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        if (!credentials?.nimOrUsername || !credentials?.password) return null
+        if (!credentials?.nimOrUsername || !credentials?.password) {
+          await performDummyHash()
+          await addConstantDelay()
+          return null
+        }
 
         // Get user using Prisma
         const user = await prisma.user.findUnique({
           where: { nimOrUsername: credentials.nimOrUsername }
         })
 
-        if (!user || !user.password) return null
+        // Always perform password comparison to prevent timing attacks
+        const passwordHash = user?.password || await bcrypt.hash('dummy', 12)
+        const isValid = await bcrypt.compare(credentials.password, passwordHash)
 
-        const isValid = await bcrypt.compare(credentials.password, user.password)
-        if (!isValid) return null
+        // Check all conditions before returning
+        const isAuthenticated = user && user.password && isValid && user.emailVerified
 
-        // Check if email is verified
-        if (!user.emailVerified) {
+        if (!isAuthenticated) {
+          await addConstantDelay()
           return null
         }
 
         // Check if 2FA is required
         if (user.twoFactorEnabled) {
-          // Generate 2FA code and send email
-          const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+          // Generate secure alphanumeric 2FA code and send email
+          const verificationCode = generateSecureCode()
           const verificationCodeExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
           // Update user with 2FA code using Prisma
