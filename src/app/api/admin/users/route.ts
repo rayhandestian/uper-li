@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
-import { verifyAdminToken } from '@/lib/admin-auth'
+import { validateAdminSession, extendSessionActivity } from '@/lib/admin-auth'
+import { logAdminAction, AUDIT_ACTIONS } from '@/lib/admin-audit'
 import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   const cookieStore = await cookies()
-  const adminAuth = cookieStore.get('admin_auth')
+  const sessionToken = cookieStore.get('admin_session')?.value
 
-  if (!adminAuth || !verifyAdminToken(adminAuth.value)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  // Validate admin session
+  const admin = await validateAdminSession(sessionToken)
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  // Extend session activity
+  await extendSessionActivity(sessionToken!)
 
   const { searchParams } = new URL(request.url)
   const page = parseInt(searchParams.get('page') || '1')
@@ -58,6 +64,14 @@ export async function GET(request: NextRequest) {
   })
 
   const totalPages = Math.ceil(total / limit)
+
+  // Log audit action
+  await logAdminAction({
+    adminId: admin.id,
+    action: AUDIT_ACTIONS.USER_VIEW,
+    details: { page, limit, search, role },
+    req: request
+  })
 
   return NextResponse.json({
     users,

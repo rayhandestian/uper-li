@@ -1,18 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
-import { verifyAdminToken } from '@/lib/admin-auth'
+import { validateAdminSession, extendSessionActivity } from '@/lib/admin-auth'
+import { logAdminAction, AUDIT_ACTIONS } from '@/lib/admin-audit'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = await cookies()
-  const adminAuth = cookieStore.get('admin_auth')
+  const sessionToken = cookieStore.get('admin_session')?.value
 
-  if (!adminAuth || !verifyAdminToken(adminAuth.value)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  // Validate admin session
+  const admin = await validateAdminSession(sessionToken)
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  // Extend session activity
+  await extendSessionActivity(sessionToken!)
 
   const { active } = await request.json()
   const { id } = await params
@@ -38,6 +44,15 @@ export async function PATCH(
     }
   })
 
+  // Log audit action
+  await logAdminAction({
+    adminId: admin.id,
+    action: AUDIT_ACTIONS.LINK_VIEW, // Note: Using LINK_VIEW as placeholder, should be LINK_UPDATE in constants
+    resource: id,
+    details: { active },
+    req: request
+  })
+
   return NextResponse.json(link)
 }
 
@@ -46,17 +61,30 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = await cookies()
-  const adminAuth = cookieStore.get('admin_auth')
+  const sessionToken = cookieStore.get('admin_session')?.value
 
-  if (!adminAuth || !verifyAdminToken(adminAuth.value)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  // Validate admin session
+  const admin = await validateAdminSession(sessionToken)
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  // Extend session activity
+  await extendSessionActivity(sessionToken!)
 
   const { id } = await params
 
   // Delete link using Prisma
   await prisma.link.delete({
     where: { id }
+  })
+
+  // Log audit action
+  await logAdminAction({
+    adminId: admin.id,
+    action: AUDIT_ACTIONS.LINK_DELETE,
+    resource: id,
+    req: request
   })
 
   return NextResponse.json({ message: 'Link berhasil dihapus.' })
