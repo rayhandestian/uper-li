@@ -468,18 +468,39 @@ sequenceDiagram
 
 ### Admin Authentication
 
-**Separate System**: Admin authentication uses a custom token-based system (not NextAuth).
+**Separate System**: Admin authentication uses a custom session-based system (not NextAuth).
 
 **Implementation**:
-- Admin passcode stored in `ADMIN_PASSCODE` environment variable
-- HMAC-SHA256 signature for token generation
-- Token format: `{base64_payload}.{signature}`
-- Stored in `admin_auth` HTTP-only cookie
-- Verified on each admin request
+- Individual admin accounts with email/password
+- Server-side session tracking with expiration
+- Mandatory Two-Factor Authentication (2FA) via email
+- Session tokens: 256-bit cryptographically secure random values
+- Token hashing: SHA-256 for database storage
+- Stored in `admin_session` HTTP-only cookie
+- Activity-based timeout (default: 30 minutes)
+- Maximum session lifetime (default: 12 hours)
+- Account lockout after failed attempts
+- Comprehensive audit logging
+
+**Security Features**:
+- Password hashing: bcrypt with 12 rounds
+- Session validation on each request
+- Automatic session extension on activity
+- IP and user agent tracking in audit logs
+- Protection against brute force attacks
 
 **Endpoints**:
-- `POST /api/admin/login` - Admin login
-- `POST /api/admin/logout` - Admin logout
+- `POST /api/admin/auth/login` - Email/password login + 2FA code generation
+- `POST /api/admin/auth/verify-2fa` - Verify 2FA code and create session
+- `POST /api/admin/auth/logout` - Logout (single session)
+- `POST /api/admin/auth/logout-all` - Revoke all sessions
+- `GET /api/admin/auth/sessions` - List active sessions
+- `DELETE /api/admin/auth/session/[id]` - Revoke specific session
+
+**Admin Account Management**:
+- Create accounts: `npx tsx scripts/create-first-admin.ts`
+- Password minimum: 12 characters
+- 2FA enabled by default for all admins
 
 ### Role-Based Access Control
 
@@ -1289,7 +1310,8 @@ Required in Vercel dashboard:
 | `GOOGLE_SAFE_BROWSING_API_KEY` | Google API key |
 | `CLOUDFLARE_TURNSTILE_SECRET` | Turnstile secret key |
 | `NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY` | Turnstile site key (public) |
-| `ADMIN_PASSCODE` | Admin authentication passcode |
+| `ADMIN_SESSION_TIMEOUT_MINUTES` | Session inactivity timeout (default: 30) |
+| `ADMIN_SESSION_MAX_LIFETIME_HOURS` | Maximum session duration (default: 12) |
 
 ### Domain Configuration
 
