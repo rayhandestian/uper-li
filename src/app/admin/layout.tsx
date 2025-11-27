@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { verifyAdminToken } from '@/lib/admin-auth'
+import { validateAdminSession } from '@/lib/admin-auth'
 
 export default async function AdminLayout({
   children,
@@ -8,9 +8,11 @@ export default async function AdminLayout({
   children: React.ReactNode
 }) {
   const cookieStore = await cookies()
-  const adminAuth = cookieStore.get('admin_auth')
+  const sessionToken = cookieStore.get('admin_session')?.value
 
-  if (!adminAuth || !verifyAdminToken(adminAuth.value)) {
+  // Validate session
+  const admin = await validateAdminSession(sessionToken)
+  if (!admin) {
     redirect('/login-admin')
   }
 
@@ -23,6 +25,11 @@ export default async function AdminLayout({
               <h1 className="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                <span className="font-medium">{admin.name}</span>
+                <span className="text-gray-400 mx-2">•</span>
+                <span className="text-gray-500">{admin.email}</span>
+              </div>
               <a
                 href="https://app.uper.li/dashboard"
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
@@ -31,7 +38,7 @@ export default async function AdminLayout({
               </a>
               {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
               <a
-                href="/api/admin/logout"
+                href="/api/admin/auth/logout"
                 className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
               >
                 Logout
