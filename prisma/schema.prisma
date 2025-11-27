@@ -35,26 +35,27 @@ model Link {
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model User {
-  id                       String    @id @default(dbgenerated("(gen_random_uuid())::text"))
-  email                    String    @unique
+  id                       String                 @id @default(dbgenerated("(gen_random_uuid())::text"))
+  email                    String                 @unique
   name                     String?
-  role                     String    @default("STUDENT")
-  nimOrUsername            String    @unique
+  role                     String                 @default("STUDENT")
+  nimOrUsername            String                 @unique
   password                 String?
-  emailVerified            DateTime? @db.Timestamp(6)
+  emailVerified            DateTime?              @db.Timestamp(6)
   verificationToken        String?
-  verificationTokenExpires DateTime? @db.Timestamp(6)
-  createdAt                DateTime? @default(now()) @db.Timestamp(6)
-  updatedAt       DateTime? @default(now()) @updatedAt @db.Timestamp(6)
-  monthlyLinksCreated      Int?      @default(0)
-  totalLinks               Int?      @default(0)
-  lastReset                DateTime? @default(now()) @db.Timestamp(6)
-  twoFactorEnabled         Boolean?  @default(false)
+  verificationTokenExpires DateTime?              @db.Timestamp(6)
+  createdAt                DateTime?              @default(now()) @db.Timestamp(6)
+  updatedAt                DateTime?              @default(now()) @updatedAt @db.Timestamp(6)
+  monthlyLinksCreated      Int?                   @default(0)
+  totalLinks               Int?                   @default(0)
+  lastReset                DateTime?              @default(now()) @db.Timestamp(6)
+  twoFactorEnabled         Boolean?               @default(false)
   twoFactorSecret          String?
   twoFactorLoginCode       String?
   twoFactorSetupCode       String?
-  active                   Boolean?  @default(true)
+  active                   Boolean?               @default(true)
   Link                     Link[]
+  verificationAttempts     VerificationAttempt[]
 
   @@index([email], map: "idx_user_email")
   @@index([nimOrUsername], map: "idx_user_nimorusername")
@@ -72,4 +73,20 @@ model RateLimit {
   @@unique([identifier, endpoint])
   @@index([resetTime], map: "idx_ratelimit_resettime")
   @@index([identifier], map: "idx_ratelimit_identifier")
+}
+
+model VerificationAttempt {
+  id             String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attemptType    String    // 'email_verification', 'password_reset', '2fa_setup', '2fa_login'
+  failedAttempts Int       @default(0)
+  lastAttemptAt  DateTime  @default(now()) @db.Timestamp(6)
+  lockedUntil    DateTime? @db.Timestamp(6)
+  createdAt      DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@unique([userId, attemptType])
+  @@index([userId, attemptType], map: "idx_verification_user_type")
+  @@index([lockedUntil], map: "idx_verification_lockeduntil")
 }

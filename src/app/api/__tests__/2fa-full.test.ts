@@ -25,6 +25,12 @@ jest.mock('@/lib/rateLimit', () => ({
     withRateLimit: jest.fn((handler) => handler),
 }))
 
+jest.mock('@/lib/verificationAttempts', () => ({
+    isAccountLocked: jest.fn().mockResolvedValue(false),
+    recordFailedAttempt: jest.fn().mockResolvedValue(undefined),
+    clearAttempts: jest.fn().mockResolvedValue(undefined),
+}))
+
 describe('2FA Full API', () => {
     beforeEach(() => {
         jest.clearAllMocks()

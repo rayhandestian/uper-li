@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { manualMonthlyReset, manualLinkCleanup } from '@/lib/cron'
 import { cleanupExpiredRateLimits } from '@/lib/rateLimit'
+import { cleanupExpiredLockouts } from '@/lib/verificationAttempts'
 import { logger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
@@ -30,6 +31,14 @@ export async function POST(request: NextRequest) {
           success: true,
           deletedCount,
           message: `Cleaned up ${deletedCount} expired rate limit entries`
+        })
+
+      case 'verification_attempt_cleanup':
+        const attemptCount = await cleanupExpiredLockouts()
+        return NextResponse.json({
+          success: true,
+          deletedCount: attemptCount,
+          message: `Cleaned up ${attemptCount} expired verification attempt lockouts`
         })
 
       default:

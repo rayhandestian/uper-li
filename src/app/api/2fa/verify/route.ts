@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { isAccountLocked, recordFailedAttempt, clearAttempts } from '@/lib/verificationAttempts'
 import { withRateLimit } from '@/lib/rateLimit'
 
 async function handle2FAVerify(request: NextRequest) {
@@ -40,11 +41,19 @@ async function handle2FAVerify(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi belum diminta.' }, { status: 400 })
   }
 
+  // Check if account is locked due to too many failed 2FA setup attempts
+  const locked = await isAccountLocked(user.id, '2fa_setup')
+  if (locked) {
+    return NextResponse.json({ error: 'Akun terkunci sementara karena terlalu banyak percobaan gagal. Coba lagi dalam 1 jam.' }, { status: 429 })
+  }
+
   if (new Date(user.verificationTokenExpires) < new Date()) {
+    await recordFailedAttempt(user.id, '2fa_setup')
     return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa.' }, { status: 400 })
   }
 
   if (user.twoFactorSetupCode !== code) {
+    await recordFailedAttempt(user.id, '2fa_setup')
     return NextResponse.json({ error: 'Kode verifikasi salah.' }, { status: 400 })
   }
 
@@ -58,6 +67,9 @@ async function handle2FAVerify(request: NextRequest) {
       updatedAt: new Date()
     }
   })
+
+  // Clear failed attempts on successful 2FA setup
+  await clearAttempts(user.id, '2fa_setup')
 
   return NextResponse.json({ message: '2FA berhasil diaktifkan.' })
 }

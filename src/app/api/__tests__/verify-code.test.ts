@@ -19,6 +19,12 @@ jest.mock('@/lib/rateLimit', () => ({
     withRateLimit: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
 }))
 
+jest.mock('@/lib/verificationAttempts', () => ({
+    isAccountLocked: jest.fn().mockResolvedValue(false),
+    recordFailedAttempt: jest.fn().mockResolvedValue(undefined),
+    clearAttempts: jest.fn().mockResolvedValue(undefined),
+}))
+
 describe('/api/verify-code', () => {
     beforeEach(() => {
         jest.clearAllMocks()
@@ -41,7 +47,7 @@ describe('/api/verify-code', () => {
         const res = await POST(req)
         expect(res.status).toBe(400)
         expect(await res.json()).toEqual({
-            error: 'Kode verifikasi diperlukan dan harus 6 digit.'
+            error: 'Kode verifikasi diperlukan dan harus 6 karakter.'
         })
     })
 

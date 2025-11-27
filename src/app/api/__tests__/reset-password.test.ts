@@ -31,6 +31,12 @@ jest.mock('@/lib/rateLimit', () => ({
     withRateLimit: <T extends (...args: unknown[]) => unknown>(handler: T) => handler,
 }))
 
+jest.mock('@/lib/verificationAttempts', () => ({
+    isAccountLocked: jest.fn().mockResolvedValue(false),
+    recordFailedAttempt: jest.fn().mockResolvedValue(undefined),
+    clearAttempts: jest.fn().mockResolvedValue(undefined),
+}))
+
 describe('Reset Password API', () => {
     beforeEach(() => {
         jest.clearAllMocks()

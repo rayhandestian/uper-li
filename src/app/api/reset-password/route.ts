@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { isAccountLocked, recordFailedAttempt, clearAttempts } from '@/lib/verificationAttempts'
 import { withRateLimit } from '@/lib/rateLimit'
 import { logger } from '@/lib/logger'
 
@@ -34,16 +35,25 @@ async function handleResetPassword(request: NextRequest) {
         })
 
         if (!user) {
-            return NextResponse.json({ error: 'Kode verifikasi salah at au user tidak ditemukan.' }, { status: 400 })
+            return NextResponse.json({ error: 'Kode verifikasi salah atau user tidak ditemukan.' }, { status: 400 })
+        }
+
+        // Check if account is locked due to too many failed password reset attempts
+        const locked = await isAccountLocked(user.id, 'password_reset')
+        if (locked) {
+            logger.warn(`Account locked for password reset attempts`, { userId: user.id })
+            return NextResponse.json({ error: 'Akun terkunci sementara karena terlalu banyak percobaan gagal. Coba lagi dalam 1 jam.' }, { status: 429 })
         }
 
         // Check if user email is verified
         if (!user.emailVerified) {
+            await recordFailedAttempt(user.id, 'password_reset')
             return NextResponse.json({ error: 'Akun belum diverifikasi. Silakan verifikasi email terlebih dahulu.' }, { status: 400 })
         }
 
         // Check expiration
         if (user.verificationTokenExpires && new Date() > new Date(user.verificationTokenExpires)) {
+            await recordFailedAttempt(user.id, 'password_reset')
             return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa.' }, { status: 400 })
         }
 
@@ -60,6 +70,9 @@ async function handleResetPassword(request: NextRequest) {
                 updatedAt: new Date()
             }
         })
+
+        // Clear failed attempts on successful password reset
+        await clearAttempts(user.id, 'password_reset')
 
         return NextResponse.json({ message: 'Password berhasil diubah. Silakan login dengan password baru.' })
     } catch (error) {
