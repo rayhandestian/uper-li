@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { isAccountLocked, recordFailedAttempt, clearAttempts } from '@/lib/verificationAttempts'
 import { withRateLimit } from '@/lib/rateLimit'
+import { normalizeCode } from '@/lib/generateSecureCode'
 
 async function handle2FAVerification(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -52,7 +53,7 @@ async function handle2FAVerification(request: NextRequest) {
     return NextResponse.json({ error: 'Kode verifikasi telah kadaluarsa.' }, { status: 400 })
   }
 
-  if (user.twoFactorLoginCode !== code) {
+  if (user.twoFactorLoginCode !== normalizeCode(code)) {
     await recordFailedAttempt(user.id, '2fa_login')
     return NextResponse.json({ error: 'Kode verifikasi salah.' }, { status: 400 })
   }

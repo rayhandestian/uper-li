@@ -114,7 +114,7 @@ export default function NewPasswordPage() {
                             <form className="space-y-5" onSubmit={handleSubmit}>
                                 <div>
                                     <label htmlFor="code" className="block text-sm font-semibold text-gray-700 mb-2">
-                                        Kode Verifikasi (6 Digit)
+                                        Kode Verifikasi (6 Karakter)
                                     </label>
                                     <input
                                         id="code"
@@ -123,9 +123,9 @@ export default function NewPasswordPage() {
                                         required
                                         maxLength={6}
                                         className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base text-center tracking-widest text-2xl"
-                                        placeholder="000000"
+                                        placeholder="ABC123"
                                         value={code}
-                                        onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                                        onChange={(e) => setCode(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())}
                                     />
                                 </div>
 

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { isAccountLocked, recordFailedAttempt, clearAttempts } from '@/lib/verificationAttempts'
 import { withRateLimit } from '@/lib/rateLimit'
+import { normalizeCode } from '@/lib/generateSecureCode'
 import { logger } from '@/lib/logger'
 
 async function handleResetPassword(request: NextRequest) {
@@ -23,10 +24,10 @@ async function handleResetPassword(request: NextRequest) {
 
         // Find user by nimOrUsername and verificationToken using Prisma
         const user = await prisma.user.findFirst({
-            where: {
-                nimOrUsername,
-                verificationToken: code
-            },
+          where: {
+            nimOrUsername,
+            verificationToken: normalizeCode(code)
+          },
             select: {
                 id: true,
                 verificationTokenExpires: true,

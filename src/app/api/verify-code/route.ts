@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { isAccountLocked, recordFailedAttempt, clearAttempts } from '@/lib/verificationAttempts'
 import { withRateLimit } from '@/lib/rateLimit'
+import { normalizeCode } from '@/lib/generateSecureCode'
 import { logger } from '@/lib/logger'
 
 async function handleVerification(request: NextRequest) {
@@ -15,7 +16,7 @@ async function handleVerification(request: NextRequest) {
 
     // Find user by verification code
     const user = await prisma.user.findFirst({
-      where: { verificationToken: code },
+      where: { verificationToken: normalizeCode(code) },
       select: {
         id: true,
         email: true,
