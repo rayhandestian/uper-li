@@ -75,7 +75,9 @@ describe('/api/register', () => {
     })
 
     it('should construct STUDENT email correctly', async () => {
-        ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
+        ; (prisma.user.findUnique as jest.Mock)
+            .mockResolvedValueOnce(null) // Email check
+            .mockResolvedValueOnce(null) // Username check
             ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
 
@@ -88,12 +90,14 @@ describe('/api/register', () => {
         // Check if email was used in findUnique call
         expect(prisma.user.findUnique).toHaveBeenCalledWith({
             where: { email: '12345678@student.universitaspertamina.ac.id' },
-            select: { id: true }
+            select: { id: true, emailVerified: true, createdAt: true }
         })
     })
 
     it('should construct LECTURER email correctly', async () => {
-        ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
+        ; (prisma.user.findUnique as jest.Mock)
+            .mockResolvedValueOnce(null) // Email check
+            .mockResolvedValueOnce(null) // Username check
             ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
 
@@ -105,13 +109,14 @@ describe('/api/register', () => {
 
         expect(prisma.user.findUnique).toHaveBeenCalledWith({
             where: { email: '12345678@universitaspertamina.ac.id' },
-            select: { id: true }
+            select: { id: true, emailVerified: true, createdAt: true }
         })
     })
 
     it('should return 400 with generic error if email already exists', async () => {
         ; (prisma.user.findUnique as jest.Mock)
-            .mockResolvedValueOnce({ id: 'existing-user' }) // Email check
+            .mockResolvedValueOnce({ id: 'existing-user', emailVerified: true, createdAt: new Date() }) // Email check - verified user
+            .mockResolvedValueOnce(null) // Username check
 
         const req = new NextRequest('http://localhost/api/register', {
             method: 'POST',
@@ -125,7 +130,7 @@ describe('/api/register', () => {
     it('should return 400 with generic error if nimOrUsername already exists', async () => {
         ; (prisma.user.findUnique as jest.Mock)
             .mockResolvedValueOnce(null) // Email check passes
-            .mockResolvedValueOnce({ id: 'existing-user' }) // Username check fails
+            .mockResolvedValueOnce({ id: 'existing-user', emailVerified: true, createdAt: new Date() }) // Username check fails
 
         const req = new NextRequest('http://localhost/api/register', {
             method: 'POST',
@@ -160,8 +165,8 @@ describe('/api/register', () => {
 
     it('should generate 6-character alphanumeric verification code', async () => {
         ; (prisma.user.findUnique as jest.Mock)
-            .mockResolvedValueOnce(null)
-            .mockResolvedValueOnce(null)
+            .mockResolvedValueOnce(null) // Email
+            .mockResolvedValueOnce(null) // Username
             ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
             ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })

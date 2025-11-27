@@ -39,19 +39,32 @@ async function handleRegistration(request: NextRequest) {
       : `${nimOrUsername}@universitaspertamina.ac.id`
 
     // Check if user exists by email using Prisma
-    const existingUser = await prisma.user.findUnique({
+    let existingUserByEmail = await prisma.user.findUnique({
       where: { email },
-      select: { id: true }
+      select: { id: true, emailVerified: true, createdAt: true }
     })
 
     // Check if nimOrUsername is unique using Prisma
-    const existingUsername = await prisma.user.findUnique({
+    let existingUserByUsername = await prisma.user.findUnique({
       where: { nimOrUsername },
-      select: { id: true }
+      select: { id: true, emailVerified: true, createdAt: true }
     })
 
+    // Clean up old unverified users (older than 24 hours)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
+    if (existingUserByEmail && !existingUserByEmail.emailVerified && existingUserByEmail.createdAt && existingUserByEmail.createdAt < twentyFourHoursAgo) {
+      await prisma.user.delete({ where: { id: existingUserByEmail.id } })
+      existingUserByEmail = null
+    }
+
+    if (existingUserByUsername && !existingUserByUsername.emailVerified && existingUserByUsername.createdAt && existingUserByUsername.createdAt < twentyFourHoursAgo) {
+      await prisma.user.delete({ where: { id: existingUserByUsername.id } })
+      existingUserByUsername = null
+    }
+
     // If either exists, return generic error to prevent enumeration
-    if (existingUser || existingUsername) {
+    if (existingUserByEmail || existingUserByUsername) {
       await addConstantDelay(50, 100)
       return NextResponse.json({ error: 'Registrasi gagal. Silakan periksa data Anda.' }, { status: 400 })
     }

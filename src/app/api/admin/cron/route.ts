@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { manualMonthlyReset, manualLinkCleanup } from '@/lib/cron'
+import { manualMonthlyReset, manualLinkCleanup, deleteUnverifiedUsers } from '@/lib/cron'
 import { cleanupExpiredRateLimits } from '@/lib/rateLimit'
 import { cleanupExpiredLockouts } from '@/lib/verificationAttempts'
 import { cleanupExpiredSessions } from '@/lib/admin-auth'
@@ -58,6 +58,15 @@ export async function POST(request: NextRequest) {
           success: true,
           deletedCount: sessionCount,
           message: `Cleaned up ${sessionCount} expired admin sessions`
+        }
+        break
+
+      case 'unverified_user_cleanup':
+        const deletedUsers = await deleteUnverifiedUsers()
+        result = {
+          success: true,
+          deletedCount: deletedUsers,
+          message: `Cleaned up ${deletedUsers} unverified users older than 7 days`
         }
         break
 

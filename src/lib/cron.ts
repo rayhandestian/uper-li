@@ -129,11 +129,38 @@ export function scheduleLinkDeletion() {
   cron.schedule('0 3 * * *', deletePermanentLinks)
 }
 
+export const deleteUnverifiedUsers = async () => {
+  logger.info('Running unverified user cleanup check...')
+  try {
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+    // Delete unverified users older than 7 days
+    const result = await prisma.user.deleteMany({
+      where: {
+        emailVerified: null,
+        createdAt: { lt: sevenDaysAgo }
+      }
+    })
+
+    logger.info(`Deleted ${result.count} unverified users older than 7 days.`)
+    return result.count
+  } catch (error) {
+    logger.error('Unverified user cleanup error:', error)
+    return 0
+  }
+}
+
+export function scheduleUnverifiedUserCleanup() {
+  cron.schedule('0 4 * * *', deleteUnverifiedUsers)
+}
+
 export function initializeCronJobs() {
   logger.info('Initializing cron jobs...')
   scheduleMonthlyLimitReset()
   scheduleLinkDeactivation()
   scheduleLinkDeletion()
+  scheduleUnverifiedUserCleanup()
   logger.info('All cron jobs initialized successfully')
 }
 
