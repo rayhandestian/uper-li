@@ -50,15 +50,15 @@ async function handleRegistration(request: NextRequest) {
       select: { id: true, emailVerified: true, createdAt: true }
     })
 
-    // Clean up old unverified users (older than 24 hours)
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+    // Clean up old unverified users (older than 12 hours)
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000)
 
-    if (existingUserByEmail && !existingUserByEmail.emailVerified && existingUserByEmail.createdAt && existingUserByEmail.createdAt < twentyFourHoursAgo) {
+    if (existingUserByEmail && !existingUserByEmail.emailVerified && existingUserByEmail.createdAt && existingUserByEmail.createdAt < twelveHoursAgo) {
       await prisma.user.delete({ where: { id: existingUserByEmail.id } })
       existingUserByEmail = null
     }
 
-    if (existingUserByUsername && !existingUserByUsername.emailVerified && existingUserByUsername.createdAt && existingUserByUsername.createdAt < twentyFourHoursAgo) {
+    if (existingUserByUsername && !existingUserByUsername.emailVerified && existingUserByUsername.createdAt && existingUserByUsername.createdAt < twelveHoursAgo) {
       await prisma.user.delete({ where: { id: existingUserByUsername.id } })
       existingUserByUsername = null
     }

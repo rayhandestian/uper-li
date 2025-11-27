@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         result = {
           success: true,
           deletedCount: deletedUsers,
-          message: `Cleaned up ${deletedUsers} unverified users older than 7 days`
+          message: `Cleaned up ${deletedUsers} unverified users older than 3 days`
         }
         break
 

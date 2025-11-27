@@ -132,18 +132,18 @@ export function scheduleLinkDeletion() {
 export const deleteUnverifiedUsers = async () => {
   logger.info('Running unverified user cleanup check...')
   try {
-    const sevenDaysAgo = new Date()
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    const threeDaysAgo = new Date()
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3)
 
-    // Delete unverified users older than 7 days
+    // Delete unverified users older than 3 days
     const result = await prisma.user.deleteMany({
       where: {
         emailVerified: null,
-        createdAt: { lt: sevenDaysAgo }
+        createdAt: { lt: threeDaysAgo }
       }
     })
 
-    logger.info(`Deleted ${result.count} unverified users older than 7 days.`)
+    logger.info(`Deleted ${result.count} unverified users older than 3 days.`)
     return result.count
   } catch (error) {
     logger.error('Unverified user cleanup error:', error)
