@@ -90,3 +90,76 @@ model VerificationAttempt {
   @@index([userId, attemptType], map: "idx_verification_user_type")
   @@index([lockedUntil], map: "idx_verification_lockeduntil")
 }
+
+model Admin {
+  id                       String                     @id @default(dbgenerated("(gen_random_uuid())::text"))
+  email                    String                     @unique
+  name                     String
+  password                 String
+  emailVerified            DateTime?                  @db.Timestamp(6)
+  twoFactorEnabled         Boolean                    @default(true)
+  twoFactorSecret          String?
+  twoFactorBackupCodes     String?
+  createdAt                DateTime                   @default(now()) @db.Timestamp(6)
+  updatedAt                DateTime                   @default(now()) @updatedAt @db.Timestamp(6)
+  lastLoginAt              DateTime?                  @db.Timestamp(6)
+  passwordChangedAt        DateTime                   @default(now()) @db.Timestamp(6)
+  active                   Boolean                    @default(true)
+  role                     String                     @default("ADMIN")
+  sessions                 AdminSession[]
+  auditLogs                AdminAuditLog[]
+  verificationAttempts     AdminVerificationAttempt[]
+
+  @@index([email], map: "idx_admin_email")
+  @@index([active], map: "idx_admin_active")
+}
+
+model AdminSession {
+  id             String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  adminId        String
+  admin          Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  token          String    @unique
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime  @default(now()) @db.Timestamp(6)
+  lastActivityAt DateTime  @default(now()) @db.Timestamp(6)
+  expiresAt      DateTime  @db.Timestamp(6)
+  revokedAt      DateTime? @db.Timestamp(6)
+
+  @@index([adminId], map: "idx_adminsession_adminid")
+  @@index([token], map: "idx_adminsession_token")
+  @@index([expiresAt], map: "idx_adminsession_expires")
+}
+
+model AdminAuditLog {
+  id        String   @id @default(dbgenerated("(gen_random_uuid())::text"))
+  adminId   String?
+  admin     Admin?   @relation(fields: [adminId], references: [id], onDelete: SetNull)
+  action    String
+  resource  String?
+  details   String?
+  ipAddress String?
+  userAgent String?
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  @@index([adminId, createdAt], map: "idx_auditlog_admin_time")
+  @@index([action, createdAt], map: "idx_auditlog_action_time")
+  @@index([createdAt], map: "idx_auditlog_time")
+}
+
+model AdminVerificationAttempt {
+  id             String    @id @default(dbgenerated("(gen_random_uuid())::text"))
+  adminId        String
+  admin          Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  attemptType    String
+  failedAttempts Int       @default(0)
+  lastAttemptAt  DateTime  @default(now()) @db.Timestamp(6)
+  lockedUntil    DateTime? @db.Timestamp(6)
+  createdAt      DateTime  @default(now()) @db.Timestamp(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @db.Timestamp(6)
+
+  @@unique([adminId, attemptType])
+  @@index([adminId, attemptType], map: "idx_adminverif_admin_type")
+  @@index([lockedUntil], map: "idx_adminverif_locked")
+}
