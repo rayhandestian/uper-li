@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 /**
  * Generate a cryptographically secure secret for NEXTAUTH_SECRET
  * Usage: npm run generate-secret [length]
