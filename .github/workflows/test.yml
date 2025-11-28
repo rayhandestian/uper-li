@@ -29,8 +29,7 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: uperlink_test
-        ports:
-          - 5432:5432
+        # Removed ports mapping to avoid "role 'root' does not exist" noise
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -52,16 +51,35 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      - name: Wait for Postgres
+        run: |
+          echo "Waiting for Postgres to be ready..."
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 && break
+            sleep 1
+          done
+
       - name: Run database migrations
         run: npx prisma migrate deploy
 
       - name: Run linter
         run: npm run lint
-      
+        
       - name: Run tests
         run: npm test -- --coverage
-      
+        
+      - name: Check coverage file
+        id: coverage-check
+        run: |
+          if [ -f ./coverage/coverage-final.json ]; then echo "found=true" >> $GITHUB_OUTPUT; else echo "found=false" >> $GITHUB_OUTPUT; fi
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
+        if: steps.coverage-check.outputs.found == 'true'
         with:
           files: ./coverage/coverage-final.json
+          fail_ci_if_error: false
+
+      - name: Upload coverage (no file)
+        if: steps.coverage-check.outputs.found == 'false'
+        run: echo "Coverage file not found, skipping upload."
