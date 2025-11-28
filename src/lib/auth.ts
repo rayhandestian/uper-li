@@ -95,12 +95,26 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt'
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = user.role
         token.requires2FA = user.requires2FA
         token.nimOrUsername = user.nimOrUsername
       }
+
+      // Handle session update from client
+      if (trigger === "update" && session?.twoFactorVerified) {
+        // Verify against database one last time to be safe
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub! },
+          select: { twoFactorLoginCode: true }
+        })
+
+        if (dbUser && !dbUser.twoFactorLoginCode) {
+           token.requires2FA = false
+        }
+      }
+
       return token
     },
     async session({ session, token }) {
@@ -108,21 +122,8 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!
         session.user.role = token.role as string
         session.user.nimOrUsername = token.nimOrUsername as string
-        if (token.requires2FA) {
-          // Check if 2FA verification code has been cleared (meaning verified) using Prisma
-          const user = await prisma.user.findUnique({
-            where: { id: token.sub! },
-            select: { twoFactorLoginCode: true }
-          })
-
-          if (user && !user.twoFactorLoginCode) {
-            session.user.requires2FA = false
-          } else {
-            session.user.requires2FA = true
-          }
-        } else {
-          session.user.requires2FA = false
-        }
+        // Trust the token state - NO DATABASE QUERY HERE
+        session.user.requires2FA = token.requires2FA as boolean
       }
       return session
     }

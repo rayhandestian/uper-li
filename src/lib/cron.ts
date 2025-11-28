@@ -27,30 +27,41 @@ export const deactivateExpiredLinks = async () => {
     const fiveMonthsAgo = new Date()
     fiveMonthsAgo.setMonth(fiveMonthsAgo.getMonth() - 5)
 
-    // Find links that haven't been visited in 5 months and are still active using Prisma
-    const linksToDeactivate = await prisma.link.findMany({
-      where: {
-        active: true,
-        OR: [
-          { lastVisited: null, createdAt: { lt: fiveMonthsAgo } },
-          { lastVisited: { lt: fiveMonthsAgo } }
-        ]
-      },
-      include: {
-        User: {
-          select: {
-            email: true,
-            nimOrUsername: true
+    const oneMonthAgo = new Date()
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 4)
+
+    const BATCH_SIZE = 100
+    let skip = 0
+    let hasMore = true
+
+    while (hasMore) {
+      // Find links that haven't been visited in 5 months and are still active using Prisma
+      const linksToDeactivate = await prisma.link.findMany({
+        where: {
+          active: true,
+          OR: [
+            { lastVisited: null, createdAt: { lt: fiveMonthsAgo } },
+            { lastVisited: { lt: fiveMonthsAgo } }
+          ]
+        },
+        include: {
+          User: {
+            select: {
+              email: true,
+              nimOrUsername: true
+            }
           }
-        }
+        },
+        take: BATCH_SIZE,
+        skip: skip
+      })
+
+      if (linksToDeactivate.length === 0) {
+        hasMore = false
+        break
       }
-    })
 
-    if (linksToDeactivate.length > 0) {
-      // Send warning emails 1 month before deactivation
-      const oneMonthAgo = new Date()
-      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 4)
-
+      // Process batch
       const linksForWarning = linksToDeactivate.filter((link) => {
         const createdAt = link.createdAt
         const lastVisited = link.lastVisited
@@ -93,7 +104,15 @@ export const deactivateExpiredLinks = async () => {
           }
         })
 
-        logger.info(`Deactivated ${result.count} links due to inactivity.`)
+        logger.info(`Deactivated ${result.count} links due to inactivity (batch).`)
+      }
+
+      // If we processed fewer than BATCH_SIZE, we're done
+      if (linksToDeactivate.length < BATCH_SIZE) {
+        hasMore = false
+      } else {
+        // Increment skip to process next batch
+        skip += BATCH_SIZE
       }
     }
   } catch (error) {

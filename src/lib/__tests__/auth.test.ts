@@ -50,12 +50,28 @@ describe('authOptions callbacks', () => {
 
             expect(result).toEqual({ existing: 'data' })
         })
+
+        it('should update requires2FA when trigger is update and session has twoFactorVerified', async () => {
+            const token = { sub: 'user-123', requires2FA: true }
+            const session = { twoFactorVerified: true }
+            const trigger = 'update'
+
+                // Mock DB to return user with no 2FA code (meaning verified)
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({ twoFactorLoginCode: null })
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const result = await authOptions.callbacks!.jwt!({ token, session, trigger } as any)
+
+            expect(prisma.user.findUnique).toHaveBeenCalledWith({
+                where: { id: 'user-123' },
+                select: { twoFactorLoginCode: true }
+            })
+            expect(result.requires2FA).toBe(false)
+        })
     })
 
     describe('session callback', () => {
-        it('should add token properties to session', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ twoFactorLoginCode: null })
-
+        it('should add token properties to session without DB call', async () => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const session = { user: {} } as any
             const token = {
@@ -66,12 +82,13 @@ describe('authOptions callbacks', () => {
             }
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const result = await authOptions.callbacks!.session!({ session, token } as any)
+            const result = await authOptions.callbacks!.session!({ session, token } as any) as any
 
             expect(result.user.id).toBe('user-123')
             expect(result.user.role).toBe('USER')
             expect(result.user.nimOrUsername).toBe('testuser')
-            expect(result.user.requires2FA).toBe(false) // Should be false because twoFactorSecret is null
+            expect(result.user.requires2FA).toBe(true) // Should trust the token
+            expect(prisma.user.findUnique).not.toHaveBeenCalled()
         })
 
         it('should handle session without 2FA requirement', async () => {
@@ -85,9 +102,10 @@ describe('authOptions callbacks', () => {
             }
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const result = await authOptions.callbacks!.session!({ session, token } as any)
+            const result = await authOptions.callbacks!.session!({ session, token } as any) as any
 
             expect(result.user.requires2FA).toBe(false)
+            expect(prisma.user.findUnique).not.toHaveBeenCalled()
         })
     })
 })

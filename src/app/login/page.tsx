@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect, Suspense } from 'react'
-import { signIn } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Turnstile } from '@marsidev/react-turnstile'
 import Footer from '@/components/Footer'
@@ -18,6 +18,7 @@ function LoginForm() {
   const [twoFactorCode, setTwoFactorCode] = useState('')
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { update } = useSession()
 
   const isValidNim = !nimOrUsername || /^[a-zA-Z0-9._-]+$/.test(nimOrUsername)
 
@@ -80,6 +81,8 @@ function LoginForm() {
     const data = await response.json()
 
     if (response.ok) {
+      // Update session to reflect 2FA verification
+      await update({ twoFactorVerified: true })
       router.push('https://app.uper.li/dashboard')
     } else {
       setError(data.error || 'Kode 2FA salah.')
