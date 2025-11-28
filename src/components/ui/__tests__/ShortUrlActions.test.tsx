@@ -38,7 +38,9 @@ describe('ShortUrlActions', () => {
         const copyButton = screen.getByTitle('Copy URL')
         fireEvent.click(copyButton)
 
-        expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockFullUrl)
+        await waitFor(() => {
+            expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockFullUrl)
+        })
 
         // Should show checkmark icon temporarily (implementation detail, might be hard to test exact icon change without checking SVG paths or class names)
         // But we can check if state changed if it affects aria-label or title if we updated the component to support it
