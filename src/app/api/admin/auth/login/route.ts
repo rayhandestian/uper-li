@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { withRateLimit } from '@/lib/rateLimit'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { createAdminSession } from '@/lib/admin-auth'
 import { recordFailedAttempt, recordSuccessfulAttempt, isAccountLocked } from '@/lib/admin-verification'
 import { logAdminAction, AUDIT_ACTIONS } from '@/lib/admin-audit'
@@ -103,8 +104,8 @@ async function handleAdminLogin(request: NextRequest) {
 
         // Check if 2FA is enabled
         if (admin.twoFactorEnabled) {
-            // Generate 6-digit 2FA code
-            const code = Math.floor(100000 + Math.random() * 900000).toString()
+            // Generate 6-digit 2FA code using cryptographically secure random
+            const code = crypto.randomInt(100000, 1000000).toString()
             const expiresAt = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
             // Store 2FA code
