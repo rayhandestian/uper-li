@@ -1,24 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { checkUrlSafety } from '@/lib/safeBrowsing'
-import crypto from 'crypto'
-import bcrypt from 'bcryptjs'
-import { Prisma } from '@prisma/client'
 import { logger } from '@/lib/logger'
 import { withRateLimit } from '@/lib/rateLimit'
-
-const RESERVED_PATHS = [
-  'dashboard',
-  'login',
-  'register',
-  'terms',
-  'privacy',
-  'contact',
-  'verify',
-  'admin'
-]
+import { LinkService } from '@/services/linkService'
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -31,57 +16,35 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '10')
   const search = searchParams.get('search') || ''
-  const active = searchParams.get('active')
-  const sort = searchParams.get('sort') || 'createdAt'
-  const order = searchParams.get('order') || 'desc'
+  const activeParam = searchParams.get('active')
+  const sortParam = searchParams.get('sort')
+  const orderParam = searchParams.get('order')
 
-  const skip = (page - 1) * limit
-
-  // Build WHERE clause for Prisma
-  const where: Prisma.LinkWhereInput = {
-    userId: session.user.id
+  let active: boolean | undefined
+  if (activeParam !== null && activeParam !== undefined) {
+    active = activeParam === 'true'
   }
 
-  if (search) {
-    where.OR = [
-      { shortUrl: { contains: search, mode: 'insensitive' } },
-      { longUrl: { contains: search, mode: 'insensitive' } }
-    ]
-  }
+  const validSorts = ['createdAt', 'updatedAt', 'shortUrl', 'visitCount', 'lastVisited'] as const
+  type ValidSort = typeof validSorts[number]
+  const sort = validSorts.includes(sortParam as ValidSort) ? sortParam as ValidSort : 'createdAt'
+  const order = orderParam === 'asc' ? 'asc' : 'desc'
 
-  if (active !== null && active !== undefined) {
-    where.active = active === 'true'
-  }
-
-  // Validate sort field
-  const validSortFields = ['createdAt', 'updatedAt', 'shortUrl', 'visitCount', 'lastVisited'] as const
-  type ValidSort = typeof validSortFields[number]
-  const sortField: ValidSort = validSortFields.includes(sort as ValidSort) ? sort as ValidSort : 'createdAt'
-  const orderDirection = order.toLowerCase() === 'asc' ? 'asc' : 'desc'
-
-  // Get total count using Prisma
-  const total = await prisma.link.count({ where })
-  const totalPages = Math.ceil(total / limit)
-
-  // Get paginated links using Prisma
-  const links = await prisma.link.findMany({
-    where,
-    orderBy: { [sortField]: orderDirection },
-    take: limit,
-    skip
-  })
-
-  return NextResponse.json({
-    links,
-    pagination: {
+  try {
+    const result = await LinkService.getLinks(session.user.id, {
       page,
       limit,
-      total,
-      totalPages,
-      hasNext: page < totalPages,
-      hasPrev: page > 1,
-    },
-  })
+      search,
+      active,
+      sort,
+      order
+    })
+
+    return NextResponse.json(result)
+  } catch (error) {
+    logger.error('Get links error:', error)
+    return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })
+  }
 }
 
 async function handleCreateLink(request: NextRequest) {
@@ -91,134 +54,31 @@ async function handleCreateLink(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { longUrl, customUrl, password } = await request.json()
-
-  if (!longUrl) {
-    return NextResponse.json({ error: 'URL asli diperlukan.' }, { status: 400 })
-  }
-
-  // Validate URL format
-  try {
-    new URL(longUrl)
-  } catch {
-    return NextResponse.json({ error: 'URL tidak valid.' }, { status: 400 })
-  }
-
-  // Check URL length
-  if (longUrl.length > 2048) {
-    return NextResponse.json({ error: 'URL terlalu panjang (max 2048 karakter).' }, { status: 400 })
-  }
-
-  // Check safety
-  const isSafe = await checkUrlSafety(longUrl)
-  if (!isSafe) {
-    return NextResponse.json({ error: 'URL terdeteksi berbahaya.' }, { status: 400 })
-  }
+  const body = await request.json()
 
   try {
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Get user
-      const user = await tx.user.findUnique({
-        where: { id: session.user.id }
-      })
-
-      if (!user) {
-        throw new Error('User tidak ditemukan.')
-      }
-
-      // Check limits
-      const maxMonthly = user.role === 'STUDENT' ? 5 : 10
-      const maxTotal = user.role === 'STUDENT' ? 100 : 200
-
-      if ((user.monthlyLinksCreated || 0) >= maxMonthly) {
-        throw new Error('Batas link bulanan tercapai.')
-      }
-
-      if ((user.totalLinks || 0) >= maxTotal) {
-        throw new Error('Batas total link tercapai.')
-      }
-
-      let shortUrl = customUrl
-
-      if (customUrl) {
-        // Validate custom URL
-        if (customUrl.length > 255 || !/^[a-zA-Z0-9-_]+$/.test(customUrl)) {
-          throw new Error('Short URL kustom tidak valid.')
-        }
-
-        // Check if custom URL is reserved
-        if (RESERVED_PATHS.includes(customUrl)) {
-          throw new Error('Short URL kustom tidak tersedia.')
-        }
-
-        // Check if custom URL is taken
-        const existingLink = await tx.link.findUnique({
-          where: { shortUrl: customUrl }
-        })
-
-        if (existingLink) {
-          throw new Error('Short URL kustom sudah digunakan.')
-        }
-      } else {
-        // Generate random short URL
-        let attempts = 0
-        do {
-          shortUrl = crypto.randomBytes(3).toString('hex') // 6 characters
-          attempts++
-          if (attempts > 10) {
-            throw new Error('Gagal menghasilkan short URL.')
-          }
-
-          const existingLink = await tx.link.findUnique({
-            where: { shortUrl: shortUrl }
-          })
-
-          if (!existingLink && !RESERVED_PATHS.includes(shortUrl)) break
-        } while (true)
-      }
-
-      // Hash password if provided
-      let hashedPassword = null
-      if (password) {
-        if (password.length < 4) {
-          throw new Error('Password minimal 4 karakter.')
-        }
-        hashedPassword = await bcrypt.hash(password, 12)
-      }
-
-      // Create link
-      const link = await tx.link.create({
-        data: {
-          shortUrl,
-          longUrl,
-          userId: session.user.id,
-          custom: !!customUrl,
-          password: hashedPassword,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      })
-
-      // Update user counters
-      await tx.user.update({
-        where: { id: session.user.id },
-        data: {
-          monthlyLinksCreated: { increment: 1 },
-          totalLinks: { increment: 1 },
-          updatedAt: new Date()
-        }
-      })
-
-      return link
-    })
-
-    return NextResponse.json(result)
-
+    const link = await LinkService.createLink(session.user.id, body)
+    return NextResponse.json(link)
   } catch (error: unknown) {
     // Handle specific errors
     if (error instanceof Error) {
       const message = error.message
-      if (message === 'User tidak ditemukan.' || message === 'Batas link bulanan tercapai.' || message === 'Batas total link tercapai.' || message === 'Short URL kustom tidak valid.' || message === 'Short URL kustom tidak tersedia.' || message === 'Short URL kustom sudah digunakan.' || message === 'Password minimal 4 karakter.' || message === 'Gagal menghasilkan short URL.') {
+      const clientErrors = [
+        'URL asli diperlukan.',
+        'URL tidak valid.',
+        'URL terlalu panjang (max 2048 karakter).',
+        'URL terdeteksi berbahaya.',
+        'User tidak ditemukan.',
+        'Batas link bulanan tercapai.',
+        'Batas total link tercapai.',
+        'Short URL kustom tidak valid.',
+        'Short URL kustom tidak tersedia.',
+        'Short URL kustom sudah digunakan.',
+        'Password minimal 4 karakter.',
+        'Gagal menghasilkan short URL.'
+      ]
+
+      if (clientErrors.includes(message)) {
         return NextResponse.json({ error: message }, { status: 400 })
       }
     }
