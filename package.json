@@ -12,6 +12,7 @@
     "start": "next start",
     "lint": "eslint",
     "check-db": "node scripts/check-db.js",
+    "generate-secret": "node scripts/generate-secret.js",
     "postinstall": "prisma generate",
     "test": "jest",
     "test:watch": "jest --watch",
