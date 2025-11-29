@@ -26,7 +26,7 @@ UPer.li is an exclusive URL shortener service designed for the Civitas Universit
 ## Tech Stack
 
 - **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS 4
-- **Backend**: Next.js API Routes, NextAuth.js
+- **Backend**: Next.js API Routes, NextAuth.js 4
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth.js with custom adapter
 - **Email**: Nodemailer with SMTP
@@ -149,6 +149,7 @@ The application provides RESTful API endpoints for:
 - `/api/2fa/*`: Two-factor authentication
 - `/api/register`: User registration
 - `/api/verify-code`: Email verification
+- `/api/resend-verification`: Resend verification email
 - `/api/forgot-password`: Password reset request
 - `/api/reset-password`: Password reset execution
 - `/api/verify-link-password`: Link password verification
@@ -157,10 +158,13 @@ The application provides RESTful API endpoints for:
 
 ```
 src/
+├── __tests__/           # Test files
 ├── app/                 # Next.js app router pages
 ├── components/          # React components
 ├── lib/                 # Utility libraries
+├── services/            # Service layer
 ├── types/               # TypeScript type definitions
+├── instrumentation.ts   # OpenTelemetry instrumentation
 └── middleware.ts        # Next.js middleware
 
 docs/                    # Documentation
