@@ -174,12 +174,87 @@ export function scheduleUnverifiedUserCleanup() {
   cron.schedule('0 4 * * *', deleteUnverifiedUsers)
 }
 
+export const revalidateStoredUrls = async () => {
+  logger.info('Running URL re-validation check...')
+  try {
+    const { checkUrlSafety } = await import('@/lib/safeBrowsing')
+
+    const BATCH_SIZE = 50 // Process 50 links at a time to avoid overwhelming the API
+    let skip = 0
+    let hasMore = true
+    let totalDeactivated = 0
+
+    while (hasMore) {
+      // Find active links to check
+      const linksToCheck = await prisma.link.findMany({
+        where: {
+          active: true
+        },
+        select: {
+          id: true,
+          shortUrl: true,
+          longUrl: true
+        },
+        take: BATCH_SIZE,
+        skip: skip
+      })
+
+      if (linksToCheck.length === 0) {
+        hasMore = false
+        break
+      }
+
+      // Check each link against Safe Browsing API
+      for (const link of linksToCheck) {
+        try {
+          const isSafe = await checkUrlSafety(link.longUrl)
+
+          if (!isSafe) {
+            // Deactivate malicious link
+            await prisma.link.update({
+              where: { id: link.id },
+              data: {
+                active: false,
+                deactivatedAt: new Date()
+              }
+            })
+            totalDeactivated++
+            logger.warn(`Deactivated malicious link: ${link.shortUrl} -> ${link.longUrl}`)
+          }
+
+          // Add small delay to avoid hitting API rate limits
+          await new Promise(resolve => setTimeout(resolve, 100))
+        } catch (error) {
+          logger.error(`Error checking link ${link.shortUrl}:`, error)
+          // Continue with next link instead of stopping
+        }
+      }
+
+      // If we processed fewer than BATCH_SIZE, we're done
+      if (linksToCheck.length < BATCH_SIZE) {
+        hasMore = false
+      } else {
+        skip += BATCH_SIZE
+      }
+    }
+
+    logger.info(`URL re-validation completed: ${totalDeactivated} malicious links deactivated`)
+  } catch (error) {
+    logger.error('URL re-validation error:', error)
+  }
+}
+
+export function scheduleUrlRevalidation() {
+  cron.schedule('0 1 * * *', revalidateStoredUrls) // Run daily at 1 AM
+}
+
 export function initializeCronJobs() {
   logger.info('Initializing cron jobs...')
   scheduleMonthlyLimitReset()
   scheduleLinkDeactivation()
   scheduleLinkDeletion()
   scheduleUnverifiedUserCleanup()
+  scheduleUrlRevalidation()
   logger.info('All cron jobs initialized successfully')
 }
 

@@ -44,10 +44,10 @@ describe('checkUrlSafety', () => {
         expect(isSafe).toBe(false)
     })
 
-    it('should return true (fail-safe) if API throws error', async () => {
+    it('should return false (fail-secure) if API throws error', async () => {
         mockFind.mockRejectedValue(new Error('API Error'))
 
         const isSafe = await checkUrlSafety('https://example.com')
-        expect(isSafe).toBe(true)
+        expect(isSafe).toBe(false)
     })
 })

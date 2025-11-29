@@ -24,8 +24,8 @@ export async function checkUrlSafety(url: string): Promise<boolean> {
     // If there are matches, the URL is unsafe
     return !response.data.matches || response.data.matches.length === 0
   } catch (error) {
-    logger.error('Safe Browsing API error:', error)
-    // If API fails, allow the URL (fail-safe)
-    return true
+    logger.error('Safe Browsing API error - rejecting URL for security:', error)
+    // If API fails, reject the URL (fail-secure) to prevent malicious URLs during outages
+    return false
   }
 }

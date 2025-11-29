@@ -7,7 +7,8 @@ import {
     deletePermanentLinks,
     manualMonthlyReset,
     manualLinkCleanup,
-    initializeCronJobs
+    initializeCronJobs,
+    revalidateStoredUrls
 } from '../cron'
 import cron from 'node-cron'
 import { prisma } from '@/lib/prisma'
@@ -28,6 +29,7 @@ jest.mock('@/lib/prisma', () => ({
             updateMany: jest.fn(),
             deleteMany: jest.fn(),
             findMany: jest.fn(),
+            update: jest.fn(),
         },
     },
 }))
@@ -40,7 +42,12 @@ jest.mock('@/lib/logger', () => ({
     logger: {
         info: jest.fn(),
         error: jest.fn(),
+        warn: jest.fn(),
     },
+}))
+
+jest.mock('@/lib/safeBrowsing', () => ({
+    checkUrlSafety: jest.fn(),
 }))
 
 describe('cron', () => {
@@ -51,7 +58,7 @@ describe('cron', () => {
     describe('initializeCronJobs', () => {
         it('should schedule all jobs', () => {
             initializeCronJobs()
-            expect(cron.schedule).toHaveBeenCalledTimes(4)
+            expect(cron.schedule).toHaveBeenCalledTimes(5) // Updated from 4 to 5
             expect(logger.info).toHaveBeenCalledWith('Initializing cron jobs...')
         })
     })
@@ -100,6 +107,56 @@ describe('cron', () => {
 
             expect(result.success).toBe(false)
             expect(logger.error).toHaveBeenCalledWith('Manual link cleanup error:', error)
+        })
+    })
+
+    describe('revalidateStoredUrls', () => {
+        it('should check URLs and deactivate malicious ones', async () => {
+            const mockLinks = [
+                { id: 'link-1', shortUrl: 'abc', longUrl: 'http://malicious.com' },
+                { id: 'link-2', shortUrl: 'def', longUrl: 'http://safe.com' }
+            ]
+
+            const { checkUrlSafety } = await import('@/lib/safeBrowsing')
+                ; (prisma.link.findMany as jest.Mock).mockResolvedValue(mockLinks)
+                ; (prisma.link.update as jest.Mock).mockResolvedValue({})
+                ; (checkUrlSafety as jest.Mock)
+                    .mockResolvedValueOnce(false) // First URL is malicious
+                    .mockResolvedValueOnce(true)  // Second URL is safe
+
+            await revalidateStoredUrls()
+
+            expect(prisma.link.findMany).toHaveBeenCalled()
+            expect(checkUrlSafety).toHaveBeenCalledTimes(2)
+            expect(prisma.link.update).toHaveBeenCalledTimes(1)
+            expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('Deactivated malicious link'))
+        })
+
+        it('should handle empty results', async () => {
+            (prisma.link.findMany as jest.Mock).mockResolvedValue([])
+
+            await revalidateStoredUrls()
+
+            expect(prisma.link.findMany).toHaveBeenCalled()
+            expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('URL re-validation completed'))
+        })
+
+        it('should continue on individual link errors', async () => {
+            const mockLinks = [
+                { id: 'link-1', shortUrl: 'abc', longUrl: 'http://example.com' },
+                { id: 'link-2', shortUrl: 'def', longUrl: 'http://example2.com' }
+            ]
+
+            const { checkUrlSafety } = await import('@/lib/safeBrowsing')
+                ; (prisma.link.findMany as jest.Mock).mockResolvedValue(mockLinks)
+                ; (checkUrlSafety as jest.Mock)
+                    .mockRejectedValueOnce(new Error('API Error'))
+                    .mockResolvedValueOnce(true)
+
+            await revalidateStoredUrls()
+
+            expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Error checking link'), expect.any(Error))
+            expect(checkUrlSafety).toHaveBeenCalledTimes(2) // Should continue after error
         })
     })
 
