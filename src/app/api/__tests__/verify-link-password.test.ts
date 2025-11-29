@@ -17,29 +17,37 @@ jest.mock('@/lib/prisma', () => ({
 
 jest.mock('bcryptjs', () => ({
     compare: jest.fn(),
+    hash: jest.fn(),
 }))
 
 jest.mock('@/lib/rateLimit', () => ({
     withRateLimit: jest.fn((handler) => handler),
 }))
 
+jest.mock('@/lib/timing', () => ({
+    addConstantDelay: jest.fn().mockResolvedValue(undefined),
+}))
+
 describe('/api/verify-link-password', () => {
     beforeEach(() => {
         jest.clearAllMocks()
+            // Setup default bcrypt.hash mock for dummy hash
+            ; (bcrypt.hash as jest.Mock).mockResolvedValue('dummy_hash')
     })
 
-    it('should return 400 if shortUrl or password is missing', async () => {
+    it('should return 401 with generic error if shortUrl or password is missing', async () => {
         const req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
             body: JSON.stringify({}),
         })
         const res = await POST(req)
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Short URL dan password diperlukan.' })
+        expect(res.status).toBe(401)
+        expect(await res.json()).toEqual({ error: 'Verifikasi gagal.' })
     })
 
-    it('should return 404 if link not found', async () => {
+    it('should return 401 with generic error if link not found', async () => {
         ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null)
+            ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
         const req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
@@ -47,14 +55,19 @@ describe('/api/verify-link-password', () => {
         })
         const res = await POST(req)
 
-        expect(res.status).toBe(404)
-        expect(await res.json()).toEqual({ error: 'Link tidak ditemukan.' })
+        expect(res.status).toBe(401)
+        expect(await res.json()).toEqual({ error: 'Verifikasi gagal.' })
+        // Verify bcrypt.compare was called (for timing normalization)
+        expect(bcrypt.compare).toHaveBeenCalled()
     })
 
-    it('should return 400 if link has no password', async () => {
+    it('should return 401 with generic error if link has no password', async () => {
         ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
-            shortUrl: 'test', password: null
+            id: 'link-id',
+            shortUrl: 'test',
+            password: null
         })
+            ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
         const req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
@@ -62,13 +75,18 @@ describe('/api/verify-link-password', () => {
         })
         const res = await POST(req)
 
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Link ini tidak memerlukan password.' })
+        expect(res.status).toBe(401)
+        expect(await res.json()).toEqual({ error: 'Verifikasi gagal.' })
+        // Verify bcrypt operations were called for timing normalization
+        expect(bcrypt.hash).toHaveBeenCalled()
+        expect(bcrypt.compare).toHaveBeenCalled()
     })
 
-    it('should return 401 if password is incorrect', async () => {
+    it('should return 401 with generic error if password is incorrect', async () => {
         ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
-            shortUrl: 'test', password: 'hashed_password'
+            id: 'link-id',
+            shortUrl: 'test',
+            password: 'hashed_password'
         })
             ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
@@ -79,12 +97,14 @@ describe('/api/verify-link-password', () => {
         const res = await POST(req)
 
         expect(res.status).toBe(401)
-        expect(await res.json()).toEqual({ error: 'Password salah.' })
+        expect(await res.json()).toEqual({ error: 'Verifikasi gagal.' })
     })
 
     it('should return success if password is correct', async () => {
         ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
-            shortUrl: 'test', password: 'hashed_password'
+            id: 'link-id',
+            shortUrl: 'test',
+            password: 'hashed_password'
         })
             ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
 
@@ -96,5 +116,37 @@ describe('/api/verify-link-password', () => {
 
         expect(res.status).toBe(200)
         expect(await res.json()).toEqual({ success: true })
+    })
+
+    it('should perform timing normalization for all error cases', async () => {
+        const { addConstantDelay } = await import('@/lib/timing')
+
+            // Test case 1: Link not found
+            ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null)
+            ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
+
+        let req = new NextRequest('http://localhost/api/verify-link-password', {
+            method: 'POST',
+            body: JSON.stringify({ shortUrl: 'nonexistent', password: 'test' }),
+        })
+        await POST(req)
+        expect(addConstantDelay).toHaveBeenCalled()
+
+        jest.clearAllMocks()
+
+            // Test case 2: Wrong password
+            ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
+                id: 'link-id',
+                shortUrl: 'test',
+                password: 'hashed'
+            })
+            ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
+
+        req = new NextRequest('http://localhost/api/verify-link-password', {
+            method: 'POST',
+            body: JSON.stringify({ shortUrl: 'test', password: 'wrong' }),
+        })
+        await POST(req)
+        expect(addConstantDelay).toHaveBeenCalled()
     })
 })

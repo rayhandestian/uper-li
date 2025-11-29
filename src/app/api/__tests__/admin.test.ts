@@ -55,10 +55,15 @@ jest.mock('@/lib/admin-audit', () => ({
 
 jest.mock('bcryptjs', () => ({
     compare: jest.fn(),
+    hash: jest.fn(),
 }))
 
 jest.mock('@/lib/rateLimit', () => ({
     withRateLimit: (handler: unknown) => handler, // Pass through without rate limiting in tests
+}))
+
+jest.mock('@/lib/timing', () => ({
+    addConstantDelay: jest.fn().mockResolvedValue(undefined),
 }))
 
 import { cookies } from 'next/headers'
@@ -371,12 +376,14 @@ describe('Admin & Additional Endpoints', () => {
             })
             const res = await verifyPasswordPOST(req)
 
-            expect(res.status).toBe(400)
-            expect(await res.json()).toEqual({ error: 'Short URL dan password diperlukan.' })
+            expect(res.status).toBe(401)
+            expect(await res.json()).toEqual({ error: 'Verifikasi gagal.' })
         })
 
         it('should return error if link is not found', async () => {
             ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null)
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue('dummy_hash')
+                ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
                 method: 'POST',
@@ -384,15 +391,18 @@ describe('Admin & Additional Endpoints', () => {
             })
             const res = await verifyPasswordPOST(req)
 
-            expect(res.status).toBe(404)
-            expect(await res.json()).toEqual({ error: 'Link tidak ditemukan.' })
+            expect(res.status).toBe(401)
+            expect(await res.json()).toEqual({ error: 'Verifikasi gagal.' })
         })
 
         it('should return false if link has no password', async () => {
             ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
+                id: 'link-id',
                 shortUrl: 'abc123',
                 password: null,
             })
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue('dummy_hash')
+                ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
                 method: 'POST',
@@ -400,12 +410,13 @@ describe('Admin & Additional Endpoints', () => {
             })
             const res = await verifyPasswordPOST(req)
 
-            expect(res.status).toBe(400)
-            expect(await res.json()).toEqual({ error: 'Link ini tidak memerlukan password.' })
+            expect(res.status).toBe(401)
+            expect(await res.json()).toEqual({ error: 'Verifikasi gagal.' })
         })
 
         it('should return false if password is incorrect', async () => {
             ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
+                id: 'link-id',
                 shortUrl: 'abc123',
                 password: 'hashed-password',
             })
@@ -418,11 +429,12 @@ describe('Admin & Additional Endpoints', () => {
             const res = await verifyPasswordPOST(req)
 
             expect(res.status).toBe(401)
-            expect(await res.json()).toEqual({ error: 'Password salah.' })
+            expect(await res.json()).toEqual({ error: 'Verifikasi gagal.' })
         })
 
         it('should return true if password is correct', async () => {
             ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
+                id: 'link-id',
                 shortUrl: 'abc123',
                 password: 'hashed-password',
             })
