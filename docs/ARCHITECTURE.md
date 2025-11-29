@@ -215,11 +215,18 @@ graph TB
 
 ### Schema Overview
 
-The database consists of two primary models: **User** and **Link**.
+The database consists of **8 models** organized into three domains:
+- **User Domain**: User, Link, VerificationAttempt
+- **Admin Domain**: Admin, AdminSession, AdminAuditLog, AdminVerificationAttempt
+- **System Domain**: RateLimit
 
 ```mermaid
 erDiagram
     User ||--o{ Link : creates
+    User ||--o{ VerificationAttempt : has
+    Admin ||--o{ AdminSession : has
+    Admin ||--o{ AdminAuditLog : generates
+    Admin ||--o{ AdminVerificationAttempt : has
     
     User {
         string id PK
@@ -238,6 +245,8 @@ erDiagram
         datetime lastReset
         boolean twoFactorEnabled
         string twoFactorSecret
+        string twoFactorLoginCode
+        string twoFactorSetupCode
         boolean active
     }
     
@@ -258,6 +267,79 @@ erDiagram
         datetime lastVisited
         int visitCount
         string qrCode
+    }
+    
+    VerificationAttempt {
+        string id PK
+        string userId FK
+        string attemptType
+        int failedAttempts
+        datetime lastAttemptAt
+        datetime lockedUntil
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    RateLimit {
+        string id PK
+        string identifier
+        string endpoint
+        int count
+        datetime resetTime
+        datetime createdAt
+        datetime updatedAt
+    }
+    
+    Admin {
+        string id PK
+        string email UK
+        string name
+        string password
+        datetime emailVerified
+        boolean twoFactorEnabled
+        string twoFactorSecret
+        string twoFactorBackupCodes
+        datetime createdAt
+        datetime updatedAt
+        datetime lastLoginAt
+        datetime passwordChangedAt
+        boolean active
+        string role
+    }
+    
+    AdminSession {
+        string id PK
+        string adminId FK
+        string token UK
+        string ipAddress
+        string userAgent
+        datetime createdAt
+        datetime lastActivityAt
+        datetime expiresAt
+        datetime revokedAt
+    }
+    
+    AdminAuditLog {
+        string id PK
+        string adminId FK
+        string action
+        string resource
+        string details
+        string ipAddress
+        string userAgent
+        boolean success
+        datetime createdAt
+    }
+    
+    AdminVerificationAttempt {
+        string id PK
+        string adminId FK
+        string attemptType
+        int failedAttempts
+        datetime lastAttemptAt
+        datetime lockedUntil
+        datetime createdAt
+        datetime updatedAt
     }
 ```
 
@@ -282,7 +364,9 @@ erDiagram
 | `totalLinks` | Int | Lifetime link count |
 | `lastReset` | DateTime | Last monthly reset timestamp |
 | `twoFactorEnabled` | Boolean | 2FA status |
-| `twoFactorSecret` | String (nullable) | Temporary 2FA code |
+| `twoFactorSecret` | String (nullable) | General purpose 2FA code storage |
+| `twoFactorLoginCode` | String (nullable) | Specific 2FA code for login verification |
+| `twoFactorSetupCode` | String (nullable) | Specific 2FA code for setup verification |
 | `active` | Boolean | Account active status |
 
 **Indexes**:
@@ -322,6 +406,143 @@ erDiagram
 **Constraints**:
 - Cascade delete: When a user is deleted, all their links are deleted
 - Check constraint: shortUrl cannot match reserved paths
+
+### VerificationAttempt Model
+
+**Purpose**: Track and limit failed verification attempts to prevent brute force attacks.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | String (UUID) | Primary key, auto-generated |
+| `userId` | String (FK) | References User.id |
+| `attemptType` | String | Type: 'email_verification', 'password_reset', '2fa_setup', '2fa_login' |
+| `failedAttempts` | Int | Count of failed attempts |
+| `lastAttemptAt` | DateTime | Timestamp of last attempt |
+| `lockedUntil` | DateTime (nullable) | Account lock expiration |
+| `createdAt` | DateTime | Record creation timestamp |
+| `updatedAt` | DateTime | Auto-updated on changes |
+
+**Indexes**:
+- `idx_verification_user_type` on `(userId, attemptType)`
+- `idx_verification_lockeduntil` on `lockedUntil`
+
+**Constraints**:
+- Unique constraint on `(userId, attemptType)`
+- Cascade delete: Deleted when user is deleted
+
+### RateLimit Model
+
+**Purpose**: Database-backed rate limiting for API endpoints.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | String (UUID) | Primary key, auto-generated |
+| `identifier` | String | IP address or user identifier |
+| `endpoint` | String | API endpoint path |
+| `count` | Int | Number of requests in current window |
+| `resetTime` | DateTime | When the rate limit resets |
+| `createdAt` | DateTime | Record creation timestamp |
+| `updatedAt` | DateTime | Auto-updated on changes |
+
+**Indexes**:
+- `idx_ratelimit_identifier` on `identifier`
+- `idx_ratelimit_resettime` on `resetTime`
+
+**Constraints**:
+- Unique constraint on `(identifier, endpoint)`
+
+### Admin Model
+
+**Purpose**: Stores administrator account information for system management.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | String (UUID) | Primary key, auto-generated |
+| `email` | String (unique) | Admin email address |
+| `name` | String | Admin's full name |
+| `password` | String | bcrypt hashed password |
+| `emailVerified` | DateTime (nullable) | Email verification timestamp |
+| `twoFactorEnabled` | Boolean | 2FA status (default: true) |
+| `twoFactorSecret` | String (nullable) | 2FA verification code |
+| `twoFactorBackupCodes` | String (nullable) | Emergency backup codes |
+| `createdAt` | DateTime | Account creation timestamp |
+| `updatedAt` | DateTime | Auto-updated on changes |
+| `lastLoginAt` | DateTime (nullable) | Last successful login |
+| `passwordChangedAt` | DateTime | Last password change |
+| `active` | Boolean | Account active status |
+| `role` | String | Role type (default: "ADMIN") |
+
+**Indexes**:
+- `idx_admin_email` on `email`
+- `idx_admin_active` on `active`
+
+### AdminSession Model
+
+**Purpose**: Manage admin authentication sessions with security tracking.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | String (UUID) | Primary key, auto-generated |
+| `adminId` | String (FK) | References Admin.id |
+| `token` | String (unique) | SHA-256 hashed session token |
+| `ipAddress` | String (nullable) | IP address of session |
+| `userAgent` | String (nullable) | Browser user agent |
+| `createdAt` | DateTime | Session creation timestamp |
+| `lastActivityAt` | DateTime | Last activity timestamp |
+| `expiresAt` | DateTime | Session expiration time |
+| `revokedAt` | DateTime (nullable) | Manual revocation timestamp |
+
+**Indexes**:
+- `idx_adminsession_adminid` on `adminId`
+- `idx_adminsession_token` on `token`
+- `idx_adminsession_expires` on `expiresAt`
+
+**Constraints**:
+- Cascade delete: Deleted when admin is deleted
+
+### AdminAuditLog Model
+
+**Purpose**: Comprehensive audit trail of all admin actions.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | String (UUID) | Primary key, auto-generated |
+| `adminId` | String (FK, nullable) | References Admin.id (set null on admin delete) |
+| `action` | String | Action performed (e.g., "USER_DELETED") |
+| `resource` | String (nullable) | Resource affected (e.g., user ID) |
+| `details` | String (nullable) | Additional action details |
+| `ipAddress` | String (nullable) | IP address of request |
+| `userAgent` | String (nullable) | Browser user agent |
+| `success` | Boolean | Whether action succeeded |
+| `createdAt` | DateTime | Audit log timestamp |
+
+**Indexes**:
+- `idx_auditlog_admin_time` on `(adminId, createdAt)`
+- `idx_auditlog_action_time` on `(action, createdAt)`
+- `idx_auditlog_time` on `createdAt`
+
+### AdminVerificationAttempt Model
+
+**Purpose**: Track and limit failed admin verification attempts.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | String (UUID) | Primary key, auto-generated |
+| `adminId` | String (FK) | References Admin.id |
+| `attemptType` | String | Type of verification attempt |
+| `failedAttempts` | Int | Count of failed attempts |
+| `lastAttemptAt` | DateTime | Timestamp of last attempt |
+| `lockedUntil` | DateTime (nullable) | Account lock expiration |
+| `createdAt` | DateTime | Record creation timestamp |
+| `updatedAt` | DateTime | Auto-updated on changes |
+
+**Indexes**:
+- `idx_adminverif_admin_type` on `(adminId, attemptType)`
+- `idx_adminverif_locked` on `lockedUntil`
+
+**Constraints**:
+- Unique constraint on `(adminId, attemptType)`
+- Cascade delete: Deleted when admin is deleted
 
 ### Database Access Patterns
 
@@ -571,7 +792,8 @@ In production, middleware enforces HTTPS:
 if (process.env.NODE_ENV === 'production' && hostname !== 'localhost') {
   const forwardedProto = request.headers.get('x-forwarded-proto')
   if (forwardedProto === 'http') {
-    return NextResponse.redirect(`https://${hostname}${pathname}`)
+    const httpsUrl = `https://${hostname}${pathname}${request.nextUrl.search}`
+    return NextResponse.redirect(httpsUrl)
   }
 }
 ```
@@ -603,8 +825,13 @@ All API routes follow RESTful conventions and are organized by feature:
 │   ├── stats/route.ts              # GET
 │   └── change-password/route.ts    # POST
 ├── admin/
-│   ├── login/route.ts              # POST
-│   ├── logout/route.ts             # POST
+│   ├── auth/
+│   │   ├── login/route.ts          # POST - Email/password login
+│   │   ├── verify-2fa/route.ts     # POST - Verify 2FA and create session
+│   │   ├── logout/route.ts         # POST - Logout (single session)
+│   │   ├── logout-all/route.ts     # POST - Revoke all sessions
+│   │   ├── sessions/route.ts       # GET - List active sessions
+│   │   └── session/[id]/route.ts   # DELETE - Revoke specific session
 │   ├── users/
 │   │   ├── route.ts                # GET (list)
 │   │   └── [id]/route.ts           # GET, PUT, DELETE
@@ -632,7 +859,7 @@ All sensitive endpoints are protected with rate limiting via `withRateLimit` HOC
 | `/api/reset-password` | 5 requests | 15 minutes |
 | Default (other endpoints) | 5 requests | 15 minutes |
 
-**Implementation**: In-memory Map with IP-based tracking and automatic cleanup.
+**Implementation**: Database-backed using the RateLimit model with IP-based tracking. The system uses the `RateLimit` table to persist rate limit counters, providing distributed rate limiting across serverless instances. Automatic cleanup of expired records via `resetTime` indexes.
 
 ### Authentication Middleware
 
@@ -1009,11 +1236,13 @@ gantt
     axisFormat %H:%M
     
     section Daily
+    URL Re-validation :cron0, 01:00, 1h
     Link Deactivation :cron1, 02:00, 1h
     Link Deletion :cron2, 03:00, 1h
+    Unverified User Cleanup :cron3, 04:00, 1h
     
     section Monthly
-    Reset Limits :cron3, 00:00, 1h
+    Reset Limits :cron4, 00:00, 1h
 ```
 
 ### 1. Monthly Limit Reset
@@ -1060,6 +1289,40 @@ DELETE FROM "Link"
 WHERE active = false 
   AND "deactivatedAt" < (NOW() - INTERVAL '1 month')
 ```
+
+### 4. Unverified User Cleanup
+
+**Schedule**: `0 4 * * *` (Daily at 4:00 AM)
+
+**Function**: `deleteUnverifiedUsers()`
+
+**Purpose**: Remove unverified user accounts older than 3 days to keep the database clean
+
+**Actions**:
+```sql
+DELETE FROM "User"
+WHERE "emailVerified" IS NULL
+  AND "createdAt" < (NOW() - INTERVAL '3 days')
+```
+
+**Rationale**: Users who haven't verified their email within 3 days are unlikely to complete registration.
+
+### 5. URL Re-validation
+
+**Schedule**: `0 1 * * *` (Daily at 1:00 AM)
+
+**Function**: `revalidateStoredUrls()`
+
+**Purpose**: Re-check all active links against Google Safe Browsing API to detect newly-flagged malicious URLs
+
+**Process**:
+1. Batch process active links (50 at a time)
+2. Check each URL with Safe Browsing API
+3. Deactivate any links that are newly flagged as unsafe
+4. Add 100ms delay between checks to respect API rate limits
+5. Log all deactivated malicious links
+
+**Rationale**: URLs can become malicious after creation. Regular re-validation protects users from clicking compromised links.
 
 ### Manual Triggers
 

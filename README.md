@@ -25,7 +25,7 @@ UPer.li is an exclusive URL shortener service designed for the Civitas Universit
 
 ## Tech Stack
 
-- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS 4
 - **Backend**: Next.js API Routes, NextAuth.js
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth.js with custom adapter
