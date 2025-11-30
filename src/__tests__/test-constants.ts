@@ -10,6 +10,11 @@ export const TEST_STRONG_SECRET = 'a-very-long-and-secure-secret-that-is-random-
 export const TEST_LOW_ENTROPY_SECRET = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 export const TEST_DEV_SECRET = 'development-secret-that-is-long-enough-but-contains-dev'
 export const TEST_TOO_SHORT_PASSWORD = '123'
+export const TEST_DUMMY_HASH = 'dummy_hash'
+export const TEST_NEW_HASHED_PASSWORD = 'hashed-new-password'
+export const TEST_TURNSTILE_TOKEN = 'turnstile-token'
+export const TEST_INVALID_TOKEN = 'invalid-token'
+export const TEST_VERIFICATION_CODE_ALT = '654321'
 
 // Dummy test to satisfy Jest
 if (process.env.NODE_ENV === 'test') {

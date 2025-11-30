@@ -5,6 +5,7 @@ import { POST } from '../forgot-password/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
+import { TEST_INVALID_TOKEN, TEST_TURNSTILE_TOKEN } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -47,7 +48,7 @@ describe('Forgot Password API', () => {
 
         const req = new NextRequest('http://localhost/api/forgot-password', {
             method: 'POST',
-            body: JSON.stringify({ nimOrUsername: 'testuser', turnstileToken: 'turnstile-token' })
+            body: JSON.stringify({ nimOrUsername: 'testuser', turnstileToken: TEST_TURNSTILE_TOKEN })
         })
 
         const res = await POST(req)
@@ -64,7 +65,7 @@ describe('Forgot Password API', () => {
 
         const req = new NextRequest('http://localhost/api/forgot-password', {
             method: 'POST',
-            body: JSON.stringify({ nimOrUsername: 'unknown', turnstileToken: 'turnstile-token' })
+            body: JSON.stringify({ nimOrUsername: 'unknown', turnstileToken: TEST_TURNSTILE_TOKEN })
         })
 
         const res = await POST(req)
@@ -80,7 +81,7 @@ describe('Forgot Password API', () => {
 
         const req = new NextRequest('http://localhost/api/forgot-password', {
             method: 'POST',
-            body: JSON.stringify({ nimOrUsername: 'testuser', turnstileToken: 'invalid-token' })
+            body: JSON.stringify({ nimOrUsername: 'testuser', turnstileToken: TEST_INVALID_TOKEN })
         })
 
         const res = await POST(req)

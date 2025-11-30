@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
-import { TEST_HASHED_PASSWORD, TEST_PASSWORD } from '@/__tests__/test-constants'
+import { TEST_HASHED_PASSWORD, TEST_NEW_HASHED_PASSWORD, TEST_PASSWORD, TEST_TOO_SHORT_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -148,7 +148,7 @@ describe('/api/user', () => {
         it('should return 400 if new password too short', async () => {
             const req = new NextRequest('http://localhost/api/user/change-password', {
                 method: 'POST',
-                body: JSON.stringify({ currentPassword: 'old', newPassword: 'short' }),
+                body: JSON.stringify({ currentPassword: TEST_PASSWORD, newPassword: TEST_TOO_SHORT_PASSWORD }),
             })
             const res = await changePassword(req)
             expect(res.status).toBe(400)
@@ -169,7 +169,7 @@ describe('/api/user', () => {
         it('should change password successfully', async () => {
             (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-123', password: TEST_HASHED_PASSWORD, email: 'test@example.com' })
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
-                ; (bcrypt.hash as jest.Mock).mockResolvedValue('newhashed')
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_NEW_HASHED_PASSWORD)
                 ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
 
             const req = new NextRequest('http://localhost/api/user/change-password', {
@@ -182,7 +182,7 @@ describe('/api/user', () => {
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { id: 'user-123' },
                 data: expect.objectContaining({
-                    password: 'newhashed',
+                    password: TEST_NEW_HASHED_PASSWORD,
                     updatedAt: expect.any(Date)
                 })
             })

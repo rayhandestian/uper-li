@@ -7,7 +7,7 @@ import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { generateSecureCode } from '@/lib/generateSecureCode'
 import { addConstantDelay, performDummyHash } from '@/lib/timing'
-import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
+import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_VERIFICATION_CODE, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -116,7 +116,7 @@ describe('AuthService', () => {
             }
                 ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser)
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
-                ; (generateSecureCode as jest.Mock).mockReturnValue('123456')
+                ; (generateSecureCode as jest.Mock).mockReturnValue(TEST_VERIFICATION_CODE)
                 ; (prisma.user.update as jest.Mock).mockResolvedValue(mockUser)
                 ; (sendEmail as jest.Mock).mockResolvedValue(true)
 

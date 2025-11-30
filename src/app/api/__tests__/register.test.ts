@@ -168,7 +168,7 @@ describe('/api/register', () => {
         ; (prisma.user.findUnique as jest.Mock)
             .mockResolvedValueOnce(null) // Email
             .mockResolvedValueOnce(null) // Username
-            ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
+            ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
             ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 

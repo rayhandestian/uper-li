@@ -5,7 +5,7 @@ import { POST } from '../verify-link-password/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
+import { TEST_DUMMY_HASH, TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -33,7 +33,7 @@ describe('/api/verify-link-password', () => {
     beforeEach(() => {
         jest.clearAllMocks()
             // Setup default bcrypt.hash mock for dummy hash
-            ; (bcrypt.hash as jest.Mock).mockResolvedValue('dummy_hash')
+            ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_DUMMY_HASH)
     })
 
     it('should return 401 with generic error if shortUrl or password is missing', async () => {
@@ -139,7 +139,7 @@ describe('/api/verify-link-password', () => {
             ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
                 id: 'link-id',
                 shortUrl: 'test',
-                password: 'hashed'
+                password: TEST_HASHED_PASSWORD
             })
             ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 

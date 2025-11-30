@@ -6,7 +6,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'
-import { TEST_PASSWORD } from '@/__tests__/test-constants'
+import { TEST_HASHED_PASSWORD, TEST_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -98,7 +98,7 @@ describe('/api/links/[id]', () => {
 
         it('should update link password', async () => {
             ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
-                ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
                 ; (prisma.link.update as jest.Mock).mockResolvedValue(mockLink)
 
             const req = new NextRequest('http://localhost/api/links/link-123', {

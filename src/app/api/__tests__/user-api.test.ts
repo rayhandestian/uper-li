@@ -7,7 +7,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'
-import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
+import { TEST_HASHED_PASSWORD, TEST_NEW_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -111,11 +111,11 @@ describe('User API', () => {
                 ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
 
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
-                ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-new')
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_NEW_HASHED_PASSWORD)
 
             const req = new NextRequest('http://localhost/api/user/change-password', {
                 method: 'POST',
-                body: JSON.stringify({ currentPassword: 'old', newPassword: TEST_PASSWORD })
+                body: JSON.stringify({ currentPassword: TEST_PASSWORD, newPassword: TEST_PASSWORD })
             })
             const res = await CHANGE_PASSWORD(req)
 
@@ -123,7 +123,7 @@ describe('User API', () => {
             expect(prisma.user.update).toHaveBeenCalledWith({
                 where: { id: 'user-1' },
                 data: expect.objectContaining({
-                    password: 'hashed-new',
+                    password: TEST_NEW_HASHED_PASSWORD,
                     updatedAt: expect.any(Date)
                 })
             })

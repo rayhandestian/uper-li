@@ -5,7 +5,7 @@ import { POST } from '../reset-password/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { TEST_PASSWORD, TEST_VERIFICATION_CODE } from '@/__tests__/test-constants'
+import { TEST_NEW_HASHED_PASSWORD, TEST_PASSWORD, TEST_VERIFICATION_CODE, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -52,7 +52,7 @@ describe('Reset Password API', () => {
 
             ; (prisma.user.findFirst as jest.Mock).mockResolvedValue(validUser)
             ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
-            ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-new-password')
+            ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_NEW_HASHED_PASSWORD)
 
         const req = new NextRequest('http://localhost/api/reset-password', {
             method: 'POST',
@@ -70,7 +70,7 @@ describe('Reset Password API', () => {
         expect(prisma.user.update).toHaveBeenCalledWith({
             where: { id: 'user-1' },
             data: expect.objectContaining({
-                password: 'hashed-new-password'
+                password: TEST_NEW_HASHED_PASSWORD
             })
         })
     })
@@ -96,8 +96,8 @@ describe('Reset Password API', () => {
             body: JSON.stringify({
                 nimOrUsername: 'testuser',
                 code: TEST_VERIFICATION_CODE,
-                newPassword: 'password123',
-                confirmPassword: 'mismatch123'
+                newPassword: TEST_PASSWORD,
+                confirmPassword: TEST_WRONG_PASSWORD
             })
         })
 
