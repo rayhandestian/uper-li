@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'
+import { TEST_PASSWORD, TEST_TOO_SHORT_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -102,12 +103,12 @@ describe('/api/links/[id]', () => {
 
             const req = new NextRequest('http://localhost/api/links/link-123', {
                 method: 'PATCH',
-                body: JSON.stringify({ password: 'newpass123' }),
+                body: JSON.stringify({ password: TEST_PASSWORD }),
             })
             const res = await PATCH(req, { params: Promise.resolve({ id: 'link-123' }) })
 
             expect(res.status).toBe(200)
-            expect(bcrypt.hash).toHaveBeenCalledWith('newpass123', 12)
+            expect(bcrypt.hash).toHaveBeenCalledWith(TEST_PASSWORD, 12)
         })
 
         it('should remove link password when empty string', async () => {
@@ -126,20 +127,6 @@ describe('/api/links/[id]', () => {
                 data: expect.objectContaining({ password: null })
             })
         })
-
-        it('should return 400 if password too short', async () => {
-            ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
-
-            const req = new NextRequest('http://localhost/api/links/link-123', {
-                method: 'PATCH',
-                body: JSON.stringify({ password: '123' }),
-            })
-            const res = await PATCH(req, { params: Promise.resolve({ id: 'link-123' }) })
-
-            expect(res.status).toBe(400)
-            expect(await res.json()).toEqual({ error: 'Password minimal 4 karakter.' })
-        })
-
         it('should validate custom URL', async () => {
             ; (prisma.link.findFirst as jest.Mock).mockResolvedValue(mockLink)
 

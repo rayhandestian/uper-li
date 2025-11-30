@@ -6,6 +6,7 @@ import { POST as DISABLE_2FA } from '../2fa/disable/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
+import { TEST_VERIFICATION_CODE } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -43,7 +44,7 @@ describe('2FA Full API', () => {
             const validUser = {
                 id: 'user-1',
                 twoFactorEnabled: false,
-                twoFactorSetupCode: '123456',
+                twoFactorSetupCode: TEST_VERIFICATION_CODE,
                 verificationTokenExpires: new Date(Date.now() + 10000)
             }
 
@@ -52,7 +53,7 @@ describe('2FA Full API', () => {
 
             const req = new NextRequest('http://localhost/api/2fa/verify', {
                 method: 'POST',
-                body: JSON.stringify({ code: '123456' })
+                body: JSON.stringify({ code: TEST_VERIFICATION_CODE })
             })
             const res = await VERIFY_2FA(req)
 
@@ -73,7 +74,7 @@ describe('2FA Full API', () => {
             const validUser = {
                 id: 'user-1',
                 twoFactorEnabled: false,
-                twoFactorSetupCode: '123456',
+                twoFactorSetupCode: TEST_VERIFICATION_CODE,
                 verificationTokenExpires: new Date(Date.now() + 10000)
             }
 
@@ -95,7 +96,7 @@ describe('2FA Full API', () => {
             const expiredUser = {
                 id: 'user-1',
                 twoFactorEnabled: false,
-                twoFactorSetupCode: '123456',
+                twoFactorSetupCode: TEST_VERIFICATION_CODE,
                 verificationTokenExpires: new Date(Date.now() - 10000)
             }
 
@@ -103,7 +104,7 @@ describe('2FA Full API', () => {
 
             const req = new NextRequest('http://localhost/api/2fa/verify', {
                 method: 'POST',
-                body: JSON.stringify({ code: '123456' })
+                body: JSON.stringify({ code: TEST_VERIFICATION_CODE })
             })
             const res = await VERIFY_2FA(req)
 

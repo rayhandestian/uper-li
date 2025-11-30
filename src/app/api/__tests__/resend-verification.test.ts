@@ -5,6 +5,11 @@ import { POST } from '../resend-verification/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { sendEmail } from '@/lib/email'
+import { TEST_PASSWORD } from '@/__tests__/test-constants'
+
+jest.mock('@/lib/email', () => ({
+    sendEmail: jest.fn(),
+}))
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -14,10 +19,6 @@ jest.mock('@/lib/prisma', () => ({
             update: jest.fn(),
         },
     },
-}))
-
-jest.mock('@/lib/email', () => ({
-    sendEmail: jest.fn(),
 }))
 
 // Mock rate limit wrapper
@@ -184,19 +185,14 @@ describe('/api/resend-verification', () => {
             emailVerified: null
         })
             ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
-
             ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
         const req = new NextRequest('http://localhost/api/resend-verification', {
             method: 'POST',
-            body: JSON.stringify({
-                nimOrUsername: '12345678',
-                password: 'ignored-password' // Should be ignored
-            }),
+            body: JSON.stringify({ ...validBody, password: TEST_PASSWORD }),
         })
         await POST(req)
 
-        // Verify password was NOT included in database update
         const updateCall = (prisma.user.update as jest.Mock).mock.calls[0]
         expect(updateCall[0].data.password).toBeUndefined()
     })

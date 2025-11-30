@@ -2,6 +2,7 @@
  * @jest-environment node
  */
 import { validateEnvironment } from '../validateEnv'
+import { TEST_DEV_SECRET, TEST_LOW_ENTROPY_SECRET, TEST_SHORT_SECRET, TEST_STRONG_SECRET, TEST_WEAK_SECRET } from '@/__tests__/test-constants'
 import { logger } from '../logger'
 
 // Mock logger
@@ -33,21 +34,21 @@ describe('validateEnvironment', () => {
     })
 
     it('should throw error if NEXTAUTH_SECRET is too short', () => {
-        process.env.NEXTAUTH_SECRET = 'short-secret'
+        process.env.NEXTAUTH_SECRET = TEST_SHORT_SECRET
 
         expect(() => validateEnvironment()).toThrow('Critical environment validation failed')
         expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('too short'))
     })
 
     it('should throw error if NEXTAUTH_SECRET is weak', () => {
-        process.env.NEXTAUTH_SECRET = 'change-me-please-change-me-please-change-me'
+        process.env.NEXTAUTH_SECRET = TEST_WEAK_SECRET
 
         expect(() => validateEnvironment()).toThrow('Critical environment validation failed')
         expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('placeholder or weak value'))
     })
 
     it('should pass with valid secret', () => {
-        process.env.NEXTAUTH_SECRET = 'a-very-long-and-secure-secret-that-is-random-enough-9876543210'
+        process.env.NEXTAUTH_SECRET = TEST_STRONG_SECRET
 
         expect(() => validateEnvironment()).not.toThrow()
         expect(logger.info).toHaveBeenCalledWith('Environment validation passed ✓')
@@ -55,7 +56,7 @@ describe('validateEnvironment', () => {
 
     it('should warn if secret has low entropy', () => {
         // 32 chars but low entropy
-        process.env.NEXTAUTH_SECRET = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        process.env.NEXTAUTH_SECRET = TEST_LOW_ENTROPY_SECRET
 
         expect(() => validateEnvironment()).not.toThrow()
         expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining('low character diversity'))
@@ -64,7 +65,7 @@ describe('validateEnvironment', () => {
     it('should warn if production secret looks like dev value', () => {
         const originalNodeEnv = process.env.NODE_ENV
         Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', writable: true })
-        process.env.NEXTAUTH_SECRET = 'development-secret-that-is-long-enough-but-contains-dev'
+        process.env.NEXTAUTH_SECRET = TEST_DEV_SECRET
 
         try {
             expect(() => validateEnvironment()).not.toThrow()

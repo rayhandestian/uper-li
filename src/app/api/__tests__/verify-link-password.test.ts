@@ -5,6 +5,7 @@ import { POST } from '../verify-link-password/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -51,7 +52,7 @@ describe('/api/verify-link-password', () => {
 
         const req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
-            body: JSON.stringify({ shortUrl: 'nonexistent', password: 'test123' }),
+            body: JSON.stringify({ shortUrl: 'nonexistent', password: TEST_PASSWORD }),
         })
         const res = await POST(req)
 
@@ -71,7 +72,7 @@ describe('/api/verify-link-password', () => {
 
         const req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
-            body: JSON.stringify({ shortUrl: 'test', password: 'test123' }),
+            body: JSON.stringify({ shortUrl: 'test', password: TEST_PASSWORD }),
         })
         const res = await POST(req)
 
@@ -86,13 +87,13 @@ describe('/api/verify-link-password', () => {
         ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
             id: 'link-id',
             shortUrl: 'test',
-            password: 'hashed_password'
+            password: TEST_HASHED_PASSWORD
         })
             ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
         const req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
-            body: JSON.stringify({ shortUrl: 'test', password: 'wrong' }),
+            body: JSON.stringify({ shortUrl: 'test', password: TEST_WRONG_PASSWORD }),
         })
         const res = await POST(req)
 
@@ -104,13 +105,13 @@ describe('/api/verify-link-password', () => {
         ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
             id: 'link-id',
             shortUrl: 'test',
-            password: 'hashed_password'
+            password: TEST_HASHED_PASSWORD
         })
             ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
 
         const req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
-            body: JSON.stringify({ shortUrl: 'test', password: 'correct' }),
+            body: JSON.stringify({ shortUrl: 'test', password: TEST_PASSWORD }),
         })
         const res = await POST(req)
 
@@ -144,7 +145,7 @@ describe('/api/verify-link-password', () => {
 
         req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
-            body: JSON.stringify({ shortUrl: 'test', password: 'wrong' }),
+            body: JSON.stringify({ shortUrl: 'test', password: TEST_WRONG_PASSWORD }),
         })
         await POST(req)
         expect(addConstantDelay).toHaveBeenCalled()

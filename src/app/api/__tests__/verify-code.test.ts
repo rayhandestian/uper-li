@@ -4,6 +4,7 @@
 import { POST } from '../verify-code/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { TEST_VERIFICATION_CODE } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -56,7 +57,7 @@ describe('/api/verify-code', () => {
 
         const req = new NextRequest('http://localhost/api/verify-code', {
             method: 'POST',
-            body: JSON.stringify({ code: '123456' }),
+            body: JSON.stringify({ code: TEST_VERIFICATION_CODE }),
         })
         const res = await POST(req)
         expect(res.status).toBe(400)
@@ -73,7 +74,7 @@ describe('/api/verify-code', () => {
 
         const req = new NextRequest('http://localhost/api/verify-code', {
             method: 'POST',
-            body: JSON.stringify({ code: '123456' }),
+            body: JSON.stringify({ code: TEST_VERIFICATION_CODE }),
         })
         const res = await POST(req)
         expect(res.status).toBe(400)
@@ -89,7 +90,7 @@ describe('/api/verify-code', () => {
 
         const req = new NextRequest('http://localhost/api/verify-code', {
             method: 'POST',
-            body: JSON.stringify({ code: '123456' }),
+            body: JSON.stringify({ code: TEST_VERIFICATION_CODE }),
         })
         const res = await POST(req)
         expect(res.status).toBe(400)
@@ -108,7 +109,7 @@ describe('/api/verify-code', () => {
 
         const req = new NextRequest('http://localhost/api/verify-code', {
             method: 'POST',
-            body: JSON.stringify({ code: '123456' }),
+            body: JSON.stringify({ code: TEST_VERIFICATION_CODE }),
         })
         const res = await POST(req)
 

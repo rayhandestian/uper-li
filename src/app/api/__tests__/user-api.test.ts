@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'
+import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -106,7 +107,7 @@ describe('User API', () => {
         it('should change password successfully', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { email: 'test@example.com' } })
                 ; (prisma.user.findUnique as jest.Mock)
-                    .mockResolvedValue({ id: 'user-1', email: 'test@example.com', password: 'hashed-old' })
+                    .mockResolvedValue({ id: 'user-1', email: 'test@example.com', password: TEST_HASHED_PASSWORD })
                 ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-1' })
 
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
@@ -114,7 +115,7 @@ describe('User API', () => {
 
             const req = new NextRequest('http://localhost/api/user/change-password', {
                 method: 'POST',
-                body: JSON.stringify({ currentPassword: 'old', newPassword: 'new-password-123' })
+                body: JSON.stringify({ currentPassword: 'old', newPassword: TEST_PASSWORD })
             })
             const res = await CHANGE_PASSWORD(req)
 
@@ -130,12 +131,12 @@ describe('User API', () => {
 
         it('should reject incorrect current password', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { email: 'test@example.com' } })
-                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-1', password: 'hashed-old' });
+                ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-1', password: TEST_HASHED_PASSWORD });
             (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = new NextRequest('http://localhost/api/user/change-password', {
                 method: 'POST',
-                body: JSON.stringify({ currentPassword: 'wrong', newPassword: 'new-password-123' })
+                body: JSON.stringify({ currentPassword: TEST_WRONG_PASSWORD, newPassword: TEST_PASSWORD })
             })
             const res = await CHANGE_PASSWORD(req)
 

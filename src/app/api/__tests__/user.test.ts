@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
+import { TEST_HASHED_PASSWORD, TEST_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -122,7 +123,7 @@ describe('/api/user', () => {
     describe('Change Password', () => {
         const validBody = {
             currentPassword: 'oldpassword',
-            newPassword: 'newpassword123',
+            newPassword: TEST_PASSWORD,
         }
 
         it('should return 401 if not authenticated', async () => {
@@ -154,7 +155,7 @@ describe('/api/user', () => {
         })
 
         it('should return 400 if current password incorrect', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-123', password: 'hashed' })
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-123', password: TEST_HASHED_PASSWORD })
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = new NextRequest('http://localhost/api/user/change-password', {
@@ -166,7 +167,7 @@ describe('/api/user', () => {
         })
 
         it('should change password successfully', async () => {
-            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-123', password: 'hashed', email: 'test@example.com' })
+            (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: 'user-123', password: TEST_HASHED_PASSWORD, email: 'test@example.com' })
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
                 ; (bcrypt.hash as jest.Mock).mockResolvedValue('newhashed')
                 ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })

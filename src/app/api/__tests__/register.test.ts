@@ -6,6 +6,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
+import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_TOKEN } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -37,9 +38,9 @@ describe('/api/register', () => {
     const validBody = {
         role: 'STUDENT',
         nimOrUsername: '12345678',
-        password: 'password123',
+        password: TEST_PASSWORD,
         agreedToTerms: true,
-        turnstileToken: 'valid-token',
+        turnstileToken: TEST_TOKEN,
     }
 
     beforeEach(() => {
@@ -78,7 +79,7 @@ describe('/api/register', () => {
         ; (prisma.user.findUnique as jest.Mock)
             .mockResolvedValueOnce(null) // Email check
             .mockResolvedValueOnce(null) // Username check
-            ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
+            ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
 
         const req = new NextRequest('http://localhost/api/register', {
@@ -98,7 +99,7 @@ describe('/api/register', () => {
         ; (prisma.user.findUnique as jest.Mock)
             .mockResolvedValueOnce(null) // Email check
             .mockResolvedValueOnce(null) // Username check
-            ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
+            ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
 
         const req = new NextRequest('http://localhost/api/register', {
@@ -145,7 +146,7 @@ describe('/api/register', () => {
         ; (prisma.user.findUnique as jest.Mock)
             .mockResolvedValueOnce(null) // Email check
             .mockResolvedValueOnce(null) // Username check
-            ; (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password')
+            ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
             ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
@@ -156,7 +157,7 @@ describe('/api/register', () => {
         const res = await POST(req)
 
         expect(res.status).toBe(200)
-        expect(bcrypt.hash).toHaveBeenCalledWith('password123', 12)
+        expect(bcrypt.hash).toHaveBeenCalledWith(TEST_PASSWORD, 12)
         expect(sendEmail).toHaveBeenCalled()
 
         const response = await res.json()

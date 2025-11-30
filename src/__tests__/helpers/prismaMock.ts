@@ -9,6 +9,8 @@
  * }))
  */
 
+import { TEST_HASHED_PASSWORD } from '../test-constants'
+
 export const createPrismaMock = () => ({
     user: {
         findUnique: jest.fn(),
@@ -50,7 +52,7 @@ export const mockPrismaUser = (overrides = {}) => ({
     id: '1',
     email: 'test@example.com',
     nimOrUsername: 'testuser',
-    password: '$2a$10$hashedpassword',
+    password: TEST_HASHED_PASSWORD,
     role: 'STUDENT',
     emailVerified: new Date(),
     twoFactorEnabled: false,

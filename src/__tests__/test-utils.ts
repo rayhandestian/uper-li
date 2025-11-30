@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { TEST_HASHED_PASSWORD } from './test-constants'
 
 /**
  * Test Utilities for Jest Tests
@@ -112,7 +113,7 @@ export const createMockUser = (overrides?: Partial<MockUser>): MockUser => ({
     nimOrUsername: 'testuser',
     emailVerified: new Date(),
     twoFactorEnabled: false,
-    password: 'hashed-password',
+    password: TEST_HASHED_PASSWORD,
     ...overrides,
 })
 

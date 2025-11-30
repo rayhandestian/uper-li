@@ -7,6 +7,7 @@ import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { generateSecureCode } from '@/lib/generateSecureCode'
 import { addConstantDelay, performDummyHash } from '@/lib/timing'
+import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -43,12 +44,12 @@ describe('AuthService', () => {
 
         it('should return null if user not found', async () => {
             ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(null)
-                ; (bcrypt.hash as jest.Mock).mockResolvedValue('dummy-hash')
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const result = await AuthService.validateUser({
                 nimOrUsername: 'test',
-                password: 'password',
+                password: TEST_PASSWORD,
             })
 
             expect(result).toBeNull()
@@ -58,7 +59,7 @@ describe('AuthService', () => {
         it('should return null if password invalid', async () => {
             const mockUser = {
                 id: 'user-123',
-                password: 'hashed-password',
+                password: TEST_HASHED_PASSWORD,
                 emailVerified: new Date(),
             }
                 ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser)
@@ -66,7 +67,7 @@ describe('AuthService', () => {
 
             const result = await AuthService.validateUser({
                 nimOrUsername: 'test',
-                password: 'wrong-password',
+                password: TEST_WRONG_PASSWORD,
             })
 
             expect(result).toBeNull()
@@ -80,7 +81,7 @@ describe('AuthService', () => {
                 name: 'Test User',
                 role: 'USER',
                 nimOrUsername: 'test',
-                password: 'hashed-password',
+                password: TEST_HASHED_PASSWORD,
                 emailVerified: new Date(),
                 twoFactorEnabled: false,
             }
@@ -89,7 +90,7 @@ describe('AuthService', () => {
 
             const result = await AuthService.validateUser({
                 nimOrUsername: 'test',
-                password: 'password',
+                password: TEST_PASSWORD,
             })
 
             expect(result).toEqual({
@@ -109,7 +110,7 @@ describe('AuthService', () => {
                 name: 'Test User',
                 role: 'USER',
                 nimOrUsername: 'test',
-                password: 'hashed-password',
+                password: TEST_HASHED_PASSWORD,
                 emailVerified: new Date(),
                 twoFactorEnabled: true,
             }
@@ -121,7 +122,7 @@ describe('AuthService', () => {
 
             const result = await AuthService.validateUser({
                 nimOrUsername: 'test',
-                password: 'password',
+                password: TEST_PASSWORD,
             })
 
             expect(result).toEqual({

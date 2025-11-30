@@ -5,6 +5,7 @@ import { POST } from '../reset-password/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { TEST_PASSWORD, TEST_VERIFICATION_CODE } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -57,9 +58,9 @@ describe('Reset Password API', () => {
             method: 'POST',
             body: JSON.stringify({
                 nimOrUsername: 'testuser',
-                code: '123456',
-                newPassword: 'newpassword123',
-                confirmPassword: 'newpassword123'
+                code: TEST_VERIFICATION_CODE,
+                newPassword: TEST_PASSWORD,
+                confirmPassword: TEST_PASSWORD
             })
         })
 
@@ -80,8 +81,8 @@ describe('Reset Password API', () => {
             body: JSON.stringify({
                 nimOrUsername: 'testuser',
                 // Missing code
-                newPassword: 'newpassword123',
-                confirmPassword: 'newpassword123'
+                newPassword: TEST_PASSWORD,
+                confirmPassword: TEST_PASSWORD
             })
         })
 
@@ -94,7 +95,7 @@ describe('Reset Password API', () => {
             method: 'POST',
             body: JSON.stringify({
                 nimOrUsername: 'testuser',
-                code: '123456',
+                code: TEST_VERIFICATION_CODE,
                 newPassword: 'password123',
                 confirmPassword: 'mismatch123'
             })
@@ -112,8 +113,8 @@ describe('Reset Password API', () => {
             body: JSON.stringify({
                 nimOrUsername: 'testuser',
                 code: 'invalid',
-                newPassword: 'newpassword123',
-                confirmPassword: 'newpassword123'
+                newPassword: TEST_PASSWORD,
+                confirmPassword: TEST_PASSWORD
             })
         })
 
@@ -134,9 +135,9 @@ describe('Reset Password API', () => {
             method: 'POST',
             body: JSON.stringify({
                 nimOrUsername: 'testuser',
-                code: '123456',
-                newPassword: 'newpassword123',
-                confirmPassword: 'newpassword123'
+                code: TEST_VERIFICATION_CODE,
+                newPassword: TEST_PASSWORD,
+                confirmPassword: TEST_PASSWORD
             })
         })
 
@@ -158,9 +159,9 @@ describe('Reset Password API', () => {
             method: 'POST',
             body: JSON.stringify({
                 nimOrUsername: 'testuser',
-                code: '123456',
-                newPassword: 'newpassword123',
-                confirmPassword: 'newpassword123'
+                code: TEST_VERIFICATION_CODE,
+                newPassword: TEST_PASSWORD,
+                confirmPassword: TEST_PASSWORD
             })
         })
 

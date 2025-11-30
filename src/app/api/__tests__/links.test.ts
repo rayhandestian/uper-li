@@ -5,6 +5,7 @@ import { GET, POST } from '../links/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
+import { TEST_PASSWORD, TEST_TOO_SHORT_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -326,7 +327,7 @@ describe('/api/links', () => {
 
             const req = new NextRequest('http://localhost/api/links', {
                 method: 'POST',
-                body: JSON.stringify({ ...validBody, password: 'secure123' }),
+                body: JSON.stringify({ ...validBody, password: TEST_PASSWORD }),
             })
             const res = await POST(req)
 
@@ -352,7 +353,7 @@ describe('/api/links', () => {
 
             const req = new NextRequest('http://localhost/api/links', {
                 method: 'POST',
-                body: JSON.stringify({ ...validBody, password: '123' }), // Less than 4 chars
+                body: JSON.stringify({ ...validBody, password: TEST_TOO_SHORT_PASSWORD }), // Less than 4 chars
             })
             const res = await POST(req)
 

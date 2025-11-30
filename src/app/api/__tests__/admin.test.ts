@@ -11,6 +11,7 @@ import {
     createMockRequest,
     createMockParams,
 } from '@/__tests__/test-utils'
+import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next/headers', () => ({
@@ -382,12 +383,12 @@ describe('Admin & Additional Endpoints', () => {
 
         it('should return error if link is not found', async () => {
             ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null)
-                ; (bcrypt.hash as jest.Mock).mockResolvedValue('dummy_hash')
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
                 method: 'POST',
-                body: { shortUrl: 'abc123', password: 'test123' },
+                body: { shortUrl: 'abc123', password: TEST_PASSWORD },
             })
             const res = await verifyPasswordPOST(req)
 
@@ -401,12 +402,12 @@ describe('Admin & Additional Endpoints', () => {
                 shortUrl: 'abc123',
                 password: null,
             })
-                ; (bcrypt.hash as jest.Mock).mockResolvedValue('dummy_hash')
+                ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
                 method: 'POST',
-                body: { shortUrl: 'abc123', password: 'test123' },
+                body: { shortUrl: 'abc123', password: TEST_PASSWORD },
             })
             const res = await verifyPasswordPOST(req)
 
@@ -418,13 +419,13 @@ describe('Admin & Additional Endpoints', () => {
             ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
                 id: 'link-id',
                 shortUrl: 'abc123',
-                password: 'hashed-password',
+                password: TEST_HASHED_PASSWORD,
             })
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(false)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
                 method: 'POST',
-                body: { shortUrl: 'abc123', password: 'wrong-password' },
+                body: { shortUrl: 'abc123', password: TEST_WRONG_PASSWORD },
             })
             const res = await verifyPasswordPOST(req)
 
@@ -436,13 +437,13 @@ describe('Admin & Additional Endpoints', () => {
             ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
                 id: 'link-id',
                 shortUrl: 'abc123',
-                password: 'hashed-password',
+                password: TEST_HASHED_PASSWORD,
             })
                 ; (bcrypt.compare as jest.Mock).mockResolvedValue(true)
 
             const req = createMockRequest('http://localhost/api/verify-link-password', {
                 method: 'POST',
-                body: { shortUrl: 'abc123', password: 'correct-password' },
+                body: { shortUrl: 'abc123', password: TEST_PASSWORD },
             })
             const res = await verifyPasswordPOST(req)
 
