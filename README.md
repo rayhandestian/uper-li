@@ -4,6 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
 [![codecov](https://codecov.io/gh/rayhandestian/uper-li/graph/badge.svg)](https://codecov.io/gh/rayhandestian/uper-li)
+[![CodeFactor](https://www.codefactor.io/repository/github/rayhandestian/uper-li/badge)](https://www.codefactor.io/repository/github/rayhandestian/uper-li)
 
 UPer.li is an exclusive URL shortener service designed for the Civitas Universitas Pertamina (Pertamina University community). It provides a secure, feature-rich platform for creating and managing shortened links with analytics, user management, and administrative controls.
 
