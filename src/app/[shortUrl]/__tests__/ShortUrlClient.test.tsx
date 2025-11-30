@@ -3,6 +3,7 @@
  */
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import ShortUrlClient from '../ShortUrlClient'
+import { TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock Next.js Link component
 jest.mock('next/link', () => {
@@ -98,9 +99,9 @@ describe('ShortUrlClient', () => {
             render(<ShortUrlClient {...props} />)
 
             const passwordInput = screen.getByLabelText('Password')
-            fireEvent.change(passwordInput, { target: { value: 'testpassword' } })
+            fireEvent.change(passwordInput, { target: { value: TEST_PASSWORD } })
 
-            expect(passwordInput).toHaveValue('testpassword')
+            expect(passwordInput).toHaveValue(TEST_PASSWORD)
         })
 
         it('shows loading state during verification', async () => {
@@ -114,7 +115,7 @@ describe('ShortUrlClient', () => {
             const passwordInput = screen.getByLabelText('Password')
             const submitButton = screen.getByText('Akses Link')
 
-            fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } })
+            fireEvent.change(passwordInput, { target: { value: TEST_WRONG_PASSWORD } })
             fireEvent.click(submitButton)
 
             expect(screen.getByText('Memverifikasi...')).toBeInTheDocument()
@@ -142,14 +143,14 @@ describe('ShortUrlClient', () => {
             const passwordInput = screen.getByLabelText('Password')
             const submitButton = screen.getByText('Akses Link')
 
-            fireEvent.change(passwordInput, { target: { value: 'correctpassword' } })
+            fireEvent.change(passwordInput, { target: { value: TEST_PASSWORD } })
             fireEvent.click(submitButton)
 
             await waitFor(() => {
                 expect(mockFetch).toHaveBeenCalledWith('/api/verify-link-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ shortUrl: 'test123', password: 'correctpassword' })
+                    body: JSON.stringify({ shortUrl: 'test123', password: TEST_PASSWORD })
                 })
                 // Note: log-visit and navigation don't happen due to JSDOM limitations
             })
@@ -166,7 +167,7 @@ describe('ShortUrlClient', () => {
             const passwordInput = screen.getByLabelText('Password')
             const submitButton = screen.getByText('Akses Link')
 
-            fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } })
+            fireEvent.change(passwordInput, { target: { value: TEST_WRONG_PASSWORD } })
             fireEvent.click(submitButton)
 
             // Wait for the verification to complete
@@ -175,7 +176,7 @@ describe('ShortUrlClient', () => {
             })
 
             // The error should be displayed (checking that the component handles errors)
-            expect(passwordInput).toHaveValue('wrongpassword')
+            expect(passwordInput).toHaveValue(TEST_WRONG_PASSWORD)
         })
     })
 

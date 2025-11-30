@@ -128,7 +128,7 @@ describe('/api/verify-link-password', () => {
 
         let req = new NextRequest('http://localhost/api/verify-link-password', {
             method: 'POST',
-            body: JSON.stringify({ shortUrl: 'nonexistent', password: 'test' }),
+            body: JSON.stringify({ shortUrl: 'nonexistent', password: TEST_PASSWORD }),
         })
         await POST(req)
         expect(addConstantDelay).toHaveBeenCalled()

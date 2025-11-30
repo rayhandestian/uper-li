@@ -122,7 +122,7 @@ describe('/api/user', () => {
 
     describe('Change Password', () => {
         const validBody = {
-            currentPassword: 'oldpassword',
+            currentPassword: TEST_PASSWORD,
             newPassword: TEST_PASSWORD,
         }
 
