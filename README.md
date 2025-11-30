@@ -5,9 +5,12 @@
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
 [![codecov](https://codecov.io/gh/rayhandestian/uper-li/graph/badge.svg)](https://codecov.io/gh/rayhandestian/uper-li)
 [![CodeFactor](https://www.codefactor.io/repository/github/rayhandestian/uper-li/badge)](https://www.codefactor.io/repository/github/rayhandestian/uper-li)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=rayhandestian_uper-li&metric=alert_status)](https://sonarcloud.io/dashboard?id=rayhandestian_uper-li)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=rayhandestian_uper-li&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=rayhandestian_uper-li)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=rayhandestian_uper-li&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=rayhandestian_uper-li)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=rayhandestian_uper-li&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=rayhandestian_uper-li)
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=rayhandestian_uper-li&metric=bugs)](https://sonarcloud.io/dashboard?id=rayhandestian_uper-li)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=rayhandestian_uper-li&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=rayhandestian_uper-li)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=rayhandestian_uper-li&metric=alert_status)](https://sonarcloud.io/dashboard?id=rayhandestian_uper-li)
 
 UPer.li is an exclusive URL shortener service designed for the Civitas Universitas Pertamina (Pertamina University community). It provides a secure, feature-rich platform for creating and managing shortened links with analytics, user management, and administrative controls.
 
