@@ -55,7 +55,7 @@ describe('Middleware', () => {
 
     describe('Subdomain Routing - uper.li', () => {
         it('should redirect root path to app.uper.li', async () => {
-            const req = new NextRequest('http://uper.li/')
+            const req = new NextRequest('https://uper.li/')
 
             const res = await middleware(req)
 
@@ -66,7 +66,7 @@ describe('Middleware', () => {
         })
 
         it('should redirect /login-admin to admin.uper.li', async () => {
-            const req = new NextRequest('http://uper.li/login-admin')
+            const req = new NextRequest('https://uper.li/login-admin')
 
             const res = await middleware(req)
 
@@ -75,7 +75,7 @@ describe('Middleware', () => {
         })
 
         it('should redirect /admin paths to admin.uper.li', async () => {
-            const req = new NextRequest('http://uper.li/admin/dashboard')
+            const req = new NextRequest('https://uper.li/admin/dashboard')
 
             const res = await middleware(req)
 
@@ -84,7 +84,7 @@ describe('Middleware', () => {
         })
 
         it('should redirect /admin root to admin.uper.li', async () => {
-            const req = new NextRequest('http://uper.li/admin')
+            const req = new NextRequest('https://uper.li/admin')
 
             const res = await middleware(req)
 
@@ -96,7 +96,7 @@ describe('Middleware', () => {
             const appRoutes = ['/dashboard', '/login', '/register', '/terms', '/privacy', '/contact', '/verify']
 
             for (const route of appRoutes) {
-                const req = new NextRequest(`http://uper.li${route}`)
+                const req = new NextRequest(`https://uper.li${route}`)
                 const res = await middleware(req)
 
                 expect(res.status).toBe(307)
@@ -105,7 +105,7 @@ describe('Middleware', () => {
         })
 
         it('should allow short URL routes (single segment)', async () => {
-            const req = new NextRequest('http://uper.li/abc123')
+            const req = new NextRequest('https://uper.li/abc123')
 
             const res = await middleware(req)
 
@@ -117,7 +117,7 @@ describe('Middleware', () => {
             const shortUrls = ['/test', '/a1b2c3', '/my-link', '/link_123']
 
             for (const url of shortUrls) {
-                const req = new NextRequest(`http://uper.li${url}`)
+                const req = new NextRequest(`https://uper.li${url}`)
                 const res = await middleware(req)
 
                 expect(res.status).not.toBe(307)
@@ -125,7 +125,7 @@ describe('Middleware', () => {
         })
 
         it('should redirect multi-segment paths to app.uper.li', async () => {
-            const req = new NextRequest('http://uper.li/some/nested/path')
+            const req = new NextRequest('https://uper.li/some/nested/path')
 
             const res = await middleware(req)
 
@@ -134,7 +134,7 @@ describe('Middleware', () => {
         })
 
         it('should redirect with query parameters', async () => {
-            const req = new NextRequest('http://uper.li/dashboard?tab=links&sort=date')
+            const req = new NextRequest('https://uper.li/dashboard?tab=links&sort=date')
 
             const res = await middleware(req)
 
@@ -147,7 +147,7 @@ describe('Middleware', () => {
 
     describe('Subdomain Routing - app.uper.li', () => {
         it('should allow all routes on app.uper.li', async () => {
-            const req = new NextRequest('http://app.uper.li/dashboard')
+            const req = new NextRequest('https://app.uper.li/dashboard')
 
             const res = await middleware(req)
 
@@ -156,7 +156,7 @@ describe('Middleware', () => {
         })
 
         it('should handle root path on app.uper.li', async () => {
-            const req = new NextRequest('http://app.uper.li/')
+            const req = new NextRequest('https://app.uper.li/')
 
             const res = await middleware(req)
 
@@ -164,7 +164,7 @@ describe('Middleware', () => {
         })
 
         it('should allow nested paths on app.uper.li', async () => {
-            const req = new NextRequest('http://app.uper.li/some/nested/path')
+            const req = new NextRequest('https://app.uper.li/some/nested/path')
 
             const res = await middleware(req)
 
@@ -174,7 +174,7 @@ describe('Middleware', () => {
 
     describe('Subdomain Routing - admin.uper.li', () => {
         it('should rewrite root to /admin', async () => {
-            const req = new NextRequest('http://admin.uper.li/')
+            const req = new NextRequest('https://admin.uper.li/')
 
             const res = await middleware(req)
 
@@ -183,7 +183,7 @@ describe('Middleware', () => {
         })
 
         it('should rewrite /login to /login-admin', async () => {
-            const req = new NextRequest('http://admin.uper.li/login')
+            const req = new NextRequest('https://admin.uper.li/login')
 
             const res = await middleware(req)
 
@@ -191,7 +191,7 @@ describe('Middleware', () => {
         })
 
         it('should allow /login-admin as-is', async () => {
-            const req = new NextRequest('http://admin.uper.li/login-admin')
+            const req = new NextRequest('https://admin.uper.li/login-admin')
 
             const res = await middleware(req)
 
@@ -199,7 +199,7 @@ describe('Middleware', () => {
         })
 
         it('should prefix paths without /admin', async () => {
-            const req = new NextRequest('http://admin.uper.li/dashboard')
+            const req = new NextRequest('https://admin.uper.li/dashboard')
 
             const res = await middleware(req)
 
@@ -208,7 +208,7 @@ describe('Middleware', () => {
         })
 
         it('should leave paths with /admin unchanged', async () => {
-            const req = new NextRequest('http://admin.uper.li/admin/users')
+            const req = new NextRequest('https://admin.uper.li/admin/users')
 
             const res = await middleware(req)
 
@@ -220,7 +220,7 @@ describe('Middleware', () => {
         it('should redirect authenticated users from /login to /dashboard', async () => {
             ; (getToken as jest.Mock).mockResolvedValue({ sub: 'user-123' })
 
-            const req = new NextRequest('http://app.uper.li/login')
+            const req = new NextRequest('https://app.uper.li/login')
 
             const res = await middleware(req)
 
@@ -231,7 +231,7 @@ describe('Middleware', () => {
         it('should redirect authenticated users from /register to /dashboard', async () => {
             ; (getToken as jest.Mock).mockResolvedValue({ sub: 'user-123' })
 
-            const req = new NextRequest('http://app.uper.li/register')
+            const req = new NextRequest('https://app.uper.li/register')
 
             const res = await middleware(req)
 
@@ -242,7 +242,7 @@ describe('Middleware', () => {
         it('should redirect authenticated users from /forgot-password to /dashboard', async () => {
             ; (getToken as jest.Mock).mockResolvedValue({ sub: 'user-123' })
 
-            const req = new NextRequest('http://app.uper.li/forgot-password')
+            const req = new NextRequest('https://app.uper.li/forgot-password')
 
             const res = await middleware(req)
 
@@ -253,7 +253,7 @@ describe('Middleware', () => {
         it('should redirect authenticated users from nested auth pages', async () => {
             ; (getToken as jest.Mock).mockResolvedValue({ sub: 'user-123' })
 
-            const req = new NextRequest('http://app.uper.li/login/callback')
+            const req = new NextRequest('https://app.uper.li/login/callback')
 
             const res = await middleware(req)
 
@@ -264,7 +264,7 @@ describe('Middleware', () => {
         it('should allow unauthenticated users to access /login', async () => {
             ; (getToken as jest.Mock).mockResolvedValue(null)
 
-            const req = new NextRequest('http://app.uper.li/login')
+            const req = new NextRequest('https://app.uper.li/login')
 
             const res = await middleware(req)
 
@@ -275,7 +275,7 @@ describe('Middleware', () => {
         it('should allow unauthenticated users to access /register', async () => {
             ; (getToken as jest.Mock).mockResolvedValue(null)
 
-            const req = new NextRequest('http://app.uper.li/register')
+            const req = new NextRequest('https://app.uper.li/register')
 
             const res = await middleware(req)
 
@@ -285,7 +285,7 @@ describe('Middleware', () => {
         it('should allow unauthenticated users to access /forgot-password', async () => {
             ; (getToken as jest.Mock).mockResolvedValue(null)
 
-            const req = new NextRequest('http://app.uper.li/forgot-password')
+            const req = new NextRequest('https://app.uper.li/forgot-password')
 
             const res = await middleware(req)
 
@@ -295,7 +295,7 @@ describe('Middleware', () => {
         it('should not redirect authenticated users from non-auth pages', async () => {
             ; (getToken as jest.Mock).mockResolvedValue({ sub: 'user-123' })
 
-            const req = new NextRequest('http://app.uper.li/dashboard')
+            const req = new NextRequest('https://app.uper.li/dashboard')
 
             const res = await middleware(req)
 
@@ -348,7 +348,7 @@ describe('Middleware', () => {
     describe('Reserved Paths and Edge Cases', () => {
         it('should not allow short URL routes that match app routes', async () => {
             // /dashboard is a reserved app route, should redirect even if single segment
-            const req = new NextRequest('http://uper.li/dashboard')
+            const req = new NextRequest('https://uper.li/dashboard')
 
             const res = await middleware(req)
 
@@ -357,7 +357,7 @@ describe('Middleware', () => {
         })
 
         it('should handle URLs with trailing slashes', async () => {
-            const req = new NextRequest('http://uper.li/abc123/')
+            const req = new NextRequest('https://uper.li/abc123/')
 
             const res = await middleware(req)
 
@@ -366,7 +366,7 @@ describe('Middleware', () => {
         })
 
         it('should handle URLs with special characters in short codes', async () => {
-            const req = new NextRequest('http://uper.li/test-123')
+            const req = new NextRequest('https://uper.li/test-123')
 
             const res = await middleware(req)
 
@@ -375,7 +375,7 @@ describe('Middleware', () => {
         })
 
         it('should handle URLs with underscores', async () => {
-            const req = new NextRequest('http://uper.li/test_123')
+            const req = new NextRequest('https://uper.li/test_123')
 
             const res = await middleware(req)
 
@@ -383,7 +383,7 @@ describe('Middleware', () => {
         })
 
         it('should handle case-sensitive paths', async () => {
-            const req = new NextRequest('http://uper.li/Dashboard')
+            const req = new NextRequest('https://uper.li/Dashboard')
 
             const res = await middleware(req)
 
@@ -394,7 +394,7 @@ describe('Middleware', () => {
 
     describe('getToken Integration', () => {
         it('should call getToken with correct parameters for auth pages', async () => {
-            const req = new NextRequest('http://app.uper.li/login')
+            const req = new NextRequest('https://app.uper.li/login')
 
             await middleware(req)
 
@@ -404,7 +404,7 @@ describe('Middleware', () => {
         it('should not call getToken for non-auth pages on app domain', async () => {
             jest.clearAllMocks()
 
-            const req = new NextRequest('http://app.uper.li/dashboard')
+            const req = new NextRequest('https://app.uper.li/dashboard')
 
             await middleware(req)
 
@@ -415,7 +415,7 @@ describe('Middleware', () => {
         it('should handle getToken errors gracefully', async () => {
             ; (getToken as jest.Mock).mockRejectedValue(new Error('Token validation failed'))
 
-            const req = new NextRequest('http://app.uper.li/login')
+            const req = new NextRequest('https://app.uper.li/login')
 
             // Should not throw, but may fail - that's OK for this test
             // We're just checking it doesn't crash the middleware
@@ -432,7 +432,7 @@ describe('Middleware', () => {
         it('should handle subdomain routing in test environment', async () => {
             // In test environment (NODE_ENV='test'), HTTPS won't redirect
             // But subdomain routing will still work
-            const req = new NextRequest('http://uper.li/dashboard')
+            const req = new NextRequest('https://uper.li/dashboard')
 
             const res = await middleware(req)
 
@@ -445,7 +445,7 @@ describe('Middleware', () => {
         it('should handle auth redirects with query parameters', async () => {
             ; (getToken as jest.Mock).mockResolvedValue({ sub: 'user-123' })
 
-            const req = new NextRequest('http://app.uper.li/login?redirect=/settings&foo=bar')
+            const req = new NextRequest('https://app.uper.li/login?redirect=/settings&foo=bar')
 
             const res = await middleware(req)
 
@@ -457,7 +457,7 @@ describe('Middleware', () => {
         it('should handle subdomain routing with auth state', async () => {
             ; (getToken as jest.Mock).mockResolvedValue({ sub: 'user-123' })
 
-            const req = new NextRequest('http://uper.li/register')
+            const req = new NextRequest('https://uper.li/register')
 
             const res = await middleware(req)
 
