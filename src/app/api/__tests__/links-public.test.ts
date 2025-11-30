@@ -4,6 +4,7 @@
 import { GET } from '../links/public/[shortUrl]/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { TEST_HASHED_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -67,7 +68,7 @@ describe('/api/links/public/[shortUrl]', () => {
                 shortUrl: 'test123',
                 longUrl: 'http://example.com',
                 active: true,
-                password: 'hashed-password',
+                password: TEST_HASHED_PASSWORD,
                 mode: 'DIRECT'
             })
 
