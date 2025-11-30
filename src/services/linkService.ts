@@ -3,7 +3,6 @@ import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 import { Prisma, Link } from '@prisma/client'
-import { logger } from '@/lib/logger'
 
 const RESERVED_PATHS = [
     'dashboard',

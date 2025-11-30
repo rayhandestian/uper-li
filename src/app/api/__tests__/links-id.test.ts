@@ -6,7 +6,7 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'
-import { TEST_PASSWORD, TEST_TOO_SHORT_PASSWORD } from '@/__tests__/test-constants'
+import { TEST_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({

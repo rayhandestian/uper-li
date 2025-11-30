@@ -6,7 +6,6 @@ import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
 import { sendEmail } from '@/lib/email'
-import { TEST_VERIFICATION_CODE } from '@/__tests__/test-constants'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({

@@ -4,7 +4,6 @@
 import { GET } from '../user/stats/route'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
-import { NextResponse } from 'next/server'
 
 // Mock dependencies
 jest.mock('next-auth')
