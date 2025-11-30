@@ -7,6 +7,7 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_TOKEN } from '@/__tests__/test-constants'
+import { createLocalhostRequest, createMockUser, expectJsonResponse } from '@/__tests__/test-utils'
 
 // Mock dependencies
 jest.mock('@/lib/prisma', () => ({
@@ -52,13 +53,12 @@ describe('/api/register', () => {
     })
 
     it('should return 400 if terms not accepted', async () => {
-        const req = new NextRequest('http://localhost/api/register', {
+        const req = createLocalhostRequest('/api/register', {
             method: 'POST',
-            body: JSON.stringify({ ...validBody, agreedToTerms: false }),
+            body: { ...validBody, agreedToTerms: false },
         })
         const res = await POST(req)
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Anda harus menyetujui Syarat dan Ketentuan.' })
+        await expectJsonResponse(res, 400, { error: 'Anda harus menyetujui Syarat dan Ketentuan.' })
     })
 
     it('should return 400 if Turnstile verification fails', async () => {
@@ -66,13 +66,12 @@ describe('/api/register', () => {
             json: async () => ({ success: false }),
         })
 
-        const req = new NextRequest('http://localhost/api/register', {
+        const req = createLocalhostRequest('/api/register', {
             method: 'POST',
-            body: JSON.stringify(validBody),
+            body: validBody,
         })
         const res = await POST(req)
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Verifikasi CAPTCHA gagal.' })
+        await expectJsonResponse(res, 400, { error: 'Verifikasi CAPTCHA gagal.' })
     })
 
     it('should construct STUDENT email correctly', async () => {
@@ -82,9 +81,9 @@ describe('/api/register', () => {
             ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
 
-        const req = new NextRequest('http://localhost/api/register', {
+        const req = createLocalhostRequest('/api/register', {
             method: 'POST',
-            body: JSON.stringify(validBody),
+            body: validBody,
         })
         await POST(req)
 
@@ -102,9 +101,9 @@ describe('/api/register', () => {
             ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
 
-        const req = new NextRequest('http://localhost/api/register', {
+        const req = createLocalhostRequest('/api/register', {
             method: 'POST',
-            body: JSON.stringify({ ...validBody, role: 'LECTURER' }),
+            body: { ...validBody, role: 'LECTURER' },
         })
         await POST(req)
 
@@ -119,13 +118,12 @@ describe('/api/register', () => {
             .mockResolvedValueOnce({ id: 'existing-user', emailVerified: true, createdAt: new Date() }) // Email check - verified user
             .mockResolvedValueOnce(null) // Username check
 
-        const req = new NextRequest('http://localhost/api/register', {
+        const req = createLocalhostRequest('/api/register', {
             method: 'POST',
-            body: JSON.stringify(validBody),
+            body: validBody,
         })
         const res = await POST(req)
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Registrasi gagal. Silakan periksa data Anda.' })
+        await expectJsonResponse(res, 400, { error: 'Registrasi gagal. Silakan periksa data Anda.' })
     })
 
     it('should return 400 with generic error if nimOrUsername already exists', async () => {
@@ -133,13 +131,12 @@ describe('/api/register', () => {
             .mockResolvedValueOnce(null) // Email check passes
             .mockResolvedValueOnce({ id: 'existing-user', emailVerified: true, createdAt: new Date() }) // Username check fails
 
-        const req = new NextRequest('http://localhost/api/register', {
+        const req = createLocalhostRequest('/api/register', {
             method: 'POST',
-            body: JSON.stringify(validBody),
+            body: validBody,
         })
         const res = await POST(req)
-        expect(res.status).toBe(400)
-        expect(await res.json()).toEqual({ error: 'Registrasi gagal. Silakan periksa data Anda.' })
+        await expectJsonResponse(res, 400, { error: 'Registrasi gagal. Silakan periksa data Anda.' })
     })
 
     it('should register user successfully', async () => {
@@ -150,9 +147,9 @@ describe('/api/register', () => {
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
             ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
-        const req = new NextRequest('http://localhost/api/register', {
+        const req = createLocalhostRequest('/api/register', {
             method: 'POST',
-            body: JSON.stringify(validBody),
+            body: validBody,
         })
         const res = await POST(req)
 
@@ -172,9 +169,9 @@ describe('/api/register', () => {
             ; (prisma.user.create as jest.Mock).mockResolvedValue({ id: '1' })
             ; (sendEmail as jest.Mock).mockResolvedValue({ messageId: 'test-id' })
 
-        const req = new NextRequest('http://localhost/api/register', {
+        const req = createLocalhostRequest('/api/register', {
             method: 'POST',
-            body: JSON.stringify(validBody),
+            body: validBody,
         })
         await POST(req)
 

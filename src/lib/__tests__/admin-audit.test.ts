@@ -3,7 +3,7 @@
  */
 import { logAdminAction, getAdminAuditLogs, getRecentAuditLogs, getAuditLogActions, AUDIT_ACTIONS } from '../admin-audit'
 import { prisma } from '../prisma'
-import { NextRequest } from 'next/server'
+import { createAdminUperLiRequest, createMockAdminLog } from '@/__tests__/test-utils'
 
 // Mock prisma
 jest.mock('../prisma', () => ({
@@ -22,14 +22,14 @@ describe('Admin Audit', () => {
 
     describe('logAdminAction', () => {
         it('should log action with all fields', async () => {
-            const mockReq = new NextRequest('https://admin.uper.li/dashboard', {
+            const mockReq = createAdminUperLiRequest('/dashboard', {
                 headers: {
                     'x-forwarded-for': '192.168.1.1',
                     'user-agent': 'Mozilla/5.0',
                 },
             })
 
-            const mockLog = {
+            const mockLog = createMockAdminLog({
                 id: 'log-1',
                 adminId: 'admin-123',
                 action: 'USER_VIEW',
@@ -39,7 +39,7 @@ describe('Admin Audit', () => {
                 userAgent: 'Mozilla/5.0',
                 success: true,
                 createdAt: new Date(),
-            }
+            })
 
                 ; (prisma.adminAuditLog.create as jest.Mock).mockResolvedValue(mockLog)
 
@@ -86,7 +86,7 @@ describe('Admin Audit', () => {
         })
 
         it('should extract IP from x-forwarded-for header', async () => {
-            const mockReq = new NextRequest('https://admin.uper.li/login', {
+            const mockReq = createAdminUperLiRequest('/login', {
                 headers: {
                     'x-forwarded-for': '10.0.0.1, 10.0.0.2',
                 },
@@ -109,7 +109,7 @@ describe('Admin Audit', () => {
         })
 
         it('should extract IP from x-real-ip header', async () => {
-            const mockReq = new NextRequest('https://admin.uper.li/login', {
+            const mockReq = createAdminUperLiRequest('/login', {
                 headers: {
                     'x-real-ip': '172.16.0.1',
                 },
@@ -132,7 +132,7 @@ describe('Admin Audit', () => {
         })
 
         it('should handle missing IP and user agent', async () => {
-            const mockReq = new NextRequest('https://admin.uper.li/login')
+            const mockReq = createAdminUperLiRequest('/login')
 
                 ; (prisma.adminAuditLog.create as jest.Mock).mockResolvedValue({})
 
@@ -173,7 +173,7 @@ describe('Admin Audit', () => {
     describe('getAdminAuditLogs', () => {
         it('should return recent logs for admin', async () => {
             const mockLogs = [
-                {
+                createMockAdminLog({
                     id: 'log-1',
                     action: 'USER_VIEW',
                     resource: 'user-1',
@@ -181,8 +181,8 @@ describe('Admin Audit', () => {
                     ipAddress: '192.168.1.1',
                     success: true,
                     createdAt: new Date('2023-01-02'),
-                },
-                {
+                }),
+                createMockAdminLog({
                     id: 'log-2',
                     action: 'LOGIN_SUCCESS',
                     resource: null,
@@ -190,7 +190,7 @@ describe('Admin Audit', () => {
                     ipAddress: '192.168.1.1',
                     success: true,
                     createdAt: new Date('2023-01-01'),
-                },
+                }),
             ]
 
                 ; (prisma.adminAuditLog.findMany as jest.Mock).mockResolvedValue(mockLogs)
@@ -242,12 +242,13 @@ describe('Admin Audit', () => {
     describe('getRecentAuditLogs', () => {
         it('should return all recent logs without filters', async () => {
             const mockLogs = [
-                {
+                createMockAdminLog({
                     id: 'log-1',
                     adminId: 'admin-1',
                     action: 'USER_VIEW',
+                    // @ts-expect-error - admin include is not in the helper type but valid for Prisma result
                     admin: { id: 'admin-1', name: 'Admin 1', email: 'admin1@example.com' },
-                },
+                }),
             ]
 
                 ; (prisma.adminAuditLog.findMany as jest.Mock).mockResolvedValue(mockLogs)

@@ -8,16 +8,34 @@ import ManualCronJobs from '../ManualCronJobs'
 const mockFetch = jest.fn()
 global.fetch = mockFetch
 
-// Mock window methods
-const mockConfirm = jest.fn()
-const mockAlert = jest.fn()
-window.confirm = mockConfirm
-window.alert = mockAlert
+// Setup window mocks with cleanup
+const setupWindowMocks = () => {
+    const mockConfirm = jest.fn().mockReturnValue(true)
+    const mockAlert = jest.fn()
+
+    window.confirm = mockConfirm
+    window.alert = mockAlert
+
+    return {
+        mockConfirm,
+        mockAlert,
+        cleanup: () => {
+            jest.restoreAllMocks()
+        }
+    }
+}
 
 describe('ManualCronJobs', () => {
+    let windowMocks: ReturnType<typeof setupWindowMocks>
+
     beforeEach(() => {
         jest.clearAllMocks()
-        mockConfirm.mockReturnValue(true) // Default to confirming
+        windowMocks = setupWindowMocks()
+        mockFetch.mockClear()
+    })
+
+    afterEach(() => {
+        windowMocks.cleanup()
     })
 
     it('renders the component with correct title and buttons', () => {
@@ -40,13 +58,13 @@ describe('ManualCronJobs', () => {
         fireEvent.click(button)
 
         await waitFor(() => {
-            expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to run the monthly reset? This will reset all users\' monthly link creation counts and custom URL change limits.')
+            expect(windowMocks.mockConfirm).toHaveBeenCalledWith('Are you sure you want to run the monthly reset? This will reset all users\' monthly link creation counts and custom URL change limits.')
             expect(mockFetch).toHaveBeenCalledWith('/api/admin/cron', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'monthly_reset' })
             })
-            expect(mockAlert).toHaveBeenCalledWith('Reset completed: 5 users and 10 links updated')
+            expect(windowMocks.mockAlert).toHaveBeenCalledWith('Reset completed: 5 users and 10 links updated')
         })
     })
 
@@ -61,13 +79,13 @@ describe('ManualCronJobs', () => {
         fireEvent.click(button)
 
         await waitFor(() => {
-            expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to run the link cleanup? This will deactivate links that haven\'t been visited in 5 months.')
+            expect(windowMocks.mockConfirm).toHaveBeenCalledWith('Are you sure you want to run the link cleanup? This will deactivate links that haven\'t been visited in 5 months.')
             expect(mockFetch).toHaveBeenCalledWith('/api/admin/cron', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'link_cleanup' })
             })
-            expect(mockAlert).toHaveBeenCalledWith('Cleanup completed: 3 links deactivated')
+            expect(windowMocks.mockAlert).toHaveBeenCalledWith('Cleanup completed: 3 links deactivated')
         })
     })
 
@@ -82,7 +100,7 @@ describe('ManualCronJobs', () => {
         fireEvent.click(button)
 
         await waitFor(() => {
-            expect(mockAlert).toHaveBeenCalledWith('Error: Database error')
+            expect(windowMocks.mockAlert).toHaveBeenCalledWith('Error: Database error')
         })
     })
 
@@ -97,33 +115,33 @@ describe('ManualCronJobs', () => {
         fireEvent.click(button)
 
         await waitFor(() => {
-            expect(mockAlert).toHaveBeenCalledWith('Error: Network error')
+            expect(windowMocks.mockAlert).toHaveBeenCalledWith('Error: Network error')
         })
     })
 
     it('does not call API when user cancels confirmation for monthly reset', () => {
-        mockConfirm.mockReturnValue(false)
+        windowMocks.mockConfirm.mockReturnValue(false)
 
         render(<ManualCronJobs />)
 
         const button = screen.getByText('Run Monthly Reset')
         fireEvent.click(button)
 
-        expect(mockConfirm).toHaveBeenCalled()
+        expect(windowMocks.mockConfirm).toHaveBeenCalled()
         expect(mockFetch).not.toHaveBeenCalled()
-        expect(mockAlert).not.toHaveBeenCalled()
+        expect(windowMocks.mockAlert).not.toHaveBeenCalled()
     })
 
     it('does not call API when user cancels confirmation for link cleanup', () => {
-        mockConfirm.mockReturnValue(false)
+        windowMocks.mockConfirm.mockReturnValue(false)
 
         render(<ManualCronJobs />)
 
         const button = screen.getByText('Run Link Cleanup')
         fireEvent.click(button)
 
-        expect(mockConfirm).toHaveBeenCalled()
+        expect(windowMocks.mockConfirm).toHaveBeenCalled()
         expect(mockFetch).not.toHaveBeenCalled()
-        expect(mockAlert).not.toHaveBeenCalled()
+        expect(windowMocks.mockAlert).not.toHaveBeenCalled()
     })
 })

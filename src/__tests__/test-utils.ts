@@ -21,6 +21,8 @@ export interface MockUser {
     twoFactorSetupCode?: string | null
     verificationTokenExpires?: Date | null
     password?: string
+    monthlyLinksCreated?: number
+    totalLinks?: number
 }
 
 export interface MockLink {
@@ -155,6 +157,14 @@ export const mockTurnstileFail = () => ({
 })
 
 /**
+ * Mock generic fetch response
+ */
+export const mockFetchResponse = (ok: boolean, body: unknown) => ({
+    ok,
+    json: async () => body,
+})
+
+/**
  * Create a future date (for token expiration tests)
  */
 export const futureDate = (minutes: number = 10): Date => {
@@ -167,3 +177,271 @@ export const futureDate = (minutes: number = 10): Date => {
 export const pastDate = (minutes: number = 10): Date => {
     return new Date(Date.now() - minutes * 60 * 1000)
 }
+
+// ============================================================================
+// Mock Setup Helpers
+// ============================================================================
+
+/**
+ * Setup mock cookies for admin authentication
+ */
+export const setupMockCookies = (sessionValue: string | null = 'valid-session') => {
+    return {
+        get: jest.fn().mockReturnValue(sessionValue ? { value: sessionValue } : null),
+    }
+}
+
+/**
+ * Setup complete admin authentication mock
+ */
+export const setupMockAdminAuth = (cookiesMock: jest.Mock, validateAdminSessionMock: jest.Mock, adminData?: Partial<{ id: string; email: string; name: string; role: string; active: boolean }>) => {
+    const mockAdmin = {
+        id: 'admin-123',
+        email: 'admin@example.com',
+        name: 'Admin User',
+        role: 'ADMIN',
+        active: true,
+        ...adminData,
+    }
+
+    cookiesMock.mockResolvedValue(setupMockCookies('valid-session'))
+    validateAdminSessionMock.mockResolvedValue(mockAdmin)
+
+    return mockAdmin
+}
+
+/**
+ * Setup unauthenticated admin session
+ */
+export const setupMockUnauthenticated = (cookiesMock: jest.Mock, validateAdminSessionMock: jest.Mock) => {
+    cookiesMock.mockResolvedValue(setupMockCookies(null))
+    validateAdminSessionMock.mockResolvedValue(null)
+}
+
+/**
+ * Setup window mocks for browser tests (confirm, alert)
+ */
+export interface WindowMocks {
+    mockConfirm: jest.Mock
+    mockAlert: jest.Mock
+    cleanup: () => void
+}
+
+export const setupWindowMocks = (): WindowMocks => {
+    const mockConfirm = jest.fn().mockReturnValue(true)
+    const mockAlert = jest.fn()
+
+    window.confirm = mockConfirm
+    window.alert = mockAlert
+
+    return {
+        mockConfirm,
+        mockAlert,
+        cleanup: () => {
+            jest.restoreAllMocks()
+        }
+    }
+}
+
+/**
+ * Setup Prisma transaction mock with custom handlers
+ */
+export const createMockPrismaTransaction = (handlers: {
+    user?: Partial<{
+        findUnique: jest.Mock
+        findMany: jest.Mock
+        update: jest.Mock
+        create: jest.Mock
+    }>
+    link?: Partial<{
+        findUnique: jest.Mock
+        findMany: jest.Mock
+        update: jest.Mock
+        create: jest.Mock
+        count: jest.Mock
+    }>
+}) => {
+    return async (callback: (tx: unknown) => Promise<unknown>) => {
+        const tx = {
+            user: {
+                findUnique: handlers.user?.findUnique || jest.fn(),
+                findMany: handlers.user?.findMany || jest.fn(),
+                update: handlers.user?.update || jest.fn(),
+                create: handlers.user?.create || jest.fn(),
+            },
+            link: {
+                findUnique: handlers.link?.findUnique || jest.fn(),
+                findMany: handlers.link?.findMany || jest.fn(),
+                update: handlers.link?.update || jest.fn(),
+                create: handlers.link?.create || jest.fn(),
+                count: handlers.link?.count || jest.fn(),
+            },
+        }
+        return await callback(tx)
+    }
+}
+
+// ============================================================================
+// Request Creation Helpers
+// ============================================================================
+
+/**
+ * Create a request for uper.li domain
+ */
+export const createUperLiRequest = (path: string, options?: { method?: string; body?: unknown; headers?: Record<string, string> }): NextRequest => {
+    return createMockRequest(`https://uper.li${path}`, options)
+}
+
+/**
+ * Create a request for app.uper.li domain
+ */
+export const createAppUperLiRequest = (path: string, options?: { method?: string; body?: unknown; headers?: Record<string, string> }): NextRequest => {
+    return createMockRequest(`https://app.uper.li${path}`, options)
+}
+
+/**
+ * Create a request for admin.uper.li domain
+ */
+export const createAdminUperLiRequest = (path: string, options?: { method?: string; body?: unknown; headers?: Record<string, string> }): NextRequest => {
+    return createMockRequest(`https://admin.uper.li${path}`, options)
+}
+
+/**
+ * Create a localhost request
+ */
+export const createLocalhostRequest = (path: string, options?: { method?: string; body?: unknown; headers?: Record<string, string> }): NextRequest => {
+    return createMockRequest(`http://localhost:3000${path}`, options)
+}
+
+/**
+ * Create a request with authentication headers
+ */
+export const createAuthenticatedRequest = (
+    url: string,
+    options?: {
+        method?: string
+        body?: unknown
+        headers?: Record<string, string>
+        ipAddress?: string
+    }
+): NextRequest => {
+    const headers: Record<string, string> = {
+        ...options?.headers,
+    }
+
+    if (options?.ipAddress) {
+        headers['x-forwarded-for'] = options.ipAddress
+    }
+
+    return createMockRequest(url, {
+        method: options?.method,
+        body: options?.body,
+        headers,
+    })
+}
+
+// ============================================================================
+// Assertion Helpers
+// ============================================================================
+
+/**
+ * Assert that a Prisma findMany was called with specific where clause
+ */
+export const expectPrismaFindMany = (
+    prismaMock: jest.Mock,
+    whereClause: Record<string, unknown>
+) => {
+    expect(prismaMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+            where: expect.objectContaining(whereClause),
+        })
+    )
+}
+
+/**
+ * Assert that a response is a redirect
+ */
+export const expectRedirect = (
+    response: Response,
+    location: string | RegExp,
+    status: number = 307
+) => {
+    expect(response.status).toBe(status)
+    const actualLocation = response.headers.get('location')
+
+    if (typeof location === 'string') {
+        expect(actualLocation).toBe(location)
+    } else {
+        expect(actualLocation).toMatch(location)
+    }
+}
+
+/**
+ * Assert that a response is not a redirect
+ */
+export const expectNotRedirect = (response: Response) => {
+    expect(response.status).not.toBe(307)
+    expect(response.status).not.toBe(301)
+    expect(response.status).not.toBe(302)
+}
+
+/**
+ * Assert that a response has specific status and JSON body
+ */
+export const expectJsonResponse = async (
+    response: Response,
+    status: number,
+    expectedBody: Record<string, unknown>
+) => {
+    expect(response.status).toBe(status)
+    const body = await response.json()
+    expect(body).toEqual(expectedBody)
+}
+
+// ============================================================================
+// Mock Data Builders
+// ============================================================================
+
+/**
+ * Create a mock admin audit log
+ */
+export const createMockAdminLog = (overrides?: Partial<{
+    id: string
+    adminId: string
+    action: string
+    resource: string | null
+    details: string | null
+    ipAddress: string
+    userAgent: string
+    success: boolean
+    createdAt: Date
+}>): Record<string, unknown> => ({
+    id: 'log-123',
+    adminId: 'admin-123',
+    action: 'USER_VIEW',
+    resource: 'user-456',
+    details: null,
+    ipAddress: '192.168.1.1',
+    userAgent: 'Mozilla/5.0',
+    success: true,
+    createdAt: new Date(),
+    ...overrides,
+})
+
+/**
+ * Create mock admin object for auth tests
+ */
+export const createMockAdmin = (overrides?: Partial<{
+    id: string
+    email: string
+    name: string
+    role: string
+    active: boolean
+}>): Record<string, unknown> => ({
+    id: 'admin-123',
+    email: 'admin@example.com',
+    name: 'Admin User',
+    role: 'ADMIN',
+    active: true,
+    ...overrides,
+})

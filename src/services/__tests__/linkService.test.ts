@@ -5,7 +5,7 @@ import { LinkService } from '../linkService'
 import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
 import bcrypt from 'bcryptjs'
-import { createMockUser, createMockLink } from '@/__tests__/test-utils'
+import { createMockUser, createMockLink, createMockPrismaTransaction } from '@/__tests__/test-utils'
 import { TEST_PASSWORD, TEST_HASHED_PASSWORD, TEST_TOO_SHORT_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
@@ -41,19 +41,16 @@ describe('LinkService', () => {
             })
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: {
-                            findUnique: jest.fn().mockResolvedValue(mockUser),
-                            update: jest.fn().mockResolvedValue(mockUser),
-                        },
-                        link: {
-                            findUnique: jest.fn().mockResolvedValue(null),
-                            create: jest.fn().mockResolvedValue(mockLink),
-                        },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: {
+                        findUnique: jest.fn().mockResolvedValue(mockUser),
+                        update: jest.fn().mockResolvedValue(mockUser),
+                    },
+                    link: {
+                        findUnique: jest.fn().mockResolvedValue(null),
+                        create: jest.fn().mockResolvedValue(mockLink),
+                    },
+                }))
 
             const result = await LinkService.createLink(mockUser.id, {
                 longUrl: 'https://example.com',
@@ -70,19 +67,16 @@ describe('LinkService', () => {
             })
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: {
-                            findUnique: jest.fn().mockResolvedValue(mockUser),
-                            update: jest.fn().mockResolvedValue(mockUser),
-                        },
-                        link: {
-                            findUnique: jest.fn().mockResolvedValue(null),
-                            create: jest.fn().mockResolvedValue(createMockLink()),
-                        },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: {
+                        findUnique: jest.fn().mockResolvedValue(mockUser),
+                        update: jest.fn().mockResolvedValue(mockUser),
+                    },
+                    link: {
+                        findUnique: jest.fn().mockResolvedValue(null),
+                        create: jest.fn().mockResolvedValue(createMockLink()),
+                    },
+                }))
 
             const result = await LinkService.createLink(mockUser.id, {
                 longUrl: 'https://example.com',
@@ -105,19 +99,16 @@ describe('LinkService', () => {
             })
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: {
-                            findUnique: jest.fn().mockResolvedValue(mockUser),
-                            update: jest.fn().mockResolvedValue(mockUser),
-                        },
-                        link: {
-                            findUnique: jest.fn().mockResolvedValue(null),
-                            create: jest.fn().mockResolvedValue(mockLink),
-                        },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: {
+                        findUnique: jest.fn().mockResolvedValue(mockUser),
+                        update: jest.fn().mockResolvedValue(mockUser),
+                    },
+                    link: {
+                        findUnique: jest.fn().mockResolvedValue(null),
+                        create: jest.fn().mockResolvedValue(mockLink),
+                    },
+                }))
 
             const result = await LinkService.createLink(mockUser.id, {
                 longUrl: 'https://example.com',
@@ -180,13 +171,10 @@ describe('LinkService', () => {
             const mockUser = createMockUser()
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
-                        link: { findUnique: jest.fn() },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+                    link: { findUnique: jest.fn() },
+                }))
 
             await expect(
                 LinkService.createLink('user-123', {
@@ -200,13 +188,10 @@ describe('LinkService', () => {
             const mockUser = createMockUser()
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
-                        link: { findUnique: jest.fn() },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+                    link: { findUnique: jest.fn() },
+                }))
 
             await expect(
                 LinkService.createLink('user-123', {
@@ -228,15 +213,12 @@ describe('LinkService', () => {
             const existingLink = createMockLink({ shortUrl: 'taken' })
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
-                        link: {
-                            findUnique: jest.fn().mockResolvedValue(existingLink),
-                        },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+                    link: {
+                        findUnique: jest.fn().mockResolvedValue(existingLink),
+                    },
+                }))
 
             await expect(
                 LinkService.createLink('user-123', {
@@ -256,22 +238,19 @@ describe('LinkService', () => {
                 ; (bcrypt.hash as jest.Mock).mockResolvedValue(TEST_HASHED_PASSWORD)
 
             let capturedLinkData: unknown = null
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: {
-                            findUnique: jest.fn().mockResolvedValue(mockUser),
-                            update: jest.fn().mockResolvedValue(mockUser),
-                        },
-                        link: {
-                            findUnique: jest.fn().mockResolvedValue(null),
-                            create: jest.fn().mockImplementation((data) => {
-                                capturedLinkData = data
-                                return createMockLink({ password: TEST_HASHED_PASSWORD })
-                            }),
-                        },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: {
+                        findUnique: jest.fn().mockResolvedValue(mockUser),
+                        update: jest.fn().mockResolvedValue(mockUser),
+                    },
+                    link: {
+                        findUnique: jest.fn().mockResolvedValue(null),
+                        create: jest.fn().mockImplementation((data) => {
+                            capturedLinkData = data
+                            return createMockLink({ password: TEST_HASHED_PASSWORD })
+                        }),
+                    },
+                }))
 
             await LinkService.createLink(mockUser.id, {
                 longUrl: 'https://example.com',
@@ -286,13 +265,10 @@ describe('LinkService', () => {
             const mockUser = createMockUser()
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
-                        link: { findUnique: jest.fn() },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+                    link: { findUnique: jest.fn() },
+                }))
 
             await expect(
                 LinkService.createLink('user-123', {
@@ -304,12 +280,9 @@ describe('LinkService', () => {
 
         it('should check user exists', async () => {
             ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(null) },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(null) },
+                }))
 
             await expect(
                 LinkService.createLink('nonexistent-user', {
@@ -326,12 +299,9 @@ describe('LinkService', () => {
             })
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+                }))
 
             await expect(
                 LinkService.createLink(mockUser.id, {
@@ -348,12 +318,9 @@ describe('LinkService', () => {
             })
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+                }))
 
             await expect(
                 LinkService.createLink(mockUser.id, {
@@ -370,12 +337,9 @@ describe('LinkService', () => {
             })
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+                }))
 
             await expect(
                 LinkService.createLink(mockUser.id, {
@@ -392,12 +356,9 @@ describe('LinkService', () => {
             })
 
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+                }))
 
             await expect(
                 LinkService.createLink(mockUser.id, {
@@ -414,22 +375,19 @@ describe('LinkService', () => {
 
             let userUpdateCalled = false
                 ; (checkUrlSafety as jest.Mock).mockResolvedValue(true)
-                ; (prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
-                    const tx = {
-                        user: {
-                            findUnique: jest.fn().mockResolvedValue(mockUser),
-                            update: jest.fn().mockImplementation(() => {
-                                userUpdateCalled = true
-                                return mockUser
-                            }),
-                        },
-                        link: {
-                            findUnique: jest.fn().mockResolvedValue(null),
-                            create: jest.fn().mockResolvedValue(createMockLink()),
-                        },
-                    }
-                    return await callback(tx)
-                })
+                ; (prisma.$transaction as jest.Mock).mockImplementation(createMockPrismaTransaction({
+                    user: {
+                        findUnique: jest.fn().mockResolvedValue(mockUser),
+                        update: jest.fn().mockImplementation(() => {
+                            userUpdateCalled = true
+                            return mockUser
+                        }),
+                    },
+                    link: {
+                        findUnique: jest.fn().mockResolvedValue(null),
+                        create: jest.fn().mockResolvedValue(createMockLink()),
+                    },
+                }))
 
             await LinkService.createLink(mockUser.id, {
                 longUrl: 'https://example.com',

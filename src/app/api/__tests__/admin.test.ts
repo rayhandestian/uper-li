@@ -10,6 +10,10 @@ import bcrypt from 'bcryptjs'
 import {
     createMockRequest,
     createMockParams,
+    setupMockAdminAuth,
+    setupMockUnauthenticated,
+    expectJsonResponse,
+    expectPrismaFindMany,
 } from '@/__tests__/test-utils'
 import { TEST_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
@@ -70,14 +74,6 @@ jest.mock('@/lib/timing', () => ({
 import { cookies } from 'next/headers'
 import { validateAdminSession } from '@/lib/admin-auth'
 
-const mockAdmin = {
-    id: 'admin-123',
-    email: 'admin@example.com',
-    name: 'Admin User',
-    role: 'ADMIN',
-    active: true,
-}
-
 describe('Admin & Additional Endpoints', () => {
     beforeEach(() => {
         jest.clearAllMocks()
@@ -85,23 +81,16 @@ describe('Admin & Additional Endpoints', () => {
 
     describe('GET /api/admin/users', () => {
         it('should return 401 if not authenticated', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue(null),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(null)
+            setupMockUnauthenticated(cookies as jest.Mock, validateAdminSession as jest.Mock)
 
             const req = createMockRequest('http://localhost/api/admin/users')
             const res = await usersGET(req)
 
-            expect(res.status).toBe(401)
-            expect(await res.json()).toEqual({ error: 'Unauthorized' })
+            await expectJsonResponse(res, 401, { error: 'Unauthorized' })
         })
 
         it('should return 401 if session invalid', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'invalid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(null)
+            setupMockUnauthenticated(cookies as jest.Mock, validateAdminSession as jest.Mock)
 
             const req = createMockRequest('http://localhost/api/admin/users')
             const res = await usersGET(req)
@@ -110,10 +99,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should return paginated users', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.user.count as jest.Mock).mockResolvedValue(50)
                 ; (prisma.user.findMany as jest.Mock).mockResolvedValue([
                     {
@@ -141,54 +127,35 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should filter by search query', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.user.count as jest.Mock).mockResolvedValue(1)
                 ; (prisma.user.findMany as jest.Mock).mockResolvedValue([{ id: 'user-1', nimOrUsername: 'testuser' }])
 
             const req = createMockRequest('http://localhost/api/admin/users?search=testuser')
             await usersGET(req)
 
-            expect(prisma.user.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: expect.objectContaining({
-                        OR: expect.arrayContaining([
-                            expect.objectContaining({ nimOrUsername: expect.objectContaining({ contains: 'testuser' }) })
-                        ])
-                    })
-                })
-            )
+            expectPrismaFindMany(prisma.user.findMany as jest.Mock, {
+                OR: expect.arrayContaining([
+                    expect.objectContaining({ nimOrUsername: expect.objectContaining({ contains: 'testuser' }) })
+                ])
+            })
         })
 
         it('should filter by role', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.user.count as jest.Mock).mockResolvedValue(5)
                 ; (prisma.user.findMany as jest.Mock).mockResolvedValue([])
 
             const req = createMockRequest('http://localhost/api/admin/users?role=ADMIN')
             await usersGET(req)
 
-            expect(prisma.user.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: expect.objectContaining({
-                        role: 'ADMIN'
-                    })
-                })
-            )
+            expectPrismaFindMany(prisma.user.findMany as jest.Mock, { role: 'ADMIN' })
         })
     })
 
     describe('PATCH /api/admin/users/[id]', () => {
         it('should return 401 if not authenticated', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue(null),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(null)
+            setupMockUnauthenticated(cookies as jest.Mock, validateAdminSession as jest.Mock)
 
             const req = createMockRequest('http://localhost/api/admin/users/user-123', {
                 method: 'PATCH',
@@ -200,10 +167,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should return 400 if no fields to update', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
 
             const req = createMockRequest('http://localhost/api/admin/users/user-123', {
                 method: 'PATCH',
@@ -211,15 +175,11 @@ describe('Admin & Additional Endpoints', () => {
             })
             const res = await usersPATCH(req, { params: createMockParams({ id: 'user-123' }) })
 
-            expect(res.status).toBe(400)
-            expect(await res.json()).toEqual({ error: 'No valid fields to update' })
+            await expectJsonResponse(res, 400, { error: 'No valid fields to update' })
         })
 
         it('should return 404 if user not found', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.user.update as jest.Mock).mockRejectedValue({ code: 'P2025' }) // Prisma error for record not found
 
             const req = createMockRequest('http://localhost/api/admin/users/user-123', {
@@ -232,10 +192,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should update user active status', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.user.update as jest.Mock).mockResolvedValue({
                     id: 'user-123',
                     email: 'user@example.com',
@@ -248,8 +205,7 @@ describe('Admin & Additional Endpoints', () => {
             })
             const res = await usersPATCH(req, { params: createMockParams({ id: 'user-123' }) })
 
-            expect(res.status).toBe(200)
-            expect(await res.json()).toEqual({
+            await expectJsonResponse(res, 200, {
                 id: 'user-123',
                 email: 'user@example.com',
                 active: false,
@@ -257,10 +213,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should update user role', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.user.update as jest.Mock).mockResolvedValue({
                     id: 'user-123',
                     role: 'ADMIN',
@@ -280,10 +233,7 @@ describe('Admin & Additional Endpoints', () => {
 
     describe('GET /api/admin/links', () => {
         it('should return 401 if not authenticated', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue(null),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(null)
+            setupMockUnauthenticated(cookies as jest.Mock, validateAdminSession as jest.Mock)
 
             const req = createMockRequest('http://localhost/api/admin/links')
             const res = await linksGET(req)
@@ -292,10 +242,7 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should return paginated links', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.link.count as jest.Mock).mockResolvedValue(100)
                 ; (prisma.link.findMany as jest.Mock).mockResolvedValue([
                     {
@@ -322,45 +269,29 @@ describe('Admin & Additional Endpoints', () => {
         })
 
         it('should filter by search query', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.link.count as jest.Mock).mockResolvedValue(1)
                 ; (prisma.link.findMany as jest.Mock).mockResolvedValue([])
 
             const req = createMockRequest('http://localhost/api/admin/links?search=testlink')
             await linksGET(req)
 
-            expect(prisma.link.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: expect.objectContaining({
-                        OR: expect.arrayContaining([
-                            expect.objectContaining({ shortUrl: expect.objectContaining({ contains: 'testlink' }) })
-                        ])
-                    })
-                })
-            )
+            expectPrismaFindMany(prisma.link.findMany as jest.Mock, {
+                OR: expect.arrayContaining([
+                    expect.objectContaining({ shortUrl: expect.objectContaining({ contains: 'testlink' }) })
+                ])
+            })
         })
 
         it('should filter by active status', async () => {
-            ; (cookies as jest.Mock).mockResolvedValue({
-                get: jest.fn().mockReturnValue({ value: 'valid-session' }),
-            })
-                ; (validateAdminSession as jest.Mock).mockResolvedValue(mockAdmin)
+            setupMockAdminAuth(cookies as jest.Mock, validateAdminSession as jest.Mock)
                 ; (prisma.link.count as jest.Mock).mockResolvedValue(5)
                 ; (prisma.link.findMany as jest.Mock).mockResolvedValue([])
 
             const req = createMockRequest('http://localhost/api/admin/links?active=true')
             await linksGET(req)
 
-            expect(prisma.link.findMany).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    where: expect.objectContaining({
-                        active: true
-                    })
-                })
-            )
+            expectPrismaFindMany(prisma.link.findMany as jest.Mock, { active: true })
         })
     })
 

@@ -5,9 +5,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import ShortUrlClient from '../ShortUrlClient'
 import { TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
 
+// Mock generic fetch response locally to avoid importing server-side utils in jsdom
+const mockFetchResponse = (ok: boolean, body: unknown) => ({
+    ok,
+    json: async () => body,
+})
+
 // Mock Next.js Link component
 jest.mock('next/link', () => {
-    return function MockLink({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) {
+    return function MockLink({ children, href, ...props }: { children: React.ReactNode; href: string;[key: string]: unknown }) {
         return <a href={href} {...props}>{children}</a>
     }
 })
@@ -105,10 +111,7 @@ describe('ShortUrlClient', () => {
         })
 
         it('shows loading state during verification', async () => {
-            mockFetch.mockResolvedValueOnce({
-                ok: false,
-                json: async () => ({ error: 'Wrong password' })
-            })
+            mockFetch.mockResolvedValueOnce(mockFetchResponse(false, { error: 'Wrong password' }))
 
             render(<ShortUrlClient {...props} />)
 
@@ -127,16 +130,10 @@ describe('ShortUrlClient', () => {
         })
 
         it('handles successful password verification', async () => {
-            mockFetch.mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({})
-            })
+            mockFetch.mockResolvedValueOnce(mockFetchResponse(true, {}))
 
             // Mock the log-visit fetch
-            mockFetch.mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({})
-            })
+            mockFetch.mockResolvedValueOnce(mockFetchResponse(true, {}))
 
             render(<ShortUrlClient {...props} />)
 
@@ -157,10 +154,7 @@ describe('ShortUrlClient', () => {
         })
 
         it('handles password verification error', async () => {
-            mockFetch.mockResolvedValueOnce({
-                ok: false,
-                json: async () => ({ error: 'Password salah' })
-            })
+            mockFetch.mockResolvedValueOnce(mockFetchResponse(false, { error: 'Password salah' }))
 
             render(<ShortUrlClient {...props} />)
 
