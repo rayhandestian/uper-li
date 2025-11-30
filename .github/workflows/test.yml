@@ -77,10 +77,11 @@ jobs:
         run: |
           if [ -f ./coverage/coverage-final.json ]; then echo "found=true" >> $GITHUB_OUTPUT; else echo "found=false" >> $GITHUB_OUTPUT; fi
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
         if: steps.coverage-check.outputs.found == 'true'
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/coverage-final.json
           fail_ci_if_error: false
 
