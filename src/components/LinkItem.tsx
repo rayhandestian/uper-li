@@ -56,6 +56,9 @@ export default function LinkItem({
             <div
                 className="px-4 py-4 sm:px-6 flex items-center justify-between cursor-pointer"
                 onClick={() => setIsExpanded(!isExpanded)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsExpanded(!isExpanded) }}
             >
                 <div className="flex-1 min-w-0 pr-4">
                     <div className="flex items-center">

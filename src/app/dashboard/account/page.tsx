@@ -283,6 +283,9 @@ export default function AccountPage() {
           <div
             className="fixed inset-0 bg-black/50 transition-opacity"
             onClick={() => setShowDisableModal(false)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowDisableModal(false) }}
           />
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 sm:p-8 transform transition-all duration-300 ease-out opacity-100 scale-100 relative z-10">
             <h3 className="text-xl font-semibold text-gray-900 mb-6">
