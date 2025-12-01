@@ -34,7 +34,7 @@ export const authOptions: NextAuthOptions = {
       if (trigger === "update" && session?.twoFactorVerified) {
         // Verify against database one last time to be safe
         const dbUser = await prisma.user.findUnique({
-          where: { id: token.sub! },
+          where: { id: token.sub as string },
           select: { twoFactorLoginCode: true }
         })
 
@@ -47,7 +47,7 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.sub!
+        session.user.id = token.sub as string
         session.user.role = token.role as string
         session.user.nimOrUsername = token.nimOrUsername as string
         // Trust the token state - NO DATABASE QUERY HERE

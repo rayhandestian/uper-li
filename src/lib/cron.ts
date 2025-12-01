@@ -57,7 +57,6 @@ export const deactivateExpiredLinks = async () => {
       })
 
       if (linksToDeactivate.length === 0) {
-        hasMore = false
         break
       }
 
@@ -200,7 +199,6 @@ export const revalidateStoredUrls = async () => {
       })
 
       if (linksToCheck.length === 0) {
-        hasMore = false
         break
       }
 

@@ -136,7 +136,7 @@ function LoginForm() {
                     className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
                     placeholder="ABC123"
                     value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replaceAll(/[^a-zA-Z0-9]/g, '').toLowerCase())}
                     maxLength={6}
                   />
                 </div>

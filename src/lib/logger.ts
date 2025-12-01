@@ -5,11 +5,11 @@ interface LogEntry {
     level: LogLevel
     message: string
     context?: Record<string, unknown>
-    error?: Error | unknown
+    error?: unknown
 }
 
 class Logger {
-    private isDevelopment = process.env.NODE_ENV === 'development'
+    private readonly isDevelopment = process.env.NODE_ENV === 'development'
 
     private formatError(error: unknown): Record<string, unknown> {
         if (error instanceof Error) {
@@ -53,8 +53,8 @@ class Logger {
 
             console.log(
                 `${color}[${level.toUpperCase()}]${reset} ${message}`,
-                context ? context : '',
-                error ? error : ''
+                context ?? '',
+                error ?? ''
             )
         } else {
             // JSON output for production

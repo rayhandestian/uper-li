@@ -4,8 +4,8 @@ import { Admin, AdminSession } from '@prisma/client'
 import { NextRequest } from 'next/server'
 
 // Constants for session management
-const SESSION_TIMEOUT_MINUTES = parseInt(process.env.ADMIN_SESSION_TIMEOUT_MINUTES || '30')
-const SESSION_MAX_LIFETIME_HOURS = parseInt(process.env.ADMIN_SESSION_MAX_LIFETIME_HOURS || '12')
+const SESSION_TIMEOUT_MINUTES = Number.parseInt(process.env.ADMIN_SESSION_TIMEOUT_MINUTES || '30')
+const SESSION_MAX_LIFETIME_HOURS = Number.parseInt(process.env.ADMIN_SESSION_MAX_LIFETIME_HOURS || '12')
 const TOKEN_BYTES = 32 // 256 bits
 
 /**

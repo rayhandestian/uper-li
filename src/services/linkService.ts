@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import bcrypt from 'bcryptjs'
 import { Prisma, Link } from '@prisma/client'
 
-const RESERVED_PATHS = [
+const RESERVED_PATHS = new Set([
     'dashboard',
     'login',
     'register',
@@ -13,7 +13,7 @@ const RESERVED_PATHS = [
     'contact',
     'verify',
     'admin'
-]
+])
 
 export interface CreateLinkData {
     longUrl: string
@@ -87,7 +87,7 @@ export class LinkService {
                 }
 
                 // Check if custom URL is reserved
-                if (RESERVED_PATHS.includes(customUrl)) {
+                if (RESERVED_PATHS.has(customUrl)) {
                     throw new Error('Short URL kustom tidak tersedia.')
                 }
 
@@ -113,7 +113,7 @@ export class LinkService {
                         where: { shortUrl: shortUrl }
                     })
 
-                    if (!existingLink && !RESERVED_PATHS.includes(shortUrl)) break
+                    if (!existingLink && !RESERVED_PATHS.has(shortUrl)) break
                 } while (true)
             }
 

@@ -72,7 +72,7 @@ export default function VerifyPage() {
       <main className="flex-grow flex items-center justify-center px-4 py-12">
         <div className="max-w-md w-full">
           <div className="mb-8">
-            <button 
+            <button
               onClick={() => router.push('/register')}
               className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200"
             >
@@ -107,7 +107,7 @@ export default function VerifyPage() {
                   className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base text-center text-2xl tracking-widest"
                   placeholder="ABC123"
                   value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())}
+                  onChange={(e) => setCode(e.target.value.replaceAll(/[^a-zA-Z0-9]/g, '').toLowerCase())}
                 />
               </div>
 

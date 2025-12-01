@@ -125,7 +125,7 @@ export default function NewPasswordPage() {
                                         className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base text-center tracking-widest text-2xl"
                                         placeholder="ABC123"
                                         value={code}
-                                        onChange={(e) => setCode(e.target.value.replace(/[^a-zA-Z0-9]/g, '').toLowerCase())}
+                                        onChange={(e) => setCode(e.target.value.replaceAll(/[^a-zA-Z0-9]/g, '').toLowerCase())}
                                     />
                                 </div>
 
