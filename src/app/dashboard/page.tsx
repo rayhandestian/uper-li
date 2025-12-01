@@ -94,7 +94,7 @@ export default function DashboardPage() {
   const [qrBgColor, setQrBgColor] = useState('#ffffff')
   const [qrSize, setQrSize] = useState(256)
   const [qrLevel, setQrLevel] = useState<'L' | 'M' | 'Q' | 'H'>('H')
-  const [qrIncludeMargin, setQrIncludeMargin] = useState(true)
+  const [qrMarginSize, setQrMarginSize] = useState(4)
 
   const openQrModal = (link: Link) => {
     setQrModalLink(link)
@@ -102,7 +102,7 @@ export default function DashboardPage() {
     setQrBgColor('#ffffff')
     setQrSize(256)
     setQrLevel('H')
-    setQrIncludeMargin(true)
+    setQrMarginSize(4)
     setShowQrModal(true)
   }
 
@@ -699,7 +699,7 @@ export default function DashboardPage() {
                 <h3 className="text-xl font-semibold text-gray-900 mb-8">Edit Link</h3>
                 <div className="space-y-8">
                   <div>
-                    <label className="block text-base font-medium text-gray-700 mb-3">Short URL</label>
+                    <label htmlFor="editCustomUrl" className="block text-base font-medium text-gray-700 mb-3">Short URL</label>
                     <div className="flex rounded-md shadow-sm border border-gray-300 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
                       <span className="inline-flex items-center px-4 bg-gray-50 text-gray-500 text-base border-r border-gray-300">
                         uper.li/
@@ -708,6 +708,7 @@ export default function DashboardPage() {
                         type="text"
                         value={editCustomUrl}
                         onChange={(e) => setEditCustomUrl(e.target.value)}
+                        id="editCustomUrl"
                         className="flex-1 px-4 py-3 border-0 focus:ring-0 focus:outline-none text-gray-900 placeholder-gray-500 text-base"
                         placeholder="custom-url"
                       />
@@ -839,7 +840,7 @@ export default function DashboardPage() {
                         fgColor={qrFgColor}
                         bgColor={qrBgColor}
                         level={qrLevel}
-                        includeMargin={qrIncludeMargin}
+                        marginSize={qrMarginSize}
                         ref={qrModalRef}
                         style={{ width: '256px', height: '256px' }}
                       />
@@ -921,13 +922,13 @@ export default function DashboardPage() {
 
                     <div className="flex items-center">
                       <input
-                        id="include-margin"
+                        id="margin-size"
                         type="checkbox"
-                        checked={qrIncludeMargin}
-                        onChange={(e) => setQrIncludeMargin(e.target.checked)}
+                        checked={qrMarginSize > 0}
+                        onChange={(e) => setQrMarginSize(e.target.checked ? 4 : 0)}
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
-                      <label htmlFor="include-margin" className="ml-2 block text-sm text-gray-900">
+                      <label htmlFor="margin-size" className="ml-2 block text-sm text-gray-900">
                         Gunakan Margin
                       </label>
                     </div>

@@ -39,8 +39,8 @@ export default function EmailPreviewPage() {
         <div className="min-h-screen bg-gray-100 p-8">
             <h1 className="text-3xl font-bold mb-8 text-center text-gray-800">Email Templates Preview</h1>
             <div className="grid gap-8 max-w-4xl mx-auto">
-                {templates.map((template, index) => (
-                    <div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
+                {templates.map((template) => (
+                    <div key={template.title} className="bg-white rounded-lg shadow-md overflow-hidden">
                         <div className="bg-gray-200 px-6 py-4 border-b border-gray-300">
                             <h2 className="text-xl font-semibold text-gray-700">{template.title}</h2>
                         </div>

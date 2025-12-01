@@ -3,8 +3,7 @@ import { cookies } from 'next/headers'
 import { manualMonthlyReset, manualLinkCleanup, deleteUnverifiedUsers } from '@/lib/cron'
 import { cleanupExpiredRateLimits } from '@/lib/rateLimit'
 import { cleanupExpiredLockouts } from '@/lib/verificationAttempts'
-import { cleanupExpiredSessions } from '@/lib/admin-auth'
-import { validateAdminSession, extendSessionActivity } from '@/lib/admin-auth'
+import { validateAdminSession, extendSessionActivity, cleanupExpiredSessions } from '@/lib/admin-auth'
 import { logAdminAction, AUDIT_ACTIONS } from '@/lib/admin-audit'
 import { logger } from '@/lib/logger'
 
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest) {
         result = await manualLinkCleanup()
         break
 
-      case 'rate_limit_cleanup':
+      case 'rate_limit_cleanup': {
         const deletedCount = await cleanupExpiredRateLimits()
         result = {
           success: true,
@@ -42,8 +41,9 @@ export async function POST(request: NextRequest) {
           message: `Cleaned up ${deletedCount} expired rate limit entries`
         }
         break
+      }
 
-      case 'verification_attempt_cleanup':
+      case 'verification_attempt_cleanup': {
         const attemptCount = await cleanupExpiredLockouts()
         result = {
           success: true,
@@ -51,8 +51,9 @@ export async function POST(request: NextRequest) {
           message: `Cleaned up ${attemptCount} expired verification attempt lockouts`
         }
         break
+      }
 
-      case 'admin_session_cleanup':
+      case 'admin_session_cleanup': {
         const sessionCount = await cleanupExpiredSessions()
         result = {
           success: true,
@@ -60,8 +61,9 @@ export async function POST(request: NextRequest) {
           message: `Cleaned up ${sessionCount} expired admin sessions`
         }
         break
+      }
 
-      case 'unverified_user_cleanup':
+      case 'unverified_user_cleanup': {
         const deletedUsers = await deleteUnverifiedUsers()
         result = {
           success: true,
@@ -69,6 +71,7 @@ export async function POST(request: NextRequest) {
           message: `Cleaned up ${deletedUsers} unverified users older than 3 days`
         }
         break
+      }
 
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
