@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { Link, Prisma } from '@prisma/client'
 
 const RESERVED_PATHS = [
   'dashboard',
@@ -14,6 +15,65 @@ const RESERVED_PATHS = [
   'verify',
   'admin'
 ]
+
+async function handlePasswordUpdate(password: string): Promise<string | null> {
+  if (password === '') {
+    return null
+  } else if (password.length >= 4) {
+    return await bcrypt.hash(password, 12)
+  } else {
+    throw new Error('Password minimal 4 karakter.')
+  }
+}
+
+async function handleShortUrlUpdate(
+  link: Link,
+  shortUrl: string,
+  id: string
+): Promise<{ shortUrl: string; custom: boolean; customChanges: number; customChangedAt?: Date }> {
+  const updateData: { shortUrl?: string; custom?: boolean; customChanges?: number; customChangedAt?: Date } = {}
+
+  // Check if custom URL change is allowed (max 2 per month)
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+  if (link.customChangedAt && link.customChangedAt >= startOfMonth) {
+    if ((link.customChanges || 0) >= 2) {
+      throw new Error('Batas perubahan custom URL per bulan tercapai (maksimal 2x).')
+    }
+  } else {
+    // Reset counter for new month
+    updateData.customChanges = 1
+    updateData.customChangedAt = now
+  }
+
+  // Validate new short URL
+  if (shortUrl.length > 255 || !/^[a-zA-Z0-9-_]+$/.test(shortUrl)) {
+    throw new Error('Short URL kustom tidak valid.')
+  }
+
+  // Check if new short URL is reserved
+  if (RESERVED_PATHS.includes(shortUrl)) {
+    throw new Error('Short URL kustom tidak tersedia.')
+  }
+
+  // Check if new short URL is taken
+  const existing = await prisma.link.findUnique({
+    where: { shortUrl },
+    select: { id: true }
+  })
+
+  if (existing && existing.id !== id) {
+    throw new Error('Short URL kustom sudah digunakan.')
+  }
+
+  updateData.shortUrl = shortUrl
+  updateData.custom = true
+  updateData.customChanges = (link.customChanges || 0) + 1
+
+  // Ensure all required properties are present before returning
+  return updateData as { shortUrl: string; custom: boolean; customChanges: number; customChangedAt?: Date }
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -41,16 +101,7 @@ export async function PATCH(
   }
 
   // Build dynamic update data
-  const updateData: {
-    active?: boolean
-    mode?: string
-    password?: string | null
-    shortUrl?: string
-    custom?: boolean
-    customChanges?: number
-    customChangedAt?: Date
-    updatedAt: Date
-  } = {
+  const updateData: Prisma.LinkUpdateInput = {
     updatedAt: new Date()
   }
 
@@ -62,54 +113,22 @@ export async function PATCH(
     updateData.mode = mode
   }
 
-  if (password !== undefined) {
-    if (password === '') {
-      updateData.password = null
-    } else if (password.length >= 4) {
-      updateData.password = await bcrypt.hash(password, 12)
-    } else {
-      return NextResponse.json({ error: 'Password minimal 4 karakter.' }, { status: 400 })
-    }
-  }
-
-  if (shortUrl !== undefined) {
-    // Check if custom URL change is allowed (max 2 per month)
-    const now = new Date()
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-
-    if (link.customChangedAt && link.customChangedAt >= startOfMonth) {
-      if ((link.customChanges || 0) >= 2) {
-        return NextResponse.json({ error: 'Batas perubahan custom URL per bulan tercapai (maksimal 2x).' }, { status: 400 })
-      }
-    } else {
-      // Reset counter for new month
-      updateData.customChanges = 1
-      updateData.customChangedAt = now
+  try {
+    if (password !== undefined) {
+      updateData.password = await handlePasswordUpdate(password)
     }
 
-    // Validate new short URL
-    if (shortUrl.length > 255 || !/^[a-zA-Z0-9-_]+$/.test(shortUrl)) {
-      return NextResponse.json({ error: 'Short URL kustom tidak valid.' }, { status: 400 })
+    if (shortUrl !== undefined) {
+      const shortUrlData = await handleShortUrlUpdate(link, shortUrl, id)
+      // Manually assign properties to avoid type issues with Object.assign and Prisma types
+      if (shortUrlData.shortUrl) updateData.shortUrl = shortUrlData.shortUrl
+      if (shortUrlData.custom !== undefined) updateData.custom = shortUrlData.custom
+      if (shortUrlData.customChanges !== undefined) updateData.customChanges = shortUrlData.customChanges
+      if (shortUrlData.customChangedAt) updateData.customChangedAt = shortUrlData.customChangedAt
     }
-
-    // Check if new short URL is reserved
-    if (RESERVED_PATHS.includes(shortUrl)) {
-      return NextResponse.json({ error: 'Short URL kustom tidak tersedia.' }, { status: 400 })
-    }
-
-    // Check if new short URL is taken
-    const existing = await prisma.link.findUnique({
-      where: { shortUrl },
-      select: { id: true }
-    })
-
-    if (existing && existing.id !== id) {
-      return NextResponse.json({ error: 'Short URL kustom sudah digunakan.' }, { status: 400 })
-    }
-
-    updateData.shortUrl = shortUrl
-    updateData.custom = true
-    updateData.customChanges = (link.customChanges || 0) + 1
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Terjadi kesalahan'
+    return NextResponse.json({ error: message }, { status: 400 })
   }
 
   if (Object.keys(updateData).length === 1) { // Only updatedAt

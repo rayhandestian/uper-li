@@ -31,9 +31,7 @@ export interface GetLinksOptions {
 }
 
 export class LinkService {
-    static async createLink(userId: string, data: CreateLinkData): Promise<Link> {
-        const { longUrl, customUrl, password } = data
-
+    private static async validateUrl(longUrl: string): Promise<void> {
         if (!longUrl) {
             throw new Error('URL asli diperlukan.')
         }
@@ -55,6 +53,69 @@ export class LinkService {
         if (!isSafe) {
             throw new Error('URL terdeteksi berbahaya.')
         }
+    }
+
+    private static checkUserLimits(user: { role: string; monthlyLinksCreated: number | null; totalLinks: number | null }): void {
+        const maxMonthly = user.role === 'STUDENT' ? 5 : 10
+        const maxTotal = user.role === 'STUDENT' ? 100 : 200
+
+        if ((user.monthlyLinksCreated || 0) >= maxMonthly) {
+            throw new Error('Batas link bulanan tercapai.')
+        }
+
+        if ((user.totalLinks || 0) >= maxTotal) {
+            throw new Error('Batas total link tercapai.')
+        }
+    }
+
+    private static async generateShortUrl(tx: Prisma.TransactionClient, customUrl?: string): Promise<string> {
+        if (customUrl) {
+            // Validate custom URL
+            if (customUrl.length > 255 || !/^[a-zA-Z0-9-_]+$/.test(customUrl)) {
+                throw new Error('Short URL kustom tidak valid.')
+            }
+
+            // Check if custom URL is reserved
+            if (RESERVED_PATHS.has(customUrl)) {
+                throw new Error('Short URL kustom tidak tersedia.')
+            }
+
+            // Check if custom URL is taken
+            const existingLink = await tx.link.findUnique({
+                where: { shortUrl: customUrl }
+            })
+
+            if (existingLink) {
+                throw new Error('Short URL kustom sudah digunakan.')
+            }
+
+            return customUrl
+        }
+
+        // Generate random short URL
+        let attempts = 0
+        let shortUrl = ''
+        do {
+            shortUrl = crypto.randomBytes(3).toString('hex') // 6 characters
+            attempts++
+            if (attempts > 10) {
+                throw new Error('Gagal menghasilkan short URL.')
+            }
+
+            const existingLink = await tx.link.findUnique({
+                where: { shortUrl: shortUrl }
+            })
+
+            if (!existingLink && !RESERVED_PATHS.has(shortUrl)) break
+        } while (true)
+
+        return shortUrl
+    }
+
+    static async createLink(userId: string, data: CreateLinkData): Promise<Link> {
+        const { longUrl, customUrl, password } = data
+
+        await this.validateUrl(longUrl)
 
         return await prisma.$transaction(async (tx) => {
             // Get user
@@ -66,56 +127,9 @@ export class LinkService {
                 throw new Error('User tidak ditemukan.')
             }
 
-            // Check limits
-            const maxMonthly = user.role === 'STUDENT' ? 5 : 10
-            const maxTotal = user.role === 'STUDENT' ? 100 : 200
+            this.checkUserLimits(user)
 
-            if ((user.monthlyLinksCreated || 0) >= maxMonthly) {
-                throw new Error('Batas link bulanan tercapai.')
-            }
-
-            if ((user.totalLinks || 0) >= maxTotal) {
-                throw new Error('Batas total link tercapai.')
-            }
-
-            let shortUrl = customUrl
-
-            if (customUrl) {
-                // Validate custom URL
-                if (customUrl.length > 255 || !/^[a-zA-Z0-9-_]+$/.test(customUrl)) {
-                    throw new Error('Short URL kustom tidak valid.')
-                }
-
-                // Check if custom URL is reserved
-                if (RESERVED_PATHS.has(customUrl)) {
-                    throw new Error('Short URL kustom tidak tersedia.')
-                }
-
-                // Check if custom URL is taken
-                const existingLink = await tx.link.findUnique({
-                    where: { shortUrl: customUrl }
-                })
-
-                if (existingLink) {
-                    throw new Error('Short URL kustom sudah digunakan.')
-                }
-            } else {
-                // Generate random short URL
-                let attempts = 0
-                do {
-                    shortUrl = crypto.randomBytes(3).toString('hex') // 6 characters
-                    attempts++
-                    if (attempts > 10) {
-                        throw new Error('Gagal menghasilkan short URL.')
-                    }
-
-                    const existingLink = await tx.link.findUnique({
-                        where: { shortUrl: shortUrl }
-                    })
-
-                    if (!existingLink && !RESERVED_PATHS.has(shortUrl)) break
-                } while (true)
-            }
+            const shortUrl = await this.generateShortUrl(tx, customUrl)
 
             // Hash password if provided
             let hashedPassword = null
@@ -129,7 +143,7 @@ export class LinkService {
             // Create link
             const link = await tx.link.create({
                 data: {
-                    shortUrl: shortUrl!,
+                    shortUrl,
                     longUrl,
                     userId: user.id,
                     custom: !!customUrl,
