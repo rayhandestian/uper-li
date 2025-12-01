@@ -36,7 +36,7 @@ export default function RegisterPage() {
         },
         body: JSON.stringify({
           nimOrUsername,
-          
+
         }),
       })
 
@@ -107,13 +107,10 @@ export default function RegisterPage() {
       localStorage.setItem('verify_nimOrUsername', nimOrUsername)
       localStorage.setItem('verify_password', password)
       router.push('/verify')
+    } else if (data.error === 'Email sudah terdaftar.' && nimOrUsername && password) {
+      setError('Email sudah terdaftar. Akun Anda mungkin perlu verifikasi email. Coba kirim ulang kode verifikasi?')
     } else {
-      // Check if this is an "email already registered" error
-      if (data.error === 'Email sudah terdaftar.' && nimOrUsername && password) {
-        setError('Email sudah terdaftar. Akun Anda mungkin perlu verifikasi email. Coba kirim ulang kode verifikasi?')
-      } else {
-        setError(data.error || 'Terjadi kesalahan.')
-      }
+      setError(data.error || 'Terjadi kesalahan.')
     }
 
     setLoading(false)
@@ -186,7 +183,7 @@ export default function RegisterPage() {
                   name="nimOrUsername"
                   type="text"
                   required
-                  className={`appearance-none rounded-xl block w-full px-4 py-3 border ${!isValidNim ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-base`}
+                  className={`appearance-none rounded-xl block w-full px-4 py-3 border ${isValidNim ? 'border-gray-300 focus:ring-blue-500' : 'border-red-300 focus:ring-red-500'} placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-base`}
                   placeholder={role === 'STUDENT' ? '123456789' : 'john.doe'}
                   value={nimOrUsername}
                   onChange={(e) => setNimOrUsername(e.target.value)}

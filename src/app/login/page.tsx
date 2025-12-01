@@ -182,7 +182,7 @@ function LoginForm() {
                     name="nimOrUsername"
                     type="text"
                     required
-                    className={`appearance-none rounded-xl block w-full px-4 py-3 border ${!isValidNim ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'} placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-base`}
+                    className={`appearance-none rounded-xl block w-full px-4 py-3 border ${isValidNim ? 'border-gray-300 focus:ring-blue-500' : 'border-red-300 focus:ring-red-500'} placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:border-transparent transition-all text-base`}
                     placeholder="123456789 / john.doe"
                     value={nimOrUsername}
                     onChange={(e) => setNimOrUsername(e.target.value)}

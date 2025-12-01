@@ -39,7 +39,7 @@ async function handleForgotPassword(request: NextRequest) {
         })
 
         // Always perform necessary operations to prevent timing attacks
-        if (user && user.emailVerified) {
+        if (user?.emailVerified) {
             // Generate secure alphanumeric verification code
             const verificationCode = generateSecureCode()
 

@@ -38,7 +38,7 @@ export class AuthService {
         const isValid = await bcrypt.compare(credentials.password, passwordHash)
 
         // Check all conditions before returning
-        const isAuthenticated = user && user.password && isValid && user.emailVerified
+        const isAuthenticated = user?.password && isValid && user?.emailVerified
 
         if (!isAuthenticated) {
             await addConstantDelay()

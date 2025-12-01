@@ -22,7 +22,7 @@ export async function isAccountLocked(userId: string, attemptType: AttemptType):
         }
     })
 
-    if (!attempt || !attempt.lockedUntil) {
+    if (!attempt?.lockedUntil) {
         return false
     }
 
@@ -62,17 +62,7 @@ export async function recordFailedAttempt(userId: string, attemptType: AttemptTy
         }
     })
 
-    if (!existingAttempt) {
-        // First failed attempt
-        await prisma.verificationAttempt.create({
-            data: {
-                userId,
-                attemptType,
-                failedAttempts: 1,
-                lastAttemptAt: new Date()
-            }
-        })
-    } else {
+    if (existingAttempt) {
         const newFailedAttempts = existingAttempt.failedAttempts + 1
         const shouldLock = newFailedAttempts >= MAX_ATTEMPTS
 
@@ -88,6 +78,16 @@ export async function recordFailedAttempt(userId: string, attemptType: AttemptTy
                 lastAttemptAt: new Date(),
                 lockedUntil: shouldLock ? new Date(Date.now() + LOCKOUT_DURATION_MS) : existingAttempt.lockedUntil,
                 updatedAt: new Date()
+            }
+        })
+    } else {
+        // First failed attempt
+        await prisma.verificationAttempt.create({
+            data: {
+                userId,
+                attemptType,
+                failedAttempts: 1,
+                lastAttemptAt: new Date()
             }
         })
     }

@@ -31,7 +31,7 @@ async function handleVerifyLinkPassword(request: NextRequest) {
     const isValidPassword = await bcrypt.compare(password, storedHash)
 
     // Check all conditions: link exists AND has password AND password is valid
-    if (!link || !link.password || !isValidPassword) {
+    if (!link?.password || !isValidPassword) {
       await addConstantDelay()
       return NextResponse.json({ error: 'Verifikasi gagal.' }, { status: 401 })
     }

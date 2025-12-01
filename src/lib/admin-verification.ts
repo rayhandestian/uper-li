@@ -60,7 +60,7 @@ export async function isAccountLocked(adminId: string, attemptType: AdminAttempt
         }
     })
 
-    if (!attempt || !attempt.lockedUntil) {
+    if (!attempt?.lockedUntil) {
         const maxAttempts = getMaxAttempts(attemptType)
         return {
             locked: false,
