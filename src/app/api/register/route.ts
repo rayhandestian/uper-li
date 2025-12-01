@@ -76,6 +76,10 @@ async function handleRegistration(request: NextRequest) {
     const verificationCode = generateSecureCode()
     const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
+    // Generate session token for auto-login after verification
+    const sessionToken = generateSecureCode()
+    const sessionTokenExpires = new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
+
     // Create user using Prisma
     await prisma.user.create({
       data: {
@@ -85,6 +89,8 @@ async function handleRegistration(request: NextRequest) {
         password: hashedPassword,
         verificationToken: verificationCode,
         verificationTokenExpires,
+        sessionToken,
+        sessionTokenExpires,
       }
     })
 

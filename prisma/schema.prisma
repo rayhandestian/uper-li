@@ -44,6 +44,8 @@ model User {
   emailVerified            DateTime?              @db.Timestamp(6)
   verificationToken        String?
   verificationTokenExpires DateTime?              @db.Timestamp(6)
+  sessionToken             String?
+  sessionTokenExpires      DateTime?              @db.Timestamp(6)
   createdAt                DateTime?              @default(now()) @db.Timestamp(6)
   updatedAt                DateTime?              @default(now()) @updatedAt @db.Timestamp(6)
   monthlyLinksCreated      Int?                   @default(0)

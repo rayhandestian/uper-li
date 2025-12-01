@@ -24,6 +24,8 @@ async function handleVerification(request: NextRequest) {
         role: true,
         emailVerified: true,
         verificationTokenExpires: true,
+        sessionToken: true,
+        sessionTokenExpires: true,
         updatedAt: true
       }
     })
@@ -76,13 +78,15 @@ async function handleVerification(request: NextRequest) {
       role: user.role
     })
 
-    // Verify email using Prisma
+    // Verify email and clear session token (one-time use)
     await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerified: new Date(),
         verificationToken: null,
         verificationTokenExpires: null,
+        sessionToken: null,
+        sessionTokenExpires: null,
         updatedAt: new Date()
       }
     })
@@ -90,7 +94,15 @@ async function handleVerification(request: NextRequest) {
     // Clear failed attempts on successful verification
     await clearAttempts(user.id, 'email_verification')
 
-    return NextResponse.json({ message: 'Verifikasi berhasil.' })
+    // Return session token if it exists and hasn't expired
+    const sessionTokenValid = user.sessionToken &&
+      user.sessionTokenExpires &&
+      user.sessionTokenExpires > now
+
+    return NextResponse.json({
+      message: 'Verifikasi berhasil.',
+      sessionToken: sessionTokenValid ? user.sessionToken : null
+    })
   } catch (error) {
     logger.error('Code verification error:', error)
     return NextResponse.json({ error: 'Terjadi kesalahan server.' }, { status: 500 })

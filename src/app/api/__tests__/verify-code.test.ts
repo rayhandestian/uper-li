@@ -99,10 +99,14 @@ describe('/api/verify-code', () => {
 
     it('should verify account successfully', async () => {
         const futureDate = new Date(Date.now() + 10000)
+        const sessionToken = 'test-session-token'
+        const sessionTokenExpires = new Date(Date.now() + 15 * 60 * 1000)
             ; (prisma.user.findFirst as jest.Mock).mockResolvedValue({
                 id: 'user-123',
                 verificationTokenExpires: futureDate,
                 emailVerified: null,
+                sessionToken,
+                sessionTokenExpires,
                 updatedAt: new Date(),
             })
             ; (prisma.user.update as jest.Mock).mockResolvedValue({ id: 'user-123' })
@@ -114,15 +118,19 @@ describe('/api/verify-code', () => {
         const res = await POST(req)
 
         expect(res.status).toBe(200)
-        expect(await res.json()).toEqual({ message: 'Verifikasi berhasil.' })
+        const responseData = await res.json()
+        expect(responseData.message).toBe('Verifikasi berhasil.')
+        expect(responseData.sessionToken).toBe(sessionToken)
 
-        // Verify update was called
+        // Verify update was called with session token cleared
         expect(prisma.user.update).toHaveBeenCalledWith({
             where: { id: 'user-123' },
             data: expect.objectContaining({
                 emailVerified: expect.any(Date),
                 verificationToken: null,
-                verificationTokenExpires: null
+                verificationTokenExpires: null,
+                sessionToken: null,
+                sessionTokenExpires: null
             })
         })
     })

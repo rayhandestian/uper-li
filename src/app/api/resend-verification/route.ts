@@ -28,12 +28,18 @@ async function handleResendVerification(request: NextRequest) {
       const verificationCode = generateSecureCode()
       const verificationTokenExpires = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
 
+      // Regenerate session token for auto-login after verification
+      const sessionToken = generateSecureCode()
+      const sessionTokenExpires = new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
+
       // Update user's verification token and expiry using Prisma
       await prisma.user.update({
         where: { id: user.id },
         data: {
           verificationToken: verificationCode,
           verificationTokenExpires,
+          sessionToken,
+          sessionTokenExpires,
           updatedAt: new Date()
         }
       })

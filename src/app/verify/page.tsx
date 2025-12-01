@@ -7,7 +7,6 @@ import Footer from '@/components/Footer'
 
 export default function VerifyPage() {
   const [code, setCode] = useState('')
-  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -44,19 +43,26 @@ export default function VerifyPage() {
     const data = await response.json()
 
     if (response.ok) {
-      // Verification successful, auto-login
-      const result = await signIn('credentials', {
-        nimOrUsername,
-        password,
-        redirect: false,
-      })
+      // Check if session token was returned
+      if (data.sessionToken) {
+        // Auto-login using session token
+        const result = await signIn('credentials', {
+          nimOrUsername,
+          sessionToken: data.sessionToken,
+          redirect: false,
+        })
 
-      if (result?.ok) {
-        // Clear stored username
-        localStorage.removeItem('verify_nimOrUsername')
-        router.push('/dashboard')
+        if (result?.ok) {
+          // Clear stored username
+          localStorage.removeItem('verify_nimOrUsername')
+          router.push('/dashboard')
+        } else {
+          setError('Verifikasi berhasil, tetapi gagal masuk. Silakan coba masuk manual.')
+        }
       } else {
-        setError('Verifikasi berhasil, tetapi gagal masuk. Silakan coba masuk manual.')
+        // Session token expired or missing, redirect to login
+        localStorage.removeItem('verify_nimOrUsername')
+        router.push('/login?verified=true')
       }
     } else {
       setError(data.error || 'Kode verifikasi tidak valid.')
@@ -109,22 +115,6 @@ export default function VerifyPage() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
-                  placeholder="Masukkan password Anda"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </div>
-
               {error && (
                 <div className="p-3 rounded-lg bg-red-50 border border-red-200">
                   <p className="text-sm text-red-800">{error}</p>
@@ -134,7 +124,7 @@ export default function VerifyPage() {
               <div>
                 <button
                   type="submit"
-                  disabled={loading || code.length !== 6 || !password}
+                  disabled={loading || code.length !== 6}
                   className="w-full flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl min-h-[52px]"
                 >
                   {loading ? 'Memverifikasi...' : 'Verifikasi'}
