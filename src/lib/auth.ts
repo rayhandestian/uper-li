@@ -9,12 +9,14 @@ export const authOptions: NextAuthOptions = {
       name: 'credentials',
       credentials: {
         nimOrUsername: { label: 'NIM/Username', type: 'text' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
+        sessionToken: { label: 'Session Token', type: 'hidden' }
       },
       async authorize(credentials) {
         return await AuthService.validateUser({
           nimOrUsername: credentials?.nimOrUsername,
-          password: credentials?.password
+          password: credentials?.password,
+          sessionToken: credentials?.sessionToken
         })
       }
     })
