@@ -37,7 +37,7 @@ interface UserStats {
   totalActiveLinks: number
 }
 
-function CountUp({ end, duration = 2000 }: { end: number, duration?: number }) {
+function CountUp({ end, duration = 2000 }: { readonly end: number, readonly duration?: number }) {
   const [count, setCount] = useState(0)
 
   useEffect(() => {

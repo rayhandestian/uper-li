@@ -18,12 +18,12 @@ interface Link {
 }
 
 interface LinkItemProps {
-    link: Link
-    timeZone: string
-    onEdit: (link: Link) => void
-    onDelete: (id: string) => void
-    onToggleActive: (id: string, active: boolean) => void
-    onOpenQr: (link: Link) => void
+    readonly link: Link
+    readonly timeZone: string
+    readonly onEdit: (link: Link) => void
+    readonly onDelete: (id: string) => void
+    readonly onToggleActive: (id: string, active: boolean) => void
+    readonly onOpenQr: (link: Link) => void
 }
 
 function formatDate(date: Date, timeZone: string): string {
@@ -159,8 +159,8 @@ export default function LinkItem({
                                     <button
                                         onClick={() => onToggleActive(link.id, link.active)}
                                         className={`flex items-center justify-center px-4 py-3 rounded-lg text-sm font-medium border transition-all hover:shadow-sm ${link.active
-                                                ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200'
-                                                : 'text-green-700 bg-green-50 hover:bg-green-100 border-green-200'
+                                            ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200'
+                                            : 'text-green-700 bg-green-50 hover:bg-green-100 border-green-200'
                                             }`}
                                     >
                                         <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
