@@ -29,11 +29,23 @@ export class AuthService {
                 where: { nimOrUsername: credentials.nimOrUsername }
             })
 
-            // Session token must match (simple equality check, token already cleared after  one use)
-            //  In practice, this path may not be used since we clear the token immediately
-            // This is here as a fallback
-            if (user && user.emailVerified) {
+            // Validate session token: must match DB, exist, and not be expired
+            if (user &&
+                user.sessionToken === credentials.sessionToken &&
+                user.sessionTokenExpires &&
+                user.sessionTokenExpires > new Date()
+            ) {
+                // Clear session token (one-time use)
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: {
+                        sessionToken: null,
+                        sessionTokenExpires: null
+                    }
+                })
+
                 await addConstantDelay()
+
                 return {
                     id: user.id,
                     email: user.email,

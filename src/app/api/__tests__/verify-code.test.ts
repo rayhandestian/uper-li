@@ -122,15 +122,14 @@ describe('/api/verify-code', () => {
         expect(responseData.message).toBe('Verifikasi berhasil.')
         expect(responseData.sessionToken).toBe(sessionToken)
 
-        // Verify update was called with session token cleared
+        // Verify update was called (verification token cleared, but session token kept)
         expect(prisma.user.update).toHaveBeenCalledWith({
             where: { id: 'user-123' },
             data: expect.objectContaining({
                 emailVerified: expect.any(Date),
                 verificationToken: null,
                 verificationTokenExpires: null,
-                sessionToken: null,
-                sessionTokenExpires: null
+                // sessionToken should NOT be null here
             })
         })
     })

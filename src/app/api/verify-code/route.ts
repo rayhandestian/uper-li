@@ -78,15 +78,13 @@ async function handleVerification(request: NextRequest) {
       role: user.role
     })
 
-    // Verify email and clear session token (one-time use)
+    // Verify email and clear verification token (but keep session token for auto-login)
     await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerified: new Date(),
         verificationToken: null,
         verificationTokenExpires: null,
-        sessionToken: null,
-        sessionTokenExpires: null,
         updatedAt: new Date()
       }
     })
