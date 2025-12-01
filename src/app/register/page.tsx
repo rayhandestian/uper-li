@@ -43,9 +43,8 @@ export default function RegisterPage() {
       const data = await response.json()
 
       if (response.ok) {
-        // Store credentials and redirect to verify page
+        // Store username and redirect to verify page
         localStorage.setItem('verify_nimOrUsername', nimOrUsername)
-        localStorage.setItem('verify_password', password)
         router.push('/verify')
       } else {
         setError(data.error || 'Terjadi kesalahan saat mengirim ulang kode verifikasi.')
@@ -103,9 +102,8 @@ export default function RegisterPage() {
     const data = await response.json()
 
     if (response.ok) {
-      // Store credentials for verification page
+      // Store username for verification page
       localStorage.setItem('verify_nimOrUsername', nimOrUsername)
-      localStorage.setItem('verify_password', password)
       router.push('/verify')
     } else if (data.error === 'Email sudah terdaftar.' && nimOrUsername && password) {
       setError('Email sudah terdaftar. Akun Anda mungkin perlu verifikasi email. Coba kirim ulang kode verifikasi?')

@@ -7,15 +7,15 @@ import Footer from '@/components/Footer'
 
 export default function VerifyPage() {
   const [code, setCode] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    // Check if credentials are stored
+    // Check if username is stored
     const nimOrUsername = localStorage.getItem('verify_nimOrUsername')
-    const password = localStorage.getItem('verify_password')
-    if (!nimOrUsername || !password) {
+    if (!nimOrUsername) {
       router.push('/register')
     }
   }, [router])
@@ -26,9 +26,8 @@ export default function VerifyPage() {
     setLoading(true)
 
     const nimOrUsername = localStorage.getItem('verify_nimOrUsername')
-    const password = localStorage.getItem('verify_password')
 
-    if (!nimOrUsername || !password) {
+    if (!nimOrUsername) {
       setError('Sesi verifikasi telah berakhir. Silakan daftar ulang.')
       setLoading(false)
       return
@@ -53,9 +52,8 @@ export default function VerifyPage() {
       })
 
       if (result?.ok) {
-        // Clear stored credentials
+        // Clear stored username
         localStorage.removeItem('verify_nimOrUsername')
-        localStorage.removeItem('verify_password')
         router.push('/dashboard')
       } else {
         setError('Verifikasi berhasil, tetapi gagal masuk. Silakan coba masuk manual.')
@@ -111,6 +109,22 @@ export default function VerifyPage() {
                 />
               </div>
 
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-base"
+                  placeholder="Masukkan password Anda"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
               {error && (
                 <div className="p-3 rounded-lg bg-red-50 border border-red-200">
                   <p className="text-sm text-red-800">{error}</p>
@@ -120,7 +134,7 @@ export default function VerifyPage() {
               <div>
                 <button
                   type="submit"
-                  disabled={loading || code.length !== 6}
+                  disabled={loading || code.length !== 6 || !password}
                   className="w-full flex justify-center items-center px-6 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl min-h-[52px]"
                 >
                   {loading ? 'Memverifikasi...' : 'Verifikasi'}
