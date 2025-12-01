@@ -47,10 +47,10 @@ function CountUp({ end, duration = 2000 }: { readonly end: number, readonly dura
       const progress = Math.min((timestamp - startTime) / duration, 1)
       setCount(Math.floor(progress * end))
       if (progress < 1) {
-        window.requestAnimationFrame(step)
+        globalThis.requestAnimationFrame(step)
       }
     }
-    window.requestAnimationFrame(step)
+    globalThis.requestAnimationFrame(step)
   }, [end, duration])
 
   return <>{count}</>
