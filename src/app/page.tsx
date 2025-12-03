@@ -271,12 +271,12 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="flex-grow flex flex-col items-center justify-center px-4 sm:px-6 py-20">
+      <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 sm:px-6 py-12">
         <div className="text-center max-w-4xl mx-auto fade-in">
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 tracking-tight">
             UPer.li
           </h1>
-          <p className="text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed font-light">
+          <p className="text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed font-light">
             URL Shortener Eksklusif untuk Civitas Universitas Pertamina
           </p>
           <p className="text-base sm:text-lg text-gray-500 mb-12 max-w-2xl mx-auto">
@@ -318,10 +318,10 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 bg-white">
+      <section className="py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 slide-up">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-20 slide-up">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Fitur Unggulan
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -351,10 +351,10 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 slide-up">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-20 slide-up">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Cara Kerja
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -385,10 +385,10 @@ export default function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-20 px-4 sm:px-6 bg-white">
+      <section className="py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16 slide-up">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-20 slide-up">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Mengapa UPer.li?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -423,10 +423,10 @@ export default function Home() {
       </section>
 
       {/* Open Source Section */}
-      <section className="py-20 px-4 sm:px-6 bg-white">
+      <section className="py-24 px-4 sm:px-6 bg-white">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12 slide-up">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-16 slide-up">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Proyek Open Source
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -434,7 +434,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="card p-8 md:p-12 bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100">
+          <div className="card p-10 md:p-14 bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100">
             <div className="flex flex-col items-center text-center">
               {/* Icon */}
               <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
@@ -474,17 +474,17 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 sm:px-6 bg-gray-50">
+      <section className="py-24 px-4 sm:px-6 bg-gray-50">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16 slide-up">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-20 slide-up">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Pertanyaan Umum
             </h2>
             <p className="text-lg text-gray-600">
               Jawaban untuk pertanyaan yang sering ditanyakan
             </p>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-5">
             {faqs.map((faq, index) => (
               <div
                 key={index}
