@@ -6,7 +6,7 @@ import Footer from '../Footer'
 
 // Mock Next.js Link component
 jest.mock('next/link', () => {
-    return function MockLink({ children, href, ...props }: { children: React.ReactNode; href: string; [key: string]: unknown }) {
+    return function MockLink({ children, href, ...props }: { children: React.ReactNode; href: string;[key: string]: unknown }) {
         return <a href={href} {...props}>{children}</a>
     }
 })
@@ -15,8 +15,9 @@ describe('Footer', () => {
     it('renders the footer with correct content', () => {
         render(<Footer />)
 
-        // Check copyright text
-        expect(screen.getByText('© 2025 UPer.li')).toBeInTheDocument()
+        // Check copyright text (split across elements due to gradient styling)
+        expect(screen.getByText(/© 2025/)).toBeInTheDocument()
+        expect(screen.getByText('UPer.li')).toBeInTheDocument()
 
         // Check navigation links
         expect(screen.getByText('Syarat dan Ketentuan')).toBeInTheDocument()
@@ -44,11 +45,11 @@ describe('Footer', () => {
 
         // Check main footer element
         const footer = container.firstChild as HTMLElement
-        expect(footer).toHaveClass('bg-white', 'border-t', 'border-gray-200', 'mt-16')
+        expect(footer).toHaveClass('border-t', 'mt-16')
 
-        // Check container div
-        const containerDiv = footer.firstChild as HTMLElement
-        expect(containerDiv).toHaveClass('max-w-7xl', 'mx-auto', 'py-12', 'px-4', 'sm:px-6', 'lg:px-8')
+        // Check container div (second child, after the gradient line)
+        const containerDiv = footer.querySelector('.max-w-7xl') as HTMLElement
+        expect(containerDiv).toHaveClass('max-w-7xl', 'mx-auto', 'py-12', 'px-4')
     })
 
     it('renders with responsive layout classes', () => {

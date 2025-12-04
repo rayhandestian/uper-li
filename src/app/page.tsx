@@ -141,16 +141,23 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen gradient-bg flex flex-col">
+    <div className="min-h-screen gradient-bg-enhanced flex flex-col">
+      {/* Animated Background Orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="orb orb-1" style={{ top: '10%', left: '5%' }} />
+        <div className="orb orb-2" style={{ top: '60%', right: '10%' }} />
+        <div className="orb orb-3" style={{ bottom: '20%', left: '30%' }} />
+      </div>
+
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <nav className="sticky top-0 z-50 navbar-glass shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left side: Logo + Navigation */}
             <div className="flex items-center space-x-8">
               {/* Logo */}
               <Link href="/" className="flex items-center space-x-2 group">
-                <span className="text-xl font-bold text-gray-900">UPer.li</span>
+                <span className="text-xl font-bold gradient-text-hero">UPer.li</span>
               </Link>
 
               {/* Desktop Navigation - Left Side */}
@@ -158,7 +165,7 @@ export default function Home() {
                 {session && (
                   <Link
                     href="/dashboard"
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-lg transition-all duration-200"
                   >
                     Dashboard
                   </Link>
@@ -173,19 +180,19 @@ export default function Home() {
                   <span className="text-sm text-gray-600 font-medium truncate max-w-xs">
                     {session.user?.email}
                   </span>
-                  <LogoutButton className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 border border-red-200 hover:border-red-300" />
+                  <LogoutButton className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50/80 rounded-lg transition-all duration-200 border border-red-200 hover:border-red-300" />
                 </>
               ) : (
                 <>
                   <Link
                     href="/login"
-                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-lg transition-all duration-200"
                   >
                     Masuk
                   </Link>
                   <Link
                     href="/register"
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg glow-hover"
                   >
                     Daftar
                   </Link>
@@ -196,7 +203,7 @@ export default function Home() {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+              className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100/80 transition-colors duration-200"
               aria-label="Toggle menu"
             >
               <svg
@@ -227,14 +234,14 @@ export default function Home() {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 bg-white">
+          <div className="md:hidden border-t border-gray-200/50 bg-white/90 backdrop-blur-lg">
             <div className="px-4 py-3 space-y-2">
               {session ? (
                 <>
                   <Link
                     href="/dashboard"
                     onClick={closeMobileMenu}
-                    className="block px-4 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    className="block px-4 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-lg transition-all duration-200"
                   >
                     Dashboard
                   </Link>
@@ -243,7 +250,7 @@ export default function Home() {
                       {session.user?.email}
                     </div>
                     <div>
-                      <LogoutButton className="w-full px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 border border-red-200 hover:border-red-300" />
+                      <LogoutButton className="w-full px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50/80 rounded-lg transition-all duration-200 border border-red-200 hover:border-red-300" />
                     </div>
                   </div>
                 </>
@@ -252,14 +259,14 @@ export default function Home() {
                   <Link
                     href="/login"
                     onClick={closeMobileMenu}
-                    className="block px-4 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 text-center"
+                    className="block px-4 py-2 text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50/80 rounded-lg transition-all duration-200 text-center"
                   >
                     Masuk
                   </Link>
                   <Link
                     href="/register"
                     onClick={closeMobileMenu}
-                    className="block px-4 py-2 text-base font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 shadow-md text-center"
+                    className="block px-4 py-2 text-base font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-lg transition-all duration-200 shadow-md text-center"
                   >
                     Daftar
                   </Link>
@@ -271,10 +278,10 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 sm:px-6 py-12">
-        <div className="text-center max-w-4xl mx-auto fade-in">
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 tracking-tight">
-            UPer.li
+      <section className="relative min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 sm:px-6 py-12">
+        <div className="text-center max-w-4xl mx-auto fade-in relative z-10">
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 tracking-tight">
+            <span className="gradient-text-hero">UPer.li</span>
           </h1>
           <p className="text-xl sm:text-2xl lg:text-3xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed font-light">
             URL Shortener Eksklusif untuk Civitas Universitas Pertamina
@@ -286,20 +293,20 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Link
                 href="/dashboard"
-                className="group relative inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[52px] w-full sm:w-auto"
+                className="group relative inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[52px] w-full sm:w-auto btn-glow"
               >
                 <span>Dashboard</span>
                 <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </Link>
-              <LogoutButton className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-red-600 bg-white rounded-xl hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-md hover:shadow-lg border-2 border-red-200 hover:border-red-300 min-h-[52px] w-full sm:w-auto" />
+              <LogoutButton className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-red-600 bg-white/80 backdrop-blur-sm rounded-xl hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200 shadow-md hover:shadow-lg border-2 border-red-200 hover:border-red-300 min-h-[52px] w-full sm:w-auto" />
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
               <Link
                 href="/register"
-                className="group relative inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[52px] w-full sm:w-auto"
+                className="group relative inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 min-h-[52px] w-full sm:w-auto btn-glow"
               >
                 <span>Mulai Gratis</span>
                 <svg className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,7 +315,7 @@ export default function Home() {
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-700 bg-white rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg border-2 border-gray-200 hover:border-gray-300 min-h-[52px] w-full sm:w-auto"
+                className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold text-gray-700 bg-white/80 backdrop-blur-sm rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg border-2 border-gray-200 hover:border-gray-300 min-h-[52px] w-full sm:w-auto"
               >
                 Masuk
               </Link>
@@ -318,11 +325,11 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-4 sm:px-6 bg-white">
+      <section className="py-24 px-4 sm:px-6 bg-white/80 backdrop-blur-sm relative z-10">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Fitur Unggulan
+              Fitur <span className="gradient-text">Unggulan</span>
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Semua yang kamu butuhkan untuk mengelola dan track link dengan profesional
@@ -332,10 +339,10 @@ export default function Home() {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="card p-8 hover:scale-105 transition-transform duration-200"
+                className="card-premium p-8 hover-lift"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 mb-6">
+                <div className="w-14 h-14 icon-gradient rounded-xl flex items-center justify-center text-white mb-6 shadow-lg">
                   {feature.icon}
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
@@ -351,11 +358,11 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50 to-white">
+      <section className="py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 to-white/80 backdrop-blur-sm relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-20 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Cara Kerja
+              Cara <span className="gradient-text">Kerja</span>
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Tiga langkah mudah untuk mulai membuat shortlink profesional
@@ -365,11 +372,11 @@ export default function Home() {
             {steps.map((step, index) => (
               <div key={index} className="text-center slide-up" style={{ animationDelay: `${index * 150}ms` }}>
                 <div className="relative mb-8">
-                  <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto shadow-lg">
+                  <div className="w-20 h-20 icon-gradient rounded-2xl flex items-center justify-center text-white text-2xl font-bold mx-auto shadow-lg glow-subtle">
                     {step.number}
                   </div>
                   {index < steps.length - 1 && (
-                    <div className="hidden md:block absolute top-10 left-1/2 w-full h-0.5 bg-gradient-to-r from-blue-600 to-blue-300" style={{ marginLeft: '2.5rem' }} />
+                    <div className="hidden md:block absolute top-10 left-1/2 w-full h-0.5 step-line" style={{ marginLeft: '2.5rem' }} />
                   )}
                 </div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">
@@ -385,11 +392,11 @@ export default function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-24 px-4 sm:px-6 bg-white">
+      <section className="py-24 px-4 sm:px-6 bg-white/80 backdrop-blur-sm relative z-10">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-20 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Mengapa UPer.li?
+              Mengapa <span className="gradient-text">UPer.li</span>?
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Solusi shortlink yang dibuat khusus untuk kebutuhan kampus
@@ -399,10 +406,10 @@ export default function Home() {
             {benefits.map((benefit, index) => (
               <div
                 key={index}
-                className="flex gap-6 p-8 bg-gradient-to-br from-blue-50 to-white rounded-2xl border border-blue-100 hover:border-blue-300 transition-all duration-200"
+                className="flex gap-6 p-8 card-premium hover-lift"
               >
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                  <div className="w-12 h-12 icon-gradient rounded-xl flex items-center justify-center shadow-md">
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
@@ -423,21 +430,21 @@ export default function Home() {
       </section>
 
       {/* Open Source Section */}
-      <section className="py-24 px-4 sm:px-6 bg-white">
+      <section className="py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 to-white/80 backdrop-blur-sm relative z-10">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Proyek Open Source
+              Proyek <span className="gradient-text">Open Source</span>
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               Dibangun secara terbuka untuk transparansi dan kolaborasi
             </p>
           </div>
 
-          <div className="card p-10 md:p-14 bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100">
+          <div className="card-premium p-10 md:p-14">
             <div className="flex flex-col items-center text-center">
               {/* Icon */}
-              <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+              <div className="w-16 h-16 icon-gradient rounded-2xl flex items-center justify-center mb-6 shadow-lg">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
@@ -474,11 +481,11 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24 px-4 sm:px-6 bg-gray-50">
+      <section className="py-24 px-4 sm:px-6 bg-gray-50/80 backdrop-blur-sm relative z-10">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-20 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
-              Pertanyaan Umum
+              Pertanyaan <span className="gradient-text">Umum</span>
             </h2>
             <p className="text-lg text-gray-600">
               Jawaban untuk pertanyaan yang sering ditanyakan
@@ -488,17 +495,17 @@ export default function Home() {
             {faqs.map((faq, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl border border-gray-200 overflow-hidden transition-all duration-200 hover:border-gray-300"
+                className="faq-item rounded-xl border border-gray-200/80 overflow-hidden transition-all duration-200 hover:border-blue-200"
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
+                  className="w-full px-8 py-6 text-left flex items-center justify-between hover:bg-white/50 transition-colors duration-200"
                 >
                   <span className="text-lg font-semibold text-gray-900 pr-4">
                     {faq.question}
                   </span>
                   <svg
-                    className={`w-6 h-6 text-gray-400 flex-shrink-0 transition-transform duration-200 ${openFaq === index ? 'rotate-180' : ''
+                    className={`w-6 h-6 text-blue-500 flex-shrink-0 transition-transform duration-200 ${openFaq === index ? 'rotate-180' : ''
                       }`}
                     fill="none"
                     stroke="currentColor"
