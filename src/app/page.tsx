@@ -141,12 +141,23 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen gradient-bg-enhanced flex flex-col">
-      {/* Animated Background Orbs */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="orb orb-1" style={{ top: '10%', left: '5%' }} />
-        <div className="orb orb-2" style={{ top: '60%', right: '10%' }} />
-        <div className="orb orb-3" style={{ bottom: '20%', left: '30%' }} />
+    <div className="min-h-screen flex flex-col relative">
+      {/* Unified Fixed Background */}
+      <div className="fixed inset-0 -z-10">
+        {/* Main Gradient Mesh */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-50 via-white to-indigo-50" />
+
+        {/* Animated Orbs - Fixed position for continuous feel */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-200/20 rounded-full blur-[100px] animate-float" />
+        <div className="absolute top-[20%] right-[-5%] w-[40%] h-[40%] bg-indigo-200/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-[-10%] left-[20%] w-[40%] h-[40%] bg-violet-200/20 rounded-full blur-[100px] animate-float" style={{ animationDelay: '4s' }} />
+
+        {/* Subtle Grid Overlay */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `linear-gradient(rgba(59, 130, 246, 0.5) 1px, transparent 1px),
+                           linear-gradient(90deg, rgba(59, 130, 246, 0.5) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px'
+        }} />
       </div>
 
       {/* Navbar */}
@@ -325,8 +336,8 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 px-4 sm:px-6 bg-white/80 backdrop-blur-sm relative z-10">
-        <div className="max-w-7xl mx-auto">
+      <section className="py-24 px-4 sm:px-6 relative z-10">
+        <div className="max-w-7xl mx-auto relative">
           <div className="text-center mb-20 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Fitur <span className="gradient-text">Unggulan</span>
@@ -358,8 +369,8 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 to-white/80 backdrop-blur-sm relative z-10">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-24 px-4 sm:px-6 relative z-10">
+        <div className="max-w-6xl mx-auto relative">
           <div className="text-center mb-20 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Cara <span className="gradient-text">Kerja</span>
@@ -392,8 +403,8 @@ export default function Home() {
       </section>
 
       {/* Benefits Section */}
-      <section className="py-24 px-4 sm:px-6 bg-white/80 backdrop-blur-sm relative z-10">
-        <div className="max-w-6xl mx-auto">
+      <section className="py-24 px-4 sm:px-6 relative z-10">
+        <div className="max-w-6xl mx-auto relative">
           <div className="text-center mb-20 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Mengapa <span className="gradient-text">UPer.li</span>?
@@ -430,8 +441,8 @@ export default function Home() {
       </section>
 
       {/* Open Source Section */}
-      <section className="py-24 px-4 sm:px-6 bg-gradient-to-b from-gray-50/80 to-white/80 backdrop-blur-sm relative z-10">
-        <div className="max-w-4xl mx-auto">
+      <section className="py-24 px-4 sm:px-6 relative z-10">
+        <div className="max-w-4xl mx-auto relative">
           <div className="text-center mb-16 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Proyek <span className="gradient-text">Open Source</span>
@@ -481,8 +492,8 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-24 px-4 sm:px-6 bg-gray-50/80 backdrop-blur-sm relative z-10">
-        <div className="max-w-4xl mx-auto">
+      <section className="py-24 px-4 sm:px-6 relative z-10">
+        <div className="max-w-4xl mx-auto relative">
           <div className="text-center mb-20 slide-up">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
               Pertanyaan <span className="gradient-text">Umum</span>
