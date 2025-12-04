@@ -97,4 +97,53 @@ describe('VerifyPage', () => {
 
         expect(await screen.findByText('Invalid code')).toBeInTheDocument()
     })
+    it('handles session expiry during submission', async () => {
+        localStorage.setItem('verify_nimOrUsername', 'testuser')
+        render(<VerifyPage />)
+
+        // Clear session
+        localStorage.removeItem('verify_nimOrUsername')
+
+        // Enter code
+        fireEvent.change(screen.getByPlaceholderText('ABC123'), { target: { value: '123456' } })
+
+        // Submit
+        fireEvent.click(screen.getByRole('button', { name: 'Verifikasi' }))
+
+        expect(await screen.findByText('Sesi verifikasi telah berakhir. Silakan daftar ulang.')).toBeInTheDocument()
+    })
+
+    it('handles auto-login failure', async () => {
+        localStorage.setItem('verify_nimOrUsername', 'testuser')
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ sessionToken: 'token123' }),
+        })
+            ; (signIn as jest.Mock).mockResolvedValueOnce({ ok: false })
+
+        render(<VerifyPage />)
+
+        fireEvent.change(screen.getByPlaceholderText('ABC123'), { target: { value: '123456' } })
+        fireEvent.click(screen.getByRole('button', { name: 'Verifikasi' }))
+
+        expect(await screen.findByText('Verifikasi berhasil, tetapi gagal masuk. Silakan coba masuk manual.')).toBeInTheDocument()
+    })
+
+    it('handles missing session token (redirect to login)', async () => {
+        localStorage.setItem('verify_nimOrUsername', 'testuser')
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({}), // No session token
+        })
+
+        render(<VerifyPage />)
+
+        fireEvent.change(screen.getByPlaceholderText('ABC123'), { target: { value: '123456' } })
+        fireEvent.click(screen.getByRole('button', { name: 'Verifikasi' }))
+
+        await waitFor(() => {
+            expect(mockPush).toHaveBeenCalledWith('/login?verified=true')
+        })
+        expect(localStorage.getItem('verify_nimOrUsername')).toBeNull()
+    })
 })

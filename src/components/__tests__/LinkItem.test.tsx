@@ -50,16 +50,56 @@ describe('LinkItem', () => {
         expect(screen.getByText('10')).toBeInTheDocument() // Visit count
     })
 
-    it('toggles expansion on click', () => {
+    it('toggles expansion on click of the expand button', () => {
         render(<LinkItem {...mockProps} />)
-
-        // Initially details should be hidden (or at least not visible/accessible easily if using CSS visibility)
-        // The component uses grid-rows for animation, but content is in DOM.
-        // Let's check if the expand button rotates or aria-label changes
 
         const expandButton = screen.getByLabelText('Expand details')
         fireEvent.click(expandButton)
 
+        expect(screen.getByLabelText('Collapse details')).toBeInTheDocument()
+    })
+
+    it('toggles expansion on click of the row container', () => {
+        render(<LinkItem {...mockProps} />)
+
+        // The outer div has role="button"
+        // We can find it by looking for the container that has the longUrl text, 
+        // or by role="button" but there are multiple buttons.
+        // The outer div contains the text "http://example.com"
+
+        // Using getByRole 'button' might return multiple. 
+        // The row is a button that contains the text.
+        const row = screen.getByText('http://example.com').closest('div[role="button"]')
+        expect(row).toBeInTheDocument()
+
+        // Initial state: collapsed
+        expect(screen.queryByLabelText('Collapse details')).not.toBeInTheDocument()
+
+        // Click row
+        fireEvent.click(row!)
+        expect(screen.getByLabelText('Collapse details')).toBeInTheDocument()
+
+        // Click row again to collapse
+        fireEvent.click(row!)
+        expect(screen.getByLabelText('Expand details')).toBeInTheDocument()
+    })
+
+    it('toggles expansion on Enter key press on the row', () => {
+        render(<LinkItem {...mockProps} />)
+        const row = screen.getByText('http://example.com').closest('div[role="button"]')
+
+        fireEvent.keyDown(row!, { key: 'Enter' })
+        expect(screen.getByLabelText('Collapse details')).toBeInTheDocument()
+
+        fireEvent.keyDown(row!, { key: 'Enter' })
+        expect(screen.getByLabelText('Expand details')).toBeInTheDocument()
+    })
+
+    it('toggles expansion on Space key press on the row', () => {
+        render(<LinkItem {...mockProps} />)
+        const row = screen.getByText('http://example.com').closest('div[role="button"]')
+
+        fireEvent.keyDown(row!, { key: ' ' })
         expect(screen.getByLabelText('Collapse details')).toBeInTheDocument()
     })
 

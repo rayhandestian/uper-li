@@ -128,4 +128,66 @@ describe('AccountPage', () => {
             }))
         })
     })
+    it('shows loading state initially', () => {
+        // We don't resolve the fetch promise immediately to keep it loading
+        mockFetch.mockImplementation(() => new Promise(() => { }))
+        render(<AccountPage />)
+        expect(screen.getByText('Memuat...')).toBeInTheDocument()
+    })
+
+    it('shows user not found state when fetch fails', async () => {
+        mockFetch.mockRejectedValueOnce(new Error('Failed'))
+        render(<AccountPage />)
+        await waitFor(() => expect(screen.getByText('User tidak ditemukan.')).toBeInTheDocument())
+    })
+
+    it('handles 2FA enable error', async () => {
+        mockFetch
+            .mockResolvedValueOnce({ ok: true, json: async () => mockUser }) // Profile
+            .mockResolvedValueOnce({ ok: false, json: async () => ({ error: 'Setup failed' }) }) // Setup
+
+        render(<AccountPage />)
+        await waitFor(() => expect(screen.getByText('Aktifkan 2FA')).toBeInTheDocument())
+
+        fireEvent.click(screen.getByText('Aktifkan 2FA'))
+
+        await waitFor(() => expect(screen.getByText('Setup failed')).toBeInTheDocument())
+    })
+
+    it('handles 2FA verify error', async () => {
+        mockFetch
+            .mockResolvedValueOnce({ ok: true, json: async () => mockUser }) // Profile
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ message: 'Code sent' }) }) // Setup
+            .mockResolvedValueOnce({ ok: false, json: async () => ({ error: 'Invalid code' }) }) // Verify
+
+        render(<AccountPage />)
+        await waitFor(() => expect(screen.getByText('Aktifkan 2FA')).toBeInTheDocument())
+
+        // Enable first to get to verify screen
+        fireEvent.click(screen.getByText('Aktifkan 2FA'))
+        await waitFor(() => expect(screen.getByPlaceholderText('ABC123')).toBeInTheDocument())
+
+        // Enter code
+        fireEvent.change(screen.getByPlaceholderText('ABC123'), { target: { value: '123456' } })
+        fireEvent.click(screen.getByText('Verifikasi'))
+
+        await waitFor(() => expect(screen.getByText('Invalid code')).toBeInTheDocument())
+    })
+
+    it('handles 2FA disable error', async () => {
+        const userWith2FA = { ...mockUser, twoFactorEnabled: true }
+        mockFetch
+            .mockResolvedValueOnce({ ok: true, json: async () => userWith2FA }) // Profile
+            .mockResolvedValueOnce({ ok: false, json: async () => ({ error: 'Disable failed' }) }) // Disable
+
+        render(<AccountPage />)
+        await waitFor(() => expect(screen.getByText('Nonaktifkan 2FA')).toBeInTheDocument())
+
+        fireEvent.click(screen.getByText('Nonaktifkan 2FA'))
+        expect(screen.getByText('Konfirmasi Nonaktifkan 2FA')).toBeInTheDocument()
+
+        fireEvent.click(screen.getByRole('button', { name: 'Ya, Nonaktifkan' }))
+
+        await waitFor(() => expect(screen.getByText('Disable failed')).toBeInTheDocument())
+    })
 })

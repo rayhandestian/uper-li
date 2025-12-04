@@ -139,4 +139,116 @@ describe('RegisterPage', () => {
 
         expect(await screen.findByText('Registration failed')).toBeInTheDocument()
     })
+    it('validates terms agreement', async () => {
+        render(<RegisterPage />)
+
+        // Fill form
+        fireEvent.change(screen.getByLabelText('NIM'), { target: { value: '123456789' } })
+        fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123' } })
+        fireEvent.change(screen.getByLabelText('Konfirmasi Password'), { target: { value: 'password123' } })
+
+        // Verify Turnstile
+        fireEvent.click(screen.getByTestId('turnstile-mock'))
+
+        // Submit without checking terms
+        fireEvent.click(screen.getByRole('button', { name: 'Daftar' }))
+
+        expect(await screen.findByText('Anda harus menyetujui Syarat dan Ketentuan serta Kebijakan Privasi.')).toBeInTheDocument()
+    })
+
+
+
+    it('validates password length', async () => {
+        render(<RegisterPage />)
+
+        // Fill form
+        fireEvent.change(screen.getByLabelText('NIM'), { target: { value: '123456789' } })
+        fireEvent.change(screen.getByLabelText('Password'), { target: { value: '12345' } }) // Too short
+        fireEvent.change(screen.getByLabelText('Konfirmasi Password'), { target: { value: '12345' } })
+
+        // Agree to terms
+        fireEvent.click(screen.getByLabelText(/Saya setuju dengan/i))
+
+        // Verify Turnstile
+        fireEvent.click(screen.getByTestId('turnstile-mock'))
+
+        // Submit
+        fireEvent.click(screen.getByRole('button', { name: 'Daftar' }))
+
+        expect(await screen.findByText('Password minimal 6 karakter.')).toBeInTheDocument()
+    })
+
+    it('handles email already registered and resend verification', async () => {
+        mockFetch.mockImplementation((url) => {
+            if (url === '/api/register') {
+                return Promise.resolve({
+                    ok: false,
+                    json: async () => ({ error: 'Email sudah terdaftar.' }),
+                })
+            }
+            if (url === '/api/resend-verification') {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => ({}),
+                })
+            }
+            return Promise.reject(new Error('Unknown URL'))
+        })
+
+        render(<RegisterPage />)
+
+        // Fill form
+        fireEvent.change(screen.getByLabelText('NIM'), { target: { value: '123456789' } })
+        fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'password123' } })
+        fireEvent.change(screen.getByLabelText('Konfirmasi Password'), { target: { value: 'password123' } })
+        fireEvent.click(screen.getByLabelText(/Saya setuju dengan/i))
+        fireEvent.click(screen.getByTestId('turnstile-mock'))
+
+        // Submit
+        fireEvent.click(screen.getByRole('button', { name: 'Daftar' }))
+
+        // Verify error message
+        expect(await screen.findByText(/Email sudah terdaftar/)).toBeInTheDocument()
+
+        // Verify Resend button appears
+        const resendButton = screen.getByText('Kirim Ulang')
+        expect(resendButton).toBeInTheDocument()
+
+        // Click Resend
+        fireEvent.click(resendButton)
+
+        await waitFor(() => {
+            expect(mockFetch).toHaveBeenCalledWith('/api/resend-verification', expect.objectContaining({
+                method: 'POST',
+                body: JSON.stringify({ nimOrUsername: '123456789' }),
+            }))
+        })
+
+        expect(localStorage.getItem('verify_nimOrUsername')).toBe('123456789')
+        expect(mockPush).toHaveBeenCalledWith('/verify')
+    })
+
+    it('shows email preview and validates input', () => {
+        render(<RegisterPage />)
+
+        const input = screen.getByLabelText('NIM')
+
+        // Valid NIM
+        fireEvent.change(input, { target: { value: '123456789' } })
+        expect(screen.getByText('123456789@student.universitaspertamina.ac.id')).toBeInTheDocument()
+        expect(screen.queryByText(/Hanya huruf, angka/)).not.toBeInTheDocument()
+
+        // Invalid NIM
+        fireEvent.change(input, { target: { value: 'invalid@nim' } })
+        expect(screen.getByText(/Hanya huruf, angka/)).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: 'Daftar' })).toBeDisabled()
+
+        // Switch to Staff
+        fireEvent.click(screen.getByLabelText('Dosen/Staff'))
+        const usernameInput = screen.getByLabelText('Username')
+
+        // Valid Username
+        fireEvent.change(usernameInput, { target: { value: 'john.doe' } })
+        expect(screen.getByText('john.doe@universitaspertamina.ac.id')).toBeInTheDocument()
+    })
 })
