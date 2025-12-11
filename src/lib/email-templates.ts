@@ -72,3 +72,15 @@ export function get2FALoginEmailHtml(name: string, code: string): string {
     <p>Jika Anda tidak sedang mencoba masuk, abaikan email ini.</p>
   `)
 }
+
+export function getLoginNotificationEmailHtml(name: string, time: string): string {
+  return getEmailLayout(`
+    <h2>Login Berhasil</h2>
+    <p>Halo ${name},</p>
+    <p>Akun UPer.li Anda baru saja berhasil login pada:</p>
+    <div style="background-color: #f4f4f4; padding: 15px; border-radius: 5px; margin: 20px 0;">
+      <p style="margin: 0; font-weight: bold;">📅 ${time}</p>
+    </div>
+    <p>Jika ini bukan Anda, segera ubah password Anda atau hubungi admin.</p>
+  `)
+}

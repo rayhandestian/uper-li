@@ -101,6 +101,15 @@ describe('AuthService', () => {
                 nimOrUsername: 'test',
                 requires2FA: false,
             })
+
+            // Verify login notification email was sent
+            expect(sendEmail).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    to: 'test@example.com',
+                    from: 'noreply@uper.li',
+                    subject: 'Login Berhasil - UPer.li',
+                })
+            )
         })
 
         it('should return user with 2FA required if enabled', async () => {

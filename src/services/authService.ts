@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
-import { get2FALoginEmailHtml } from '@/lib/email-templates'
+import { get2FALoginEmailHtml, getLoginNotificationEmailHtml } from '@/lib/email-templates'
 import { generateSecureCode } from '@/lib/generateSecureCode'
 import { addConstantDelay, performDummyHash } from '@/lib/timing'
 import { logger } from '@/lib/logger'
@@ -123,6 +123,22 @@ export class AuthService {
                 nimOrUsername: user.nimOrUsername,
                 requires2FA: true
             }
+        }
+
+        // Send login notification email for non-2FA login
+        try {
+            await sendEmail({
+                to: user.email,
+                from: 'noreply@uper.li',
+                subject: 'Login Berhasil - UPer.li',
+                html: getLoginNotificationEmailHtml(
+                    user.name || user.nimOrUsername,
+                    new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
+                ),
+            })
+        } catch (error) {
+            logger.error('Login notification email sending error:', error)
+            // Don't fail the login if email fails, just log it
         }
 
         return {
