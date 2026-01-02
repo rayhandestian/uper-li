@@ -6,12 +6,20 @@ import { logger } from '@/lib/logger'
 export const resetMonthlyLimits = async () => {
   logger.info('Running monthly limit reset...')
   try {
-    // Reset monthlyLinksCreated for all users using Prisma
-    await prisma.user.updateMany({
-      data: { monthlyLinksCreated: 0 }
+    // Reset monthly limits for users
+    const userResult = await prisma.user.updateMany({
+      data: {
+        monthlyLinksCreated: 0,
+        lastReset: new Date()
+      }
     })
 
-    logger.info('Monthly limit reset completed.')
+    // Reset custom changes for links
+    const linkResult = await prisma.link.updateMany({
+      data: { customChanges: 0 }
+    })
+
+    logger.info(`Monthly limit reset completed: ${userResult.count} users and ${linkResult.count} links updated.`)
   } catch (error) {
     logger.error('Monthly limit reset error:', error)
   }

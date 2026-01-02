@@ -7,9 +7,11 @@ export async function register() {
     if (process.env.NEXT_RUNTIME === 'nodejs') {
         // Only run in Node.js runtime (not Edge)
         const { validateEnvironment } = await import('./lib/validateEnv')
+        const { initializeCronJobs } = await import('./lib/cron')
 
         try {
             validateEnvironment()
+            initializeCronJobs()
         } catch (error) {
             console.error('FATAL: Environment validation failed', error)
             // In production, we want to fail fast
@@ -21,3 +23,4 @@ export async function register() {
         }
     }
 }
+

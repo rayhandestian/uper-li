@@ -164,11 +164,13 @@ describe('cron', () => {
         describe('resetMonthlyLimits', () => {
             it('should execute reset logic', async () => {
                 (prisma.user.updateMany as jest.Mock).mockResolvedValue({ count: 5 })
+                    ; (prisma.link.updateMany as jest.Mock).mockResolvedValue({ count: 3 })
 
                 await resetMonthlyLimits()
 
                 expect(prisma.user.updateMany).toHaveBeenCalled()
-                expect(logger.info).toHaveBeenCalledWith('Monthly limit reset completed.')
+                expect(prisma.link.updateMany).toHaveBeenCalled()
+                expect(logger.info).toHaveBeenCalledWith('Monthly limit reset completed: 5 users and 3 links updated.')
             })
 
             it('should handle errors', async () => {
