@@ -4,6 +4,7 @@
 import { GET } from '../user/stats/route'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/prisma'
+import { getCurrentMonthString } from '@/lib/dateUtils'
 
 // Mock dependencies
 jest.mock('next-auth')
@@ -11,8 +12,12 @@ jest.mock('@/lib/prisma', () => ({
     prisma: {
         user: {
             findUnique: jest.fn(),
+            update: jest.fn(),
         },
     },
+}))
+jest.mock('@/lib/dateUtils', () => ({
+    getCurrentMonthString: jest.fn(),
 }))
 jest.mock('@/lib/logger', () => ({
     logger: {
@@ -56,11 +61,13 @@ describe('GET /api/user/stats', () => {
         const mockUser = {
             totalLinks: 10,
             monthlyLinksCreated: 5,
+            currentMonth: '2026-02',
             role: 'USER',
             _count: {
                 Link: 8,
             },
         }
+            ; (getCurrentMonthString as jest.Mock).mockReturnValue('2026-02')
             ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser)
 
         const response = await GET()

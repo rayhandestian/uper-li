@@ -4,6 +4,7 @@
 import { LinkService } from '../linkService'
 import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
+import { getCurrentMonthString } from '@/lib/dateUtils'
 import bcrypt from 'bcryptjs'
 import { createMockUser, createMockLink, createMockPrismaTransaction } from '@/__tests__/test-utils'
 import { TEST_PASSWORD, TEST_HASHED_PASSWORD, TEST_TOO_SHORT_PASSWORD } from '@/__tests__/test-constants'
@@ -20,6 +21,9 @@ jest.mock('@/lib/prisma', () => ({
 }))
 jest.mock('@/lib/safeBrowsing')
 jest.mock('bcryptjs')
+jest.mock('@/lib/dateUtils', () => ({
+    getCurrentMonthString: jest.fn().mockReturnValue('2026-02'),
+}))
 
 describe('LinkService', () => {
     beforeEach(() => {

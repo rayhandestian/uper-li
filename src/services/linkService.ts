@@ -2,7 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
 import crypto from 'node:crypto'
 import bcrypt from 'bcryptjs'
-import { Prisma, Link } from '@prisma/client'
+import { Prisma, Link, User } from '@prisma/client'
+import { getCurrentMonthString } from '@/lib/dateUtils'
 
 const RESERVED_PATHS = new Set([
     'dashboard',
@@ -127,7 +128,23 @@ export class LinkService {
                 throw new Error('User tidak ditemukan.')
             }
 
-            this.checkUserLimits(user)
+            // Lazy monthly reset
+            const currentMonth = getCurrentMonthString()
+            let updatedUser: User = user
+
+            if (user.currentMonth !== currentMonth) {
+                updatedUser = await tx.user.update({
+                    where: { id: userId },
+                    data: {
+                        monthlyLinksCreated: 0,
+                        currentMonth: currentMonth,
+                        lastReset: new Date(),
+                        updatedAt: new Date()
+                    }
+                })
+            }
+
+            this.checkUserLimits(updatedUser)
 
             const shortUrl = await this.generateShortUrl(tx, customUrl)
 

@@ -5,6 +5,7 @@ import { GET as getProfile, PATCH as updateProfile } from '../user/profile/route
 import { POST as changePassword } from '../user/change-password/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentMonthString } from '@/lib/dateUtils'
 import bcrypt from 'bcryptjs'
 import { sendEmail } from '@/lib/email'
 import { TEST_HASHED_PASSWORD, TEST_NEW_HASHED_PASSWORD, TEST_PASSWORD, TEST_TOO_SHORT_PASSWORD } from '@/__tests__/test-constants'
@@ -25,6 +26,10 @@ jest.mock('@/lib/prisma', () => ({
             update: jest.fn(),
         },
     },
+}))
+
+jest.mock('@/lib/dateUtils', () => ({
+    getCurrentMonthString: jest.fn().mockReturnValue('2026-02'),
 }))
 
 jest.mock('bcryptjs', () => ({
@@ -67,7 +72,7 @@ describe('/api/user', () => {
             })
 
             it('should return user profile', async () => {
-                const mockUser = { id: 'user-123', email: 'test@example.com' }
+                const mockUser = { id: 'user-123', email: 'test@example.com', currentMonth: '2026-02' }
                     ; (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser)
 
                 const req = new NextRequest('http://localhost/api/user/profile')

@@ -5,6 +5,7 @@ import { GET as GET_PROFILE, PATCH as PATCH_PROFILE } from '../user/profile/rout
 import { POST as CHANGE_PASSWORD } from '../user/change-password/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { getCurrentMonthString } from '@/lib/dateUtils'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'
 import { TEST_HASHED_PASSWORD, TEST_NEW_HASHED_PASSWORD, TEST_PASSWORD, TEST_WRONG_PASSWORD } from '@/__tests__/test-constants'
@@ -21,6 +22,9 @@ jest.mock('@/lib/prisma', () => ({
             update: jest.fn(),
         },
     },
+}))
+jest.mock('@/lib/dateUtils', () => ({
+    getCurrentMonthString: jest.fn(),
 }))
 
 jest.mock('bcryptjs', () => ({
@@ -51,14 +55,15 @@ describe('User API', () => {
         it('should return user profile', async () => {
             (getServerSession as jest.Mock).mockResolvedValue({ user: { id: 'user-1' } })
                 ; (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-                    id: 'user-1', email: 'test@example.com'
+                    id: 'user-1', email: 'test@example.com', currentMonth: '2026-02'
                 })
+                ; (getCurrentMonthString as jest.Mock).mockReturnValue('2026-02')
 
             const req = new NextRequest('http://localhost/api/user/profile')
             const res = await GET_PROFILE(req)
 
             expect(res.status).toBe(200)
-            expect(await res.json()).toEqual({ id: 'user-1', email: 'test@example.com' })
+            expect(await res.json()).toEqual({ id: 'user-1', email: 'test@example.com', currentMonth: '2026-02' })
         })
 
         it('should return 401 if not authenticated', async () => {

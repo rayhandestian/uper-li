@@ -23,6 +23,7 @@ export interface MockUser {
     password?: string
     monthlyLinksCreated?: number
     totalLinks?: number
+    currentMonth?: string | null
 }
 
 export interface MockLink {
@@ -116,6 +117,9 @@ export const createMockUser = (overrides?: Partial<MockUser>): MockUser => ({
     emailVerified: new Date(),
     twoFactorEnabled: false,
     password: TEST_HASHED_PASSWORD,
+    monthlyLinksCreated: 0,
+    totalLinks: 0,
+    currentMonth: '2026-02',
     ...overrides,
 })
 

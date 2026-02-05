@@ -5,6 +5,7 @@ import { GET, POST } from '../links/route'
 import { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { checkUrlSafety } from '@/lib/safeBrowsing'
+import { getCurrentMonthString } from '@/lib/dateUtils'
 import { TEST_PASSWORD, TEST_TOO_SHORT_PASSWORD } from '@/__tests__/test-constants'
 
 // Mock dependencies
@@ -38,6 +39,10 @@ jest.mock('@/lib/safeBrowsing', () => ({
 
 jest.mock('@/lib/rateLimit', () => ({
     withRateLimit: jest.fn((handler) => handler),
+}))
+
+jest.mock('@/lib/dateUtils', () => ({
+    getCurrentMonthString: jest.fn().mockReturnValue('2026-02'),
 }))
 
 // Import getServerSession after mocking
@@ -129,6 +134,7 @@ describe('/api/links', () => {
                     role: 'USER',
                     monthlyLinksCreated: 0,
                     totalLinks: 0,
+                    currentMonth: '2026-02',
                 })
                 ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null) // No collision
                 ; (prisma.link.create as jest.Mock).mockResolvedValue({
@@ -157,6 +163,7 @@ describe('/api/links', () => {
                     role: 'STUDENT',
                     monthlyLinksCreated: 5, // Limit is 5
                     totalLinks: 10,
+                    currentMonth: '2026-02',
                 })
 
             const req = new NextRequest('http://localhost/api/links', {
@@ -177,6 +184,7 @@ describe('/api/links', () => {
                     role: 'STUDENT',
                     monthlyLinksCreated: 0,
                     totalLinks: 100, // Limit is 100 for STUDENT
+                    currentMonth: '2026-02',
                 })
 
             const req = new NextRequest('http://localhost/api/links', {
@@ -218,6 +226,7 @@ describe('/api/links', () => {
                     role: 'USER',
                     monthlyLinksCreated: 0,
                     totalLinks: 0,
+                    currentMonth: '2026-02',
                 })
                 ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null)
                 ; (prisma.link.create as jest.Mock).mockResolvedValue({
@@ -252,6 +261,7 @@ describe('/api/links', () => {
                     role: 'USER',
                     monthlyLinksCreated: 0,
                     totalLinks: 0,
+                    currentMonth: '2026-02',
                 })
 
             const req = new NextRequest('http://localhost/api/links', {
@@ -272,6 +282,7 @@ describe('/api/links', () => {
                     role: 'USER',
                     monthlyLinksCreated: 0,
                     totalLinks: 0,
+                    currentMonth: '2026-02',
                 })
 
             const req = new NextRequest('http://localhost/api/links', {
@@ -292,6 +303,7 @@ describe('/api/links', () => {
                     role: 'USER',
                     monthlyLinksCreated: 0,
                     totalLinks: 0,
+                    currentMonth: '2026-02',
                 })
                 ; (prisma.link.findUnique as jest.Mock).mockResolvedValue({
                     id: 'existing-link',
@@ -316,6 +328,7 @@ describe('/api/links', () => {
                     role: 'USER',
                     monthlyLinksCreated: 0,
                     totalLinks: 0,
+                    currentMonth: '2026-02',
                 })
                 ; (prisma.link.findUnique as jest.Mock).mockResolvedValue(null)
                 ; (prisma.link.create as jest.Mock).mockResolvedValue({
@@ -349,6 +362,7 @@ describe('/api/links', () => {
                     role: 'USER',
                     monthlyLinksCreated: 0,
                     totalLinks: 0,
+                    currentMonth: '2026-02',
                 })
 
             const req = new NextRequest('http://localhost/api/links', {

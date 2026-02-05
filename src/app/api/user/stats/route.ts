@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
+import { getCurrentMonthString } from '@/lib/dateUtils'
 
 export async function GET() {
     try {
@@ -18,6 +19,7 @@ export async function GET() {
             select: {
                 totalLinks: true,
                 monthlyLinksCreated: true,
+                currentMonth: true,
                 role: true,
                 _count: {
                     select: {
@@ -31,6 +33,39 @@ export async function GET() {
 
         if (!user) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 })
+        }
+
+        // Lazy monthly reset
+        const currentMonthString = getCurrentMonthString()
+        if (user.currentMonth !== currentMonthString) {
+            const updatedUser = await prisma.user.update({
+                where: { id: session.user.id },
+                data: {
+                    monthlyLinksCreated: 0,
+                    currentMonth: currentMonthString,
+                    lastReset: new Date(),
+                    updatedAt: new Date()
+                },
+                select: {
+                    totalLinks: true,
+                    monthlyLinksCreated: true,
+                    role: true,
+                    _count: {
+                        select: {
+                            Link: {
+                                where: { active: true }
+                            }
+                        }
+                    }
+                }
+            })
+
+            return NextResponse.json({
+                totalLinks: updatedUser.totalLinks,
+                monthlyLinks: updatedUser.monthlyLinksCreated,
+                role: updatedUser.role,
+                totalActiveLinks: updatedUser._count.Link,
+            })
         }
 
         return NextResponse.json({

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { withRateLimit } from '@/lib/rateLimit'
+import { getCurrentMonthString } from '@/lib/dateUtils'
 
 /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
 export async function GET(request: NextRequest) {
@@ -24,12 +25,39 @@ export async function GET(request: NextRequest) {
       twoFactorEnabled: true,
       monthlyLinksCreated: true,
       totalLinks: true,
+      currentMonth: true,
       createdAt: true
     }
   })
 
   if (!user) {
     return NextResponse.json({ error: 'User tidak ditemukan.' }, { status: 404 })
+  }
+
+  // Lazy monthly reset
+  const currentMonth = getCurrentMonthString()
+  if (user.currentMonth !== currentMonth) {
+    const updatedUser = await prisma.user.update({
+      where: { id: session.user.id },
+      data: {
+        monthlyLinksCreated: 0,
+        currentMonth: currentMonth,
+        lastReset: new Date(),
+        updatedAt: new Date()
+      },
+      select: {
+        id: true,
+        email: true,
+        nimOrUsername: true,
+        role: true,
+        emailVerified: true,
+        twoFactorEnabled: true,
+        monthlyLinksCreated: true,
+        totalLinks: true,
+        createdAt: true
+      }
+    })
+    return NextResponse.json(updatedUser)
   }
 
   return NextResponse.json(user)

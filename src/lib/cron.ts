@@ -26,7 +26,8 @@ export const resetMonthlyLimits = async () => {
 }
 
 export function scheduleMonthlyLimitReset() {
-  cron.schedule('0 0 1 * *', resetMonthlyLimits)
+  // cron.schedule('0 0 1 * *', resetMonthlyLimits)
+  logger.info('Monthly limit reset cron job deactivated (using lazy reset instead)')
 }
 
 export const deactivateExpiredLinks = async () => {

@@ -50,6 +50,7 @@ model User {
   updatedAt                DateTime?              @default(now()) @updatedAt @db.Timestamp(6)
   monthlyLinksCreated      Int?                   @default(0)
   totalLinks               Int?                   @default(0)
+  currentMonth             String?                @default("") @db.VarChar(7) // YYYY-MM
   lastReset                DateTime?              @default(now()) @db.Timestamp(6)
   twoFactorEnabled         Boolean?               @default(false)
   twoFactorSecret          String?

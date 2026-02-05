@@ -58,7 +58,7 @@ describe('cron', () => {
     describe('initializeCronJobs', () => {
         it('should schedule all jobs', () => {
             initializeCronJobs()
-            expect(cron.schedule).toHaveBeenCalledTimes(5) // Updated from 4 to 5
+            expect(cron.schedule).toHaveBeenCalledTimes(4) // Changed from 5 to 4 because monthly reset is deactivated
             expect(logger.info).toHaveBeenCalledWith('Initializing cron jobs...')
         })
     })
